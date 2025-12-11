@@ -42,8 +42,7 @@ GLOBAL-IP/
 └── global-ip-frontend/
 └── Global_IP_Intelligence_Platform_Team_B/ # React front-end application
 
-markdown
-Copy code
+
 
 ---
 
