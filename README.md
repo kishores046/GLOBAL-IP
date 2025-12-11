@@ -223,10 +223,5 @@ Front-end static files can be deployed separately or served via Nginx.
 
 ---
 
-## 📜 License
-This project is private and for academic use under Team B of the Global IP Intelligence Platform.
-
----
-
 ## ✨ Acknowledgements
 Thanks to the development team members and mentors who provided guidance during the project
