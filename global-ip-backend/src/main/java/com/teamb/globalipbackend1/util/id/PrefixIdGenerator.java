@@ -1,6 +1,7 @@
 package com.teamb.globalipbackend1.util.id;
 
 
+import com.teamb.globalipbackend1.auth.entity.RoleRequest;
 import com.teamb.globalipbackend1.model.Role;
 import com.teamb.globalipbackend1.model.User;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -18,6 +19,7 @@ public class PrefixIdGenerator implements IdentifierGenerator {
 
             case User ignored -> "USR";
             case Role ignored -> "RL";
+            case RoleRequest ignored->"RR";
             default -> throw new IllegalStateException(
                     "Prefix not defined for entity: " + object.getClass().getSimpleName()
             );
@@ -27,6 +29,7 @@ public class PrefixIdGenerator implements IdentifierGenerator {
         String idFieldName = switch (object) {
             case User ignored -> "userId";
             case Role ignored -> "roleId";
+            case RoleRequest ignored->"id";
             default -> "id";
         };
 

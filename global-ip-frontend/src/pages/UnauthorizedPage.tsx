@@ -1,10 +1,48 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function UnauthorizedPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, getRole } = useAuth();
+
+  // Get the required roles from location state
+  const requiredRoles = (location.state as any)?.requiredRoles || [];
+  const attemptedPath = (location.state as any)?.attemptedPath || '';
+
+  // Determine the page type from the attempted path
+  const getPageType = () => {
+    if (attemptedPath.includes('/dashboard/admin') || attemptedPath.includes('/admin/')) {
+      return 'Admin Dashboard';
+    } else if (attemptedPath.includes('/dashboard/analyst') || attemptedPath.includes('/analyst/')) {
+      return 'Analyst Dashboard';
+    } else if (attemptedPath.includes('/dashboard/user') || attemptedPath.includes('/user/')) {
+      return 'User Dashboard';
+    }
+    return 'this page';
+  };
+
+  // Get required role display text
+  const getRequiredRoleText = () => {
+    if (requiredRoles.length === 0) return 'specific roles';
+    
+    const roleNames = requiredRoles.map((role: string) => {
+      const upperRole = role.toUpperCase();
+      if (upperRole === 'ADMIN') return 'Administrator';
+      if (upperRole === 'ANALYST') return 'Analyst';
+      if (upperRole === 'USER') return 'User';
+      return role;
+    });
+
+    if (roleNames.length === 1) {
+      return roleNames[0];
+    } else if (roleNames.length === 2) {
+      return `${roleNames[0]} or ${roleNames[1]}`;
+    } else {
+      return `${roleNames.slice(0, -1).join(', ')}, or ${roleNames[roleNames.length - 1]}`;
+    }
+  };
 
   const handleGoBack = () => {
     navigate(-1);
@@ -41,10 +79,10 @@ export function UnauthorizedPage() {
 
           {/* Message */}
           <p className="text-lg text-slate-700 mb-2">
-            You don't have permission to access this page.
+            You don't have permission to access {getPageType()}.
           </p>
           <p className="text-slate-600 mb-8">
-            This area is restricted to users with specific roles.
+            This area is restricted to users with <span className="font-semibold text-red-700">{getRequiredRoleText()}</span> role.
           </p>
 
           {/* User Info */}

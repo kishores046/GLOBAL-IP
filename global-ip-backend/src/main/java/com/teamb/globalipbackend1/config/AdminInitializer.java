@@ -46,7 +46,7 @@ public class AdminInitializer {
             );
 
             userRepository.save(admin);
-            System.out.println("🔥 Admin user created → admin@gip.com / admin123");
+            System.out.println("============Admin user created → admin@gip.com / admin123==============");
         };
     }
 }
