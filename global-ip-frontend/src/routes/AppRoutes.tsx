@@ -16,6 +16,7 @@ const UnauthorizedPage = lazy(() => import('../pages/UnauthorizedPage').then(m =
 
 // User Pages
 const UserDashboard = lazy(() => import('../pages/UserDashboard').then(m => ({ default: m.UserDashboard })));
+const RequestAdminPage = lazy(() => import('../pages/RequestAdminPage').then(m => ({ default: m.RequestAdminPage })));
 const FilingTrackerPage = lazy(() => import('../pages/FilingTrackerPage').then(m => ({ default: m.FilingTrackerPage })));
 const PortfolioTrackerPage = lazy(() => import('../pages/PortfolioTrackerPage').then(m => ({ default: m.PortfolioTrackerPage })));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage').then(m => ({ default: m.SubscriptionsPage })));
@@ -32,6 +33,7 @@ const ExportToolsPage = lazy(() => import('../pages/ExportToolsPage').then(m => 
 // Admin Pages
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const AdminUserManagementPage = lazy(() => import('../pages/AdminUserManagementPage').then(m => ({ default: m.AdminUserManagementPage })));
+const AdminRoleRequestsPage = lazy(() => import('../pages/AdminRoleRequestsPage').then(m => ({ default: m.AdminRoleRequestsPage })));
 const AdminAPIHealthPage = lazy(() => import('../pages/AdminAPIHealthPage').then(m => ({ default: m.AdminAPIHealthPage })));
 const AdminAPIKeySettingsPage = lazy(() => import('../pages/AdminAPIKeySettingsPage').then(m => ({ default: m.AdminAPIKeySettingsPage })));
 const AdminUsageLogsPage = lazy(() => import('../pages/AdminUsageLogsPage').then(m => ({ default: m.AdminUsageLogsPage })));
@@ -72,6 +74,10 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.USER_MANAGEMENT} 
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminUserManagementPage />} />} 
+        />
+        <Route 
+          path={ROUTES.ROLE_REQUESTS} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminRoleRequestsPage />} />} 
         />
         <Route 
           path={ROUTES.API_HEALTH} 
@@ -120,6 +126,10 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.USER_DASHBOARD} 
           element={<RoleRoute roles={[ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]} element={<UserDashboard />} />} 
+        />
+        <Route 
+          path={ROUTES.REQUEST_ADMIN} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<RequestAdminPage />} />} 
         />
         <Route 
           path={ROUTES.FILING_TRACKER} 

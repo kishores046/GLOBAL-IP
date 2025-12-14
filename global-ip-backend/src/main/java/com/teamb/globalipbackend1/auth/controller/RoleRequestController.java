@@ -3,6 +3,7 @@ package com.teamb.globalipbackend1.auth.controller;
 import java.util.List;
 import java.util.Objects;
 
+import com.teamb.globalipbackend1.auth.dto.RoleRequestAdminViewDto;
 import com.teamb.globalipbackend1.security.MyUserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,14 +32,13 @@ public class RoleRequestController {
         return new ApiResponse("Admin role request submitted");
     }
 
-    // ADMIN → view pending
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<RoleRequest> pendingRequests() {
+    public List<RoleRequestAdminViewDto> pendingRequests() {
         return roleRequestService.getPendingRequests();
     }
 
-    // ADMIN → approve
+
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse approve(@PathVariable String id, Authentication auth) {
