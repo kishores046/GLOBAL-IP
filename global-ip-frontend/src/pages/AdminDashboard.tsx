@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 import { Users, Activity, Database, Clock, Shield, Key, RefreshCw, Edit, Trash2, Plus, AlertCircle, CheckCircle, XCircle, Filter, UserCog, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,11 +18,11 @@ export function AdminDashboard() {
   ];
 
   const systemLogs = [
-    { timestamp: "2024-12-10 14:32:15", level: "INFO", message: "User login successful: john.smith@company.com" },
-    { timestamp: "2024-12-10 14:28:42", level: "WARN", message: "API rate limit approaching for key: prod-key-***345" },
-    { timestamp: "2024-12-10 14:15:08", level: "ERROR", message: "Database connection timeout on replica-2" },
-    { timestamp: "2024-12-10 14:10:33", level: "INFO", message: "Data sync completed successfully" },
-    { timestamp: "2024-12-10 14:05:17", level: "INFO", message: "New user registered: emma.d@company.com" },
+    { id: 1, timestamp: "2024-12-10 14:32:15", level: "INFO", message: "User login successful: john.smith@company.com" },
+    { id: 2, timestamp: "2024-12-10 14:28:42", level: "WARN", message: "API rate limit approaching for key: prod-key-***345" },
+    { id: 3, timestamp: "2024-12-10 14:15:08", level: "ERROR", message: "Database connection timeout on replica-2" },
+    { id: 4, timestamp: "2024-12-10 14:10:33", level: "INFO", message: "Data sync completed successfully" },
+    { id: 5, timestamp: "2024-12-10 14:05:17", level: "INFO", message: "New user registered: emma.d@company.com" },
   ];
 
   const apiKeys = [
@@ -49,7 +49,7 @@ export function AdminDashboard() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -314,9 +314,9 @@ export function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredLogs.map((log, index) => (
+                        {filteredLogs.map((log) => (
                           <tr
-                            key={index}
+                            key={log.id}
                             className="border-b border-blue-100 hover:bg-blue-50/50 transition-all"
                           >
                             <td className="py-3 px-4 text-slate-700 text-sm font-mono">{log.timestamp}</td>
@@ -503,8 +503,9 @@ export function AdminDashboard() {
             
             <div className="space-y-4">
               <div>
-                <label className="text-slate-700 mb-2 block">Full Name</label>
+                <label htmlFor="fullName" className="text-slate-700 mb-2 block">Full Name</label>
                 <input
+                  id="fullName"
                   type="text"
                   placeholder="John Smith"
                   className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -512,8 +513,9 @@ export function AdminDashboard() {
               </div>
               
               <div>
-                <label className="text-slate-700 mb-2 block">Email Address</label>
+                <label htmlFor="email" className="text-slate-700 mb-2 block">Email Address</label>
                 <input
+                  id="email"
                   type="email"
                   placeholder="john.smith@company.com"
                   className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -521,8 +523,8 @@ export function AdminDashboard() {
               </div>
               
               <div>
-                <label className="text-slate-700 mb-2 block">Role</label>
-                <select className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
+                <label htmlFor="role" className="text-slate-700 mb-2 block">Role</label>
+                <select id="role" className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
                   <option value="user">User</option>
                   <option value="analyst">Analyst</option>
                   <option value="admin">Admin</option>
@@ -558,8 +560,9 @@ export function AdminDashboard() {
             
             <div className="space-y-4">
               <div>
-                <label className="text-slate-700 mb-2 block">Key Name</label>
+                <label htmlFor="keyName" className="text-slate-700 mb-2 block">Key Name</label>
                 <input
+                  id="keyName"
                   type="text"
                   placeholder="Production API Key"
                   className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -567,8 +570,8 @@ export function AdminDashboard() {
               </div>
               
               <div>
-                <label className="text-slate-700 mb-2 block">Environment</label>
-                <select className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
+                <label htmlFor="environment" className="text-slate-700 mb-2 block">Environment</label>
+                <select id="environment" className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
                   <option value="production">Production</option>
                   <option value="development">Development</option>
                   <option value="staging">Staging</option>

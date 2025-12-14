@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Shield, CheckCircle, XCircle, Clock, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import roleRequestService, { RoleRequestAdminView } from '../services/roleRequestService';
+import { DashboardHeader } from "../components/dashboard/DashboardHeader";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 
 export function AdminRoleRequestsPage() {
   const [requests, setRequests] = useState<RoleRequestAdminView[]>([]);
@@ -98,11 +100,148 @@ export function AdminRoleRequestsPage() {
     });
   };
 
+  const contentDisplay = useMemo(() => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+            <p className="text-slate-600">Loading pending requests...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (requests.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-6">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <Shield className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-slate-700 mb-2">No Pending Requests</h3>
+          <p className="text-slate-500 text-center max-w-md">
+            There are currently no pending role requests to review. New requests will appear here automatically.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Request ID</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Username</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Email</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested Role</th>
+              <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested At</th>
+              <th className="text-center py-4 px-6 text-sm font-semibold text-slate-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {requests.map((request) => (
+              <tr key={request.requestId} className="hover:bg-slate-50 transition-colors">
+                <td className="py-4 px-6">
+                  <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-700 font-mono">
+                    #{request.requestId}
+                  </code>
+                </td>
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-700 font-semibold text-sm">
+                        {request.username.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="font-medium text-slate-900">{request.username}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6">
+                  <span className="text-slate-700">{request.email}</span>
+                </td>
+                <td className="py-4 px-6">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                    <Shield className="w-3.5 h-3.5" />
+                    {request.requestedRole.replace('ROLE_', '')}
+                  </span>
+                </td>
+                <td className="py-4 px-6 text-sm text-slate-600">
+                  {formatDate(request.requestedAt)}
+                </td>
+                <td className="py-4 px-6">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => handleApprove(request.requestId)}
+                      disabled={actionLoading === request.requestId}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      title="Approve"
+                    >
+                      {actionLoading === request.requestId ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4" />
+                      )}
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(request.requestId)}
+                      disabled={actionLoading === request.requestId}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      title="Reject"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleWaitlist(request.requestId)}
+                      disabled={actionLoading === request.requestId}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      title="Waitlist"
+                    >
+                      <Clock className="w-4 h-4" />
+                      Waitlist
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }, [isLoading, requests, actionLoading]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-6 md:p-8 mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
+      <DashboardHeader userName="Admin" />
+      
+      <div className="flex">
+        <AdminSidebar />
+        
+        {/* Main Content */}
+        <main className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-7xl mx-auto space-y-8">
+            {/* Page Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl text-blue-900 mb-2">Role-Based Access Control</h1>
+                  <p className="text-slate-600">Review and manage pending admin access requests</p>
+                </div>
+                <button
+                  onClick={fetchPendingRequests}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
@@ -126,118 +265,20 @@ export function AdminRoleRequestsPage() {
 
         {/* Content */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-                <p className="text-slate-600">Loading pending requests...</p>
-              </div>
-            </div>
-          ) : requests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-700 mb-2">No Pending Requests</h3>
-              <p className="text-slate-500 text-center max-w-md">
-                There are currently no pending role requests to review. New requests will appear here automatically.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Request ID</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Username</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Email</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested Role</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested At</th>
-                    <th className="text-center py-4 px-6 text-sm font-semibold text-slate-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {requests.map((request) => (
-                    <tr key={request.requestId} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-6">
-                        <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-700 font-mono">
-                          #{request.requestId}
-                        </code>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-700 font-semibold text-sm">
-                              {request.username.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <span className="font-medium text-slate-900">{request.username}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-slate-700">{request.email}</span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
-                          <Shield className="w-3.5 h-3.5" />
-                          {request.requestedRole.replace('ROLE_', '')}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-slate-600">
-                        {formatDate(request.requestedAt)}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleApprove(request.requestId)}
-                            disabled={actionLoading === request.requestId}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            title="Approve"
-                          >
-                            {actionLoading === request.requestId ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <CheckCircle className="w-4 h-4" />
-                            )}
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(request.requestId)}
-                            disabled={actionLoading === request.requestId}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            title="Reject"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleWaitlist(request.requestId)}
-                            disabled={actionLoading === request.requestId}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            title="Waitlist"
-                          >
-                            <Clock className="w-4 h-4" />
-                            Waitlist
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {contentDisplay}
         </div>
 
-        {/* Info Box */}
-        {requests.length > 0 && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-slate-700">
-              <strong>Note:</strong> Approving a request will grant the user admin privileges immediately. 
-              Rejected requests will be removed from this list. Waitlisted requests can be reviewed later.
-            </p>
+            {/* Info Box */}
+            {requests.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-slate-700">
+                  <strong>Note:</strong> Approving a request will grant the user admin privileges immediately. 
+                  Rejected requests will be removed from this list. Waitlisted requests can be reviewed later.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </main>
       </div>
     </div>
   );

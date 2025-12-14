@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { RoleRoute } from '../components/RoleRoute';
+import { RequireRole } from '../components/RequireRole';
 import { ROUTES, ROLES } from './routeConfig';
 
 // Lazy load pages for better performance

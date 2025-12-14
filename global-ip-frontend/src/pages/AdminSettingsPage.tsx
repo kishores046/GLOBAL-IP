@@ -1,6 +1,6 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
-import { User, Bell, Palette, Shield, Mail } from "lucide-react";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
+import { User, Bell, Palette, Shield } from "lucide-react";
 
 export function AdminSettingsPage() {
   return (
@@ -8,7 +8,7 @@ export function AdminSettingsPage() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -29,8 +29,9 @@ export function AdminSettingsPage() {
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-slate-700 mb-2 block">Full Name</label>
+                    <label htmlFor="fullName" className="text-slate-700 mb-2 block">Full Name</label>
                     <input
+                      id="fullName"
                       type="text"
                       defaultValue="Admin User"
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -38,8 +39,9 @@ export function AdminSettingsPage() {
                   </div>
                   
                   <div>
-                    <label className="text-slate-700 mb-2 block">Email Address</label>
+                    <label htmlFor="email" className="text-slate-700 mb-2 block">Email Address</label>
                     <input
+                      id="email"
                       type="email"
                       defaultValue="admin@gmail.com"
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -49,8 +51,9 @@ export function AdminSettingsPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-slate-700 mb-2 block">Job Title</label>
+                    <label htmlFor="jobTitle" className="text-slate-700 mb-2 block">Job Title</label>
                     <input
+                      id="jobTitle"
                       type="text"
                       defaultValue="System Administrator"
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -58,8 +61,9 @@ export function AdminSettingsPage() {
                   </div>
                   
                   <div>
-                    <label className="text-slate-700 mb-2 block">Phone Number</label>
+                    <label htmlFor="phoneNumber" className="text-slate-700 mb-2 block">Phone Number</label>
                     <input
+                      id="phoneNumber"
                       type="tel"
                       defaultValue="+1 (555) 123-4567"
                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -86,8 +90,8 @@ export function AdminSettingsPage() {
                     <div className="text-slate-900 mb-1">Email Notifications</div>
                     <div className="text-sm text-slate-600">Receive email alerts for important events</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                  <label htmlFor="emailNotifications" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle email notifications">
+                    <input id="emailNotifications" type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -97,8 +101,8 @@ export function AdminSettingsPage() {
                     <div className="text-slate-900 mb-1">System Alerts</div>
                     <div className="text-sm text-slate-600">Notify about system errors and failures</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                  <label htmlFor="systemAlerts" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle system alerts">
+                    <input id="systemAlerts" type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -108,8 +112,8 @@ export function AdminSettingsPage() {
                     <div className="text-slate-900 mb-1">API Health Alerts</div>
                     <div className="text-sm text-slate-600">Get notified when APIs go down</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                  <label htmlFor="apiHealthAlerts" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle API health alerts">
+                    <input id="apiHealthAlerts" type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -119,19 +123,19 @@ export function AdminSettingsPage() {
                     <div className="text-slate-900 mb-1">User Activity Alerts</div>
                     <div className="text-sm text-slate-600">Notify about new user registrations</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                  <label htmlFor="userActivityAlerts" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle user activity alerts">
+                    <input id="userActivityAlerts" type="checkbox" className="sr-only peer" />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg">
-                  <div>
+                  <label htmlFor="weeklyReports" className="flex-1">
                     <div className="text-slate-900 mb-1">Weekly Reports</div>
                     <div className="text-sm text-slate-600">Receive weekly activity summary</div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                  </label>
+                  <label htmlFor="weeklyReports" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle weekly reports">
+                    <input id="weeklyReports" type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
@@ -147,11 +151,11 @@ export function AdminSettingsPage() {
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg">
-                  <div>
+                  <label htmlFor="themeMode" className="flex-1">
                     <div className="text-slate-900 mb-1">Theme Mode</div>
                     <div className="text-sm text-slate-600">Choose your preferred interface theme</div>
-                  </div>
-                  <select className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
+                  </label>
+                  <select id="themeMode" className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
                     <option value="light">Light Mode</option>
                     <option value="dark">Dark Mode</option>
                     <option value="auto">Auto (System)</option>
@@ -159,11 +163,11 @@ export function AdminSettingsPage() {
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg">
-                  <div>
+                  <label htmlFor="language" className="flex-1">
                     <div className="text-slate-900 mb-1">Language</div>
                     <div className="text-sm text-slate-600">Select interface language</div>
-                  </div>
-                  <select className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
+                  </label>
+                  <select id="language" className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
                     <option value="en">English</option>
                     <option value="es">Español</option>
                     <option value="fr">Français</option>
@@ -172,11 +176,11 @@ export function AdminSettingsPage() {
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-lg">
-                  <div>
+                  <label htmlFor="timezone" className="flex-1">
                     <div className="text-slate-900 mb-1">Timezone</div>
                     <div className="text-sm text-slate-600">Set your local timezone</div>
-                  </div>
-                  <select className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
+                  </label>
+                  <select id="timezone" className="px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
                     <option value="UTC">UTC</option>
                     <option value="EST">Eastern (EST)</option>
                     <option value="CST">Central (CST)</option>
@@ -199,8 +203,9 @@ export function AdminSettingsPage() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-slate-700 mb-2 block">Current Password</label>
+                  <label htmlFor="currentPassword" className="text-slate-700 mb-2 block">Current Password</label>
                   <input
+                    id="currentPassword"
                     type="password"
                     placeholder="Enter current password"
                     className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -208,8 +213,9 @@ export function AdminSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-slate-700 mb-2 block">New Password</label>
+                  <label htmlFor="newPassword" className="text-slate-700 mb-2 block">New Password</label>
                   <input
+                    id="newPassword"
                     type="password"
                     placeholder="Enter new password"
                     className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -217,8 +223,9 @@ export function AdminSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-slate-700 mb-2 block">Confirm New Password</label>
+                  <label htmlFor="confirmPassword" className="text-slate-700 mb-2 block">Confirm New Password</label>
                   <input
+                    id="confirmPassword"
                     type="password"
                     placeholder="Confirm new password"
                     className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -230,8 +237,8 @@ export function AdminSettingsPage() {
                     <div className="text-slate-900 mb-1">Two-Factor Authentication</div>
                     <div className="text-sm text-slate-600">Add an extra layer of security</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                  <label htmlFor="twoFactorAuth" className="relative inline-flex items-center cursor-pointer" aria-label="Toggle two-factor authentication">
+                    <input id="twoFactorAuth" type="checkbox" className="sr-only peer" />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>

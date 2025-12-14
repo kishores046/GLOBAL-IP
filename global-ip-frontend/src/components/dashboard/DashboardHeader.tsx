@@ -1,10 +1,10 @@
-import { Bell, ChevronDown, User } from "lucide-react";
-import { Globe } from "lucide-react";
+import { Bell, ChevronDown, User, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
+import { DashboardSwitcher } from "../DashboardSwitcher";
 
 interface DashboardHeaderProps {
-  userName: string;
+  readonly userName: string;
 }
 
 export function DashboardHeader({ userName }: DashboardHeaderProps) {
@@ -13,9 +13,6 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  const userRole = location.pathname.includes("analyst") ? "analyst" : location.pathname.includes("admin") ? "admin" : "user";
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -30,11 +27,6 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleProfileClick = () => {
-    setShowDropdown(false);
-    navigate(`/profile/${userRole}`);
-  };
 
   const handleSettingsClick = () => {
     setShowDropdown(false);
@@ -70,7 +62,10 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
+          {/* Dashboard Switcher */}
+          <DashboardSwitcher />
+
           {/* Welcome Message */}
           <div className="hidden md:block text-slate-600">
             Welcome, <span className="text-blue-900">{userName}</span>
@@ -126,15 +121,15 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
 
           {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
-            <div 
+            <button 
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded-lg transition-all cursor-pointer border border-slate-200"
+              className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded-lg transition-all cursor-pointer border border-slate-200 bg-white"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <User className="w-5 h-5 text-white" />
               </div>
               <ChevronDown className={`w-4 h-4 text-slate-600 transition-all ${showDropdown ? 'rotate-180' : ''}`} />
-            </div>
+            </button>
 
             {/* Dropdown Menu */}
             {showDropdown && (

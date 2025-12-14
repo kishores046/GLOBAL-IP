@@ -3,12 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 interface RoleRouteProps {
-  roles: string[];
-  element: React.ReactElement;
+  readonly roles: string[];
+  readonly element: React.ReactElement;
 }
 
 export function RoleRoute({ roles, element }: RoleRouteProps) {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated, hasRole } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -43,6 +43,12 @@ export function RoleRoute({ roles, element }: RoleRouteProps) {
     allowedRoles,
     hasRequiredRole
   });
+  
+  // Special case: If accessing /request-admin and user has ADMIN role, redirect to admin dashboard
+  if (location.pathname === '/request-admin' && hasRole('ADMIN')) {
+    console.log('RoleRoute: User already has admin role, redirecting to admin dashboard');
+    return <Navigate to="/dashboard/admin" replace />;
+  }
   
   if (userRoles.length === 0 || !hasRequiredRole) {
     console.log('RoleRoute: Access denied, redirecting to /unauthorized');
