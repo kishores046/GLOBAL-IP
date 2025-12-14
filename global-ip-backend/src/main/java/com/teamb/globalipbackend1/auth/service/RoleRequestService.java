@@ -3,6 +3,8 @@ package com.teamb.globalipbackend1.auth.service;
 
 import java.util.List;
 import java.util.Set;
+
+import com.teamb.globalipbackend1.auth.dto.RoleRequestAdminViewDto;
 import com.teamb.globalipbackend1.model.Role;
 import com.teamb.globalipbackend1.repository.RoleRepository;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,6 @@ public class RoleRequestService {
         this.roleRepository = roleRepository;
     }
 
-    // USER → Request admin role
     public void requestAdminRole(String userId) {
         boolean alreadyPending =
                 roleRequestRepo.existsByUserIdAndStatus(userId, RoleRequestStatus.PENDING);
@@ -41,9 +42,28 @@ public class RoleRequestService {
         roleRequestRepo.save(request);
     }
 
-    // ADMIN → View pending requests
-    public List<RoleRequest> getPendingRequests() {
-        return roleRequestRepo.findByStatus(RoleRequestStatus.PENDING);
+
+    public List<RoleRequestAdminViewDto> getPendingRequests() {
+
+        List<RoleRequest> requests =
+                roleRequestRepo.findByStatus(RoleRequestStatus.PENDING);
+
+        return requests.stream()
+                .map(req -> {
+                    User user = userRepo.findById(req.getUserId())
+                            .orElseThrow(() ->
+                                    new RuntimeException("User not found for role request"));
+
+                    return new RoleRequestAdminViewDto(
+                            req.getId(),
+                            user.getUserId(),
+                            user.getUsername(),
+                            user.getEmail(),
+                            req.getRequestedRole(),
+                            req.getRequestedAt()
+                    );
+                })
+                .toList();
     }
 
     // ADMIN → Approve

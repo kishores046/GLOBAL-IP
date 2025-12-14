@@ -5,8 +5,9 @@ import { TrendChart } from "../components/dashboard/TrendChart";
 import { GlobalHeatmap } from "../components/dashboard/GlobalHeatmap";
 import { RecentAlerts } from "../components/dashboard/RecentAlerts";
 import { RecommendedAssets } from "../components/dashboard/RecommendedAssets";
-import { FileText, Award, TrendingUp, Bell, Search, Filter, Eye, Plus, X } from "lucide-react";
+import { FileText, Award, TrendingUp, Bell, Search, Filter, Eye, Plus, X, Shield, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 
 interface SearchResult {
@@ -53,6 +54,7 @@ const legalMilestones = [
 ];
 
 export function UserDashboard() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -207,6 +209,28 @@ export function UserDashboard() {
                 gradient="from-blue-500 to-blue-600"
                 delay={300}
               />
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 border border-blue-400 shadow-xl text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-1">Need Admin Access?</h3>
+                    <p className="text-blue-100">Request elevated permissions to access advanced features</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/request-admin')}
+                  className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-blue-50 text-blue-600 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  Request Admin Access
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Search Results Preview */}

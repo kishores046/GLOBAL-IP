@@ -1,9 +1,11 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
-import { Users, Activity, Database, Clock, Shield, Key, RefreshCw, Edit, Trash2, Plus, AlertCircle, CheckCircle, XCircle, Filter } from "lucide-react";
+import { Users, Activity, Database, Clock, Shield, Key, RefreshCw, Edit, Trash2, Plus, AlertCircle, CheckCircle, XCircle, Filter, UserCog, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const [selectedLogLevel, setSelectedLogLevel] = useState("all");
   const [showUserModal, setShowUserModal] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -102,6 +104,28 @@ export function AdminDashboard() {
                 </div>
                 <div className="text-4xl text-blue-900 mb-2">2m</div>
                 <div className="text-slate-600">Last System Sync</div>
+              </div>
+            </div>
+
+            {/* Role Requests Quick Access */}
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 border border-purple-400 shadow-xl text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <UserCog className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-1">Pending Role Requests</h3>
+                    <p className="text-purple-100">Review and manage admin access requests from users</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/admin/role-requests')}
+                  className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-purple-50 text-purple-600 rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                >
+                  Manage Requests
+                  <ArrowRight className="w-5 h-5" />
+                </button>
               </div>
             </div>
 

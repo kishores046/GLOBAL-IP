@@ -10,6 +10,7 @@ export const ROUTES = {
   
   // User routes
   USER_DASHBOARD: '/dashboard/user',
+  REQUEST_ADMIN: '/request-admin',
   FILING_TRACKER: '/user/filing-tracker',
   PORTFOLIO_TRACKER: '/user/portfolio-tracker',
   SUBSCRIPTIONS: '/user/subscriptions',
@@ -26,6 +27,7 @@ export const ROUTES = {
   // Admin routes
   ADMIN_DASHBOARD: '/dashboard/admin',
   USER_MANAGEMENT: '/admin/user-management',
+  ROLE_REQUESTS: '/admin/role-requests',
   API_HEALTH: '/admin/api-health',
   API_KEYS: '/admin/api-keys',
   USAGE_LOGS: '/admin/usage-logs',
