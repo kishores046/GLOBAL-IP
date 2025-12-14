@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 import { Eye, EyeOff, Settings, Edit2 } from "lucide-react";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ export function AdminAPIKeySettingsPage() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -38,9 +38,10 @@ export function AdminAPIKeySettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">API Key</label>
+                      <label htmlFor="wipo-api-key" className="text-slate-700 mb-2 block text-sm">API Key</label>
                       <div className="relative">
                         <input
+                          id="wipo-api-key"
                           type={showAPIKeys ? "text" : "password"}
                           defaultValue="wipo_live_key_a8f4d2e9c1b7f6e3d8a5c2b9f7e4d1a8"
                           className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 pr-10"
@@ -54,8 +55,9 @@ export function AdminAPIKeySettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
+                      <label htmlFor="wipo-endpoint-url" className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
                       <input
+                        id="wipo-endpoint-url"
                         type="text"
                         defaultValue="https://api.wipo.int/v1"
                         className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -77,9 +79,10 @@ export function AdminAPIKeySettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">API Key</label>
+                      <label htmlFor="uspto-api-key" className="text-slate-700 mb-2 block text-sm">API Key</label>
                       <div className="relative">
                         <input
+                          id="uspto-api-key"
                           type={showAPIKeys ? "text" : "password"}
                           defaultValue="uspto_live_key_b9e5c3d1a7f4e2b8c6d9a5f3e1b7c4d2"
                           className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 pr-10"
@@ -93,8 +96,9 @@ export function AdminAPIKeySettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
+                      <label htmlFor="uspto-endpoint-url" className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
                       <input
+                        id="uspto-endpoint-url"
                         type="text"
                         defaultValue="https://api.uspto.gov/v2"
                         className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -116,9 +120,10 @@ export function AdminAPIKeySettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">API Key</label>
+                      <label htmlFor="epo-api-key" className="text-slate-700 mb-2 block text-sm">API Key</label>
                       <div className="relative">
                         <input
+                          id="epo-api-key"
                           type={showAPIKeys ? "text" : "password"}
                           defaultValue="epo_live_key_c7d4e2a9b6f3c1e8d5a2f9b7c4e1d8a6"
                           className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 pr-10"
@@ -132,8 +137,9 @@ export function AdminAPIKeySettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
+                      <label htmlFor="epo-endpoint-url" className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
                       <input
+                        id="epo-endpoint-url"
                         type="text"
                         defaultValue="https://ops.epo.org/3.2"
                         className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -155,9 +161,10 @@ export function AdminAPIKeySettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">API Key</label>
+                      <label htmlFor="tmview-api-key" className="text-slate-700 mb-2 block text-sm">API Key</label>
                       <div className="relative">
                         <input
+                          id="tmview-api-key"
                           type={showAPIKeys ? "text" : "password"}
                           defaultValue="tmview_live_key_d8e5c2a9f7b4d1c8e6a3f9b7d4c1e8a5"
                           className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 pr-10"
@@ -171,8 +178,9 @@ export function AdminAPIKeySettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
+                      <label htmlFor="tmview-endpoint-url" className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
                       <input
+                        id="tmview-endpoint-url"
                         type="text"
                         defaultValue="https://www.tmdn.org/tmview/api"
                         className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
@@ -194,9 +202,10 @@ export function AdminAPIKeySettingsPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">API Key</label>
+                      <label htmlFor="opencorp-api-key" className="text-slate-700 mb-2 block text-sm">API Key</label>
                       <div className="relative">
                         <input
+                          id="opencorp-api-key"
                           type={showAPIKeys ? "text" : "password"}
                           defaultValue="opencorp_live_key_e9f6d3b1a8c5e2f9d7b4a1c8f6d3e9b7"
                           className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 pr-10"
@@ -210,8 +219,9 @@ export function AdminAPIKeySettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
+                      <label htmlFor="opencorp-endpoint-url" className="text-slate-700 mb-2 block text-sm">Endpoint URL</label>
                       <input
+                        id="opencorp-endpoint-url"
                         type="text"
                         defaultValue="https://api.opencorporates.com/v0.4"
                         className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"

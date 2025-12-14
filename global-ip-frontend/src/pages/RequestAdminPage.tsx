@@ -1,15 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import roleRequestService from '../services/roleRequestService';
 import { useAuth } from '../context/AuthContext';
+import { ROLES } from '../routes/routeConfig';
 
 export function RequestAdminPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Redirect if user already has admin role
+  useEffect(() => {
+    if (hasRole(ROLES.ADMIN)) {
+      toast.info('You already have admin access');
+      navigate('/dashboard/admin', { replace: true });
+    }
+  }, [hasRole, navigate]);
 
   const handleRequestAdmin = async () => {
     setIsLoading(true);

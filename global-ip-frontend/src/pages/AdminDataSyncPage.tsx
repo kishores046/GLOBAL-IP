@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 import { RefreshCw, Database, CheckCircle, XCircle, Clock } from "lucide-react";
 
 interface SyncJob {
@@ -23,19 +23,6 @@ const syncHistory: SyncJob[] = [
 ];
 
 export function AdminDataSyncPage() {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-500";
-      case "failed":
-        return "bg-red-500";
-      case "running":
-        return "bg-blue-500";
-      default:
-        return "bg-slate-400";
-    }
-  };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -67,7 +54,7 @@ export function AdminDataSyncPage() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -173,7 +160,7 @@ export function AdminDataSyncPage() {
                     <div className="text-slate-900 mb-1">Auto-sync Enabled</div>
                     <div className="text-sm text-slate-600">Automatically sync data every 2 hours</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer" aria-label="Auto-sync Enabled">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
@@ -199,7 +186,7 @@ export function AdminDataSyncPage() {
                     <div className="text-slate-900 mb-1">Failure Notifications</div>
                     <div className="text-sm text-slate-600">Send alerts when sync jobs fail</div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer" aria-label="Failure Notifications">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>

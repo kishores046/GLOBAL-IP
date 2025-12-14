@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 
 interface APIStatus {
   name: string;
@@ -49,7 +49,7 @@ export function AdminAPIHealthPage() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -62,9 +62,9 @@ export function AdminAPIHealthPage() {
 
             {/* API Health Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {apiStatusData.map((api, index) => (
+              {apiStatusData.map((api) => (
                 <div
-                  key={index}
+                  key={api.name}
                   className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl"
                 >
                   <div className="flex items-start justify-between mb-4">

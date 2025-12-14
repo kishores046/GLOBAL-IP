@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 import { Search, Filter, Download } from "lucide-react";
 import { useState } from "react";
 
@@ -48,7 +48,7 @@ export function AdminUsageLogsPage() {
       <DashboardHeader userName="Admin" />
       
       <div className="flex">
-        <Sidebar />
+        <AdminSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">

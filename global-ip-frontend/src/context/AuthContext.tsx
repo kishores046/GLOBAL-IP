@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import authService from '../services/authService';
-import { useNavigate } from 'react-router-dom';
 
 interface Role {
   roleId: string;
@@ -27,6 +26,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   getRole: () => string | null;
+  getAllRoles: () => string[];
   hasRole: (roles: string | string[]) => boolean;
   refreshUser: () => Promise<void>;
 }
@@ -100,14 +100,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Get current user role (primary/first role)
   const getRole = (): string | null => {
-    if (!user || !user.roles || user.roles.length === 0) return null;
+    if (!user?.roles?.length) return null;
     const firstRole = user.roles[0];
     return typeof firstRole === 'string' ? firstRole : firstRole?.roleType || null;
   };
 
+  // Get all user roles
+  const getAllRoles = (): string[] => {
+    if (!user?.roles?.length) return [];
+    return user.roles.map(r => 
+      typeof r === 'string' ? r.toUpperCase() : r?.roleType?.toUpperCase()
+    ).filter(Boolean) as unknown as string[];
+  };
+
   // Check if user has specific role(s)
   const hasRole = (roles: string | string[]): boolean => {
-    if (!user || !user.roles || user.roles.length === 0) return false;
+    if (!user?.roles?.length) return false;
     
     // Handle roles as either string array or object array
     const userRoles = user.roles.map(r => 
@@ -127,14 +135,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userData = await authService.getUserProfile();
       setUser({ ...userData, username: userData.username || userData.email });
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      console.error('AuthContext: Failed to refresh user:', error);
       throw error;
     }
   }, []);
 
   const isAuthenticated = !!token && !!user;
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     token,
     isLoading,
@@ -142,9 +150,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     logout,
     getRole,
+    getAllRoles,
     hasRole,
     refreshUser,
-  };
+  }), [user, token, isLoading, isAuthenticated, login, logout, getRole, getAllRoles, hasRole, refreshUser]);
 
   return (
     <AuthContext.Provider value={value}>
