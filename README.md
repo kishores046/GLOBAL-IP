@@ -31,18 +31,17 @@ The platform enables:
 
 GLOBAL-IP/
 │
-├── global-ip-backend/ # Spring Boot Application (REST API)
-│ ├── src/main/java/... # Controllers, services, security, entities
-│ ├── src/main/resources/ # application.yml with profiles
-│ ├── ddl_Role.sql # DB script for roles
-│ ├── ddl_User.sql # DB script for users
-│ ├── .env.example # Environment variables template
-│ └── pom.xml
+├── global-ip-backend/
+│   ├── src/main/java/...
+│   ├── src/main/resources/
+│   ├── ddl_Role.sql
+│   ├── ddl_User.sql
+│   ├── ddl_RoleRequest.sql   
+│   ├── .env.example
+│   └── pom.xml
 │
 └── global-ip-frontend/
-└── Global_IP_Intelligence_Platform_Team_B/ # React front-end application
-
-
+    └── Global_IP_Intelligence_Platform_Team_B/
 
 ---
 
@@ -62,7 +61,29 @@ GLOBAL-IP/
 - ANALYST → advanced search + analytics tools
 - ADMIN → manage users, assign roles
 
-### **3. Database & Profiles**
+### 3. Role Request & Admin Approval Workflow
+
+To ensure security and controlled privilege escalation, the platform follows an **admin-approved role assignment model**.
+
+#### Workflow:
+1. A user registers with a default role (`USER`)
+2. If the user wants elevated access (e.g., `ANALYST`), they submit a **role request**
+3. The request is stored in the database (`role_requests` table) with status `PENDING`
+4. An **ADMIN** reviews the request via the admin dashboard
+5. The admin can:
+   - APPROVE → user role is updated
+   - REJECT → no role change
+6. All actions are audited with timestamps and reviewer details
+
+#### Benefits:
+- Prevents unauthorized role escalation
+- Maintains a clear audit trail
+- Aligns with enterprise security best practices
+- Keeps user registration logic simple and safe
+
+> Note: Direct role assignment during registration is intentionally restricted.
+
+### **4. Database & Profiles**
 Supports:
 - **H2 database** (DEV & TEST)
 - **PostgreSQL** (PROD)
@@ -72,16 +93,16 @@ Spring Profiles:
 - `test` → Automated test environment
 - `prod` → PostgreSQL deployment
 
-### **4. Admin Features**
+### **5. Admin Features**
 - Create & manage user roles
 - Approve/restrict analyst capabilities
 
-### **5. User Features**
+### **6. User Features**
 - Update profile
 - View personal activity
 - Access dashboard
 
-### **6.Analyst Features (Planned for Milestone 2)**
+### **7.Analyst Features (Planned for Milestone 2)**
 
 The following analyst capabilities will be introduced in upcoming milestones:
 
@@ -114,9 +135,6 @@ Copy file:
 
 global-ip-backend/src/.env.example → .env
 
-css
-Copy code
-
 Fill in:
 
 DB_URL_DEV=...
@@ -126,29 +144,19 @@ GOOGLE_CLIENT_SECRET=...
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
 
-markdown
-Copy code
 
 ### **2. Activate DEV mode**
 `application.yml` uses:
 
 spring.profiles.active=dev
 
-markdown
-Copy code
-
 ### **3. Run**
 cd global-ip-backend
 mvn spring-boot:run
 
-yaml
-Copy code
 
 Backend URL:
 http://localhost:8080
-
-yaml
-Copy code
 
 ---
 
@@ -158,32 +166,26 @@ cd global-ip-frontend/Global_IP_Intelligence_Platform_Team_B
 npm install
 npm start
 
-yaml
-Copy code
 
 Frontend URL:
 http://localhost:3000
 
-yaml
-Copy code
 
 ---
 
 ## 🔗 OAuth Redirect URIs
 
 ### Google:
-http://localhost:8080/login/oauth2/code/google
+http://localhost:8080/login/oauth2/authorization/google
 http://localhost:3000/oauth/success
 
-shell
-Copy code
+
 
 ### GitHub:
 http://localhost:8080/login/oauth2/code/github
 http://localhost:3000/oauth/success
 
-yaml
-Copy code
+
 
 ---
 
@@ -200,14 +202,11 @@ Copy code
 ### Backend
 mvn clean package
 
-shell
-Copy code
 
 ### Frontend
 npm run build
 
-yaml
-Copy code
+
 
 Front-end static files can be deployed separately or served via Nginx.
 
