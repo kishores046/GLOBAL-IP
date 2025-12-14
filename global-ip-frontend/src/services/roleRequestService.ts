@@ -1,0 +1,59 @@
+import api from './api';
+
+export interface RoleRequest {
+  id: string;
+  userId: string;
+  requestedRole: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WAITLISTED';
+  requestedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+}
+
+export interface ApiResponse {
+  message: string;
+}
+
+class RoleRequestService {
+  /**
+   * USER: Request admin role
+   */
+  async requestAdminRole(): Promise<ApiResponse> {
+    const response = await api.post<ApiResponse>('/role-requests/admin');
+    return response.data;
+  }
+
+  /**
+   * ADMIN: Get all pending role requests
+   */
+  async getPendingRequests(): Promise<RoleRequest[]> {
+    const response = await api.get<RoleRequest[]>('/role-requests/pending');
+    return response.data;
+  }
+
+  /**
+   * ADMIN: Approve a role request
+   */
+  async approveRequest(requestId: string): Promise<ApiResponse> {
+    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/approve`);
+    return response.data;
+  }
+
+  /**
+   * ADMIN: Reject a role request
+   */
+  async rejectRequest(requestId: string): Promise<ApiResponse> {
+    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/reject`);
+    return response.data;
+  }
+
+  /**
+   * ADMIN: Waitlist a role request
+   */
+  async waitlistRequest(requestId: string): Promise<ApiResponse> {
+    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/waitlist`);
+    return response.data;
+  }
+}
+
+export default new RoleRequestService();
