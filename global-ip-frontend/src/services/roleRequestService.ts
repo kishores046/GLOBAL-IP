@@ -10,6 +10,15 @@ export interface RoleRequest {
   reviewedAt?: string;
 }
 
+export interface RoleRequestAdminView {
+  requestId: number;
+  userId: number;
+  username: string;
+  email: string;
+  requestedRole: string;
+  requestedAt: string;
+}
+
 export interface ApiResponse {
   message: string;
 }
@@ -26,15 +35,15 @@ class RoleRequestService {
   /**
    * ADMIN: Get all pending role requests
    */
-  async getPendingRequests(): Promise<RoleRequest[]> {
-    const response = await api.get<RoleRequest[]>('/role-requests/pending');
+  async getPendingRequests(): Promise<RoleRequestAdminView[]> {
+    const response = await api.get<RoleRequestAdminView[]>('/role-requests/pending');
     return response.data;
   }
 
   /**
    * ADMIN: Approve a role request
    */
-  async approveRequest(requestId: string): Promise<ApiResponse> {
+  async approveRequest(requestId: number): Promise<ApiResponse> {
     const response = await api.post<ApiResponse>(`/role-requests/${requestId}/approve`);
     return response.data;
   }
@@ -42,7 +51,7 @@ class RoleRequestService {
   /**
    * ADMIN: Reject a role request
    */
-  async rejectRequest(requestId: string): Promise<ApiResponse> {
+  async rejectRequest(requestId: number): Promise<ApiResponse> {
     const response = await api.post<ApiResponse>(`/role-requests/${requestId}/reject`);
     return response.data;
   }
@@ -50,7 +59,7 @@ class RoleRequestService {
   /**
    * ADMIN: Waitlist a role request
    */
-  async waitlistRequest(requestId: string): Promise<ApiResponse> {
+  async waitlistRequest(requestId: number): Promise<ApiResponse> {
     const response = await api.post<ApiResponse>(`/role-requests/${requestId}/waitlist`);
     return response.data;
   }

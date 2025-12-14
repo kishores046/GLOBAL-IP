@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Shield, CheckCircle, XCircle, Clock, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import roleRequestService, { RoleRequest } from '../services/roleRequestService';
+import roleRequestService, { RoleRequestAdminView } from '../services/roleRequestService';
 
 export function AdminRoleRequestsPage() {
-  const [requests, setRequests] = useState<RoleRequest[]>([]);
+  const [requests, setRequests] = useState<RoleRequestAdminView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   const fetchPendingRequests = async () => {
     setIsLoading(true);
@@ -14,7 +14,12 @@ export function AdminRoleRequestsPage() {
       const data = await roleRequestService.getPendingRequests();
       setRequests(data);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to load pending requests');
+      const errorMsg = err.response?.data?.message ?? 'Failed to load pending requests';
+      if (err.response?.status === 403) {
+        toast.error('Unauthorized: Admin access required');
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -24,55 +29,72 @@ export function AdminRoleRequestsPage() {
     fetchPendingRequests();
   }, []);
 
-  const handleApprove = async (requestId: string) => {
+  const handleApprove = async (requestId: number) => {
     setActionLoading(requestId);
     try {
       const response = await roleRequestService.approveRequest(requestId);
       toast.success(response.message || 'Request approved successfully');
       // Remove from list
-      setRequests(prev => prev.filter(req => req.id !== requestId));
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to approve request');
+      const errorMsg = err.response?.data?.message ?? 'Failed to approve request';
+      if (err.response?.status === 403) {
+        toast.error('Unauthorized: Admin access required');
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleReject = async (requestId: string) => {
+  const handleReject = async (requestId: number) => {
     setActionLoading(requestId);
     try {
       const response = await roleRequestService.rejectRequest(requestId);
       toast.success(response.message || 'Request rejected');
       // Remove from list
-      setRequests(prev => prev.filter(req => req.id !== requestId));
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to reject request');
+      const errorMsg = err.response?.data?.message ?? 'Failed to reject request';
+      if (err.response?.status === 403) {
+        toast.error('Unauthorized: Admin access required');
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleWaitlist = async (requestId: string) => {
+  const handleWaitlist = async (requestId: number) => {
     setActionLoading(requestId);
     try {
       const response = await roleRequestService.waitlistRequest(requestId);
       toast.success(response.message || 'Request added to waitlist');
       // Remove from list
-      setRequests(prev => prev.filter(req => req.id !== requestId));
+      setRequests(prev => prev.filter(req => req.requestId !== requestId));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to waitlist request');
+      const errorMsg = err.response?.data?.message ?? 'Failed to waitlist request';
+      if (err.response?.status === 403) {
+        toast.error('Unauthorized: Admin access required');
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setActionLoading(null);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -127,25 +149,33 @@ export function AdminRoleRequestsPage() {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Request ID</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">User ID</th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Username</th>
+                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Email</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested Role</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Requested At</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Status</th>
                     <th className="text-center py-4 px-6 text-sm font-semibold text-slate-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {requests.map((request) => (
-                    <tr key={request.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={request.requestId} className="hover:bg-slate-50 transition-colors">
                       <td className="py-4 px-6">
-                        <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-700">
-                          {request.id}
+                        <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-700 font-mono">
+                          #{request.requestId}
                         </code>
                       </td>
                       <td className="py-4 px-6">
-                        <code className="text-xs bg-blue-50 px-2 py-1 rounded text-blue-700">
-                          {request.userId}
-                        </code>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-700 font-semibold text-sm">
+                              {request.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <span className="font-medium text-slate-900">{request.username}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-slate-700">{request.email}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
@@ -157,20 +187,14 @@ export function AdminRoleRequestsPage() {
                         {formatDate(request.requestedAt)}
                       </td>
                       <td className="py-4 px-6">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium">
-                          <Clock className="w-3.5 h-3.5" />
-                          {request.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handleApprove(request.id)}
-                            disabled={actionLoading === request.id}
+                            onClick={() => handleApprove(request.requestId)}
+                            disabled={actionLoading === request.requestId}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             title="Approve"
                           >
-                            {actionLoading === request.id ? (
+                            {actionLoading === request.requestId ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
                               <CheckCircle className="w-4 h-4" />
@@ -178,8 +202,8 @@ export function AdminRoleRequestsPage() {
                             Approve
                           </button>
                           <button
-                            onClick={() => handleReject(request.id)}
-                            disabled={actionLoading === request.id}
+                            onClick={() => handleReject(request.requestId)}
+                            disabled={actionLoading === request.requestId}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             title="Reject"
                           >
@@ -187,8 +211,8 @@ export function AdminRoleRequestsPage() {
                             Reject
                           </button>
                           <button
-                            onClick={() => handleWaitlist(request.id)}
-                            disabled={actionLoading === request.id}
+                            onClick={() => handleWaitlist(request.requestId)}
+                            disabled={actionLoading === request.requestId}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             title="Waitlist"
                           >
