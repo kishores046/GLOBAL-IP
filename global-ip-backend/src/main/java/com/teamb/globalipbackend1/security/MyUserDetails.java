@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.model.security;
+package com.teamb.globalipbackend1.security;
 
 import com.teamb.globalipbackend1.model.Role;
 import com.teamb.globalipbackend1.model.User;
@@ -17,7 +17,7 @@ public class MyUserDetails implements UserDetails {
         this.user = user;
     }
 
-    // Expose the wrapped entity if you ever need it
+
     public User getUser() {
         return user;
     }

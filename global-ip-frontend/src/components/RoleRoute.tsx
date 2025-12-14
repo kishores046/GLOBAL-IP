@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -9,6 +9,7 @@ interface RoleRouteProps {
 
 export function RoleRoute({ roles, element }: RoleRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -37,8 +38,15 @@ export function RoleRoute({ roles, element }: RoleRouteProps) {
   const allowedRoles = roles.map(role => role.toUpperCase());
   const hasRequiredRole = allowedRoles.some(role => userRoles.includes(role));
   
+  console.log('RoleRoute Check:', {
+    userRoles,
+    allowedRoles,
+    hasRequiredRole
+  });
+  
   if (userRoles.length === 0 || !hasRequiredRole) {
-    return <Navigate to="/unauthorized" replace />;
+    console.log('RoleRoute: Access denied, redirecting to /unauthorized');
+    return <Navigate to="/unauthorized" replace state={{ requiredRoles: roles, attemptedPath: location.pathname }} />;
   }
 
   // User has required role, render the element

@@ -14,11 +14,6 @@ public class GlobalIpBackend1Application {
     public static void main(String[] args) {
         SpringApplication.run(GlobalIpBackend1Application.class, args);
     }
-    @PostConstruct
-    public void debugGoogle() {
-        System.out.println("GOOGLE_CLIENT_ID = " + System.getenv("GOOGLE_CLIENT_ID"));
-        System.out.println("GOOGLE_CLIENT_SECRET = " + System.getenv("GOOGLE_CLIENT_SECRET"));
-        System.out.println("JWT="+System.getenv("JWT_SECRET"));
-    }
+
 
 }
