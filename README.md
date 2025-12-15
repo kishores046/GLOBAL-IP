@@ -7,10 +7,26 @@
 ![OAuth2](https://img.shields.io/badge/OAuth2-3D7EBB?logo=oauth&logoColor=white)
 
 # 🌐 Global IP Intelligence Platform  
-Unified Backend + Frontend Repository
+Global IP Intelligence Platform — Monorepo (Spring Boot + React)
 
-The **Global IP Intelligence Platform** is a full-stack web application designed to streamline patent and trademark search, provide analytical insights, and support role-based access for Admins, Analysts, and Users.  
-This repository contains **both backend (Spring Boot)** and **frontend (React)** projects integrated inside one monorepo.
+The Global IP Intelligence Platform is a full-stack web application designed to streamline
+patent and trademark search, provide analytical insights, and support role-based access
+for Admins, Analysts, and Users.
+
+This repository contains both backend (Spring Boot) and frontend (React) projects
+integrated inside a single monorepo.
+
+
+---
+
+
+## Design Principles
+
+- Security-first role management (no role escalation at registration)
+- Backend-driven authorization (RBAC enforced server-side)
+- API normalization for future IP data sources (WIPO, EPO, TMView)
+- Clean separation of concerns between authentication, authorization, and business logic
+
 
 ---
 
@@ -67,7 +83,7 @@ To ensure security and controlled privilege escalation, the platform follows an 
 
 #### Workflow:
 1. A user registers with a default role (`USER`)
-2. If the user wants elevated access (e.g., `ANALYST`), they submit a **role request**
+2. If the user wants elevated access (e.g., `ADMIN`), they submit a **role request**
 3. The request is stored in the database (`role_requests` table) with status `PENDING`
 4. An **ADMIN** reviews the request via the admin dashboard
 5. The admin can:
@@ -115,16 +131,15 @@ The following analyst capabilities will be introduced in upcoming milestones:
 These features are currently under development and will be included in future releases.
 
 ---
-
 ## Frontend Features (React)
 
-- Fully responsive UI
-- Separate dashboards for Admin, Analyst, and Users
-- Integrated OAuth2 login buttons
-- Dynamic search results display
-- Trend visualizations (Chart.js / Recharts)
-- Reusable components and context-based authentication
-- API service layer for interacting with backend
+- Responsive, role-aware user interface for Admin, Analyst, and User dashboards
+- Secure authentication UI with JWT handling and OAuth2 (Google, GitHub) integration
+- Protected routing and dynamic UI rendering based on user roles
+- Centralized API service layer with Axios interceptors
+- Interactive analytics and trend visualizations using Chart.js / Recharts
+- Reusable, modular components with context-based state management
+
 
 ---
 
@@ -212,20 +227,32 @@ Front-end static files can be deployed separately or served via Nginx.
 
 ---
 
-##  Team Responsibilities (Milestone Summary)
+## Team Responsibilities (Milestone 1 Summary)
 
-### **We have completed:**
-- Full backend setup (Spring Boot)
-- JWT authentication system
+### We have completed:
+
+#### Backend Responsibilities
+- Full backend setup using Spring Boot
+- JWT-based authentication and authorization system
 - Google & GitHub OAuth2 login flow
-- Role-based authorization (RBAC)
-- User, Admin, Analyst controllers
-- OAuth2 Success Handler + Custom User Loader
-- Environment variable configuration using .env
-- Integrated H2 + PostgreSQL support via profiles
-- Exception handling and global error responses
-- Frontend-backend connectivity setup
-- GitHub repo setup with monorepo structure
+- Role-based access control (RBAC) for USER, ANALYST, and ADMIN roles
+- User, Admin, and Analyst REST controllers
+- OAuth2 success handler and custom user loader
+- Environment variable configuration using `.env`
+- Integrated H2 (DEV/TEST) and PostgreSQL (PROD) using Spring Profiles
+- Global exception handling and standardized error responses
+
+#### Frontend Responsibilities
+- Authentication UI for login and registration
+- OAuth2 login integration and redirect handling
+- JWT token storage and request interception
+- Role-based routing and protected pages
+- Dashboard UI for User, Analyst, and Admin roles
+- Frontend–backend API integration and validation
+
+#### Platform & Repository Setup
+- Monorepo GitHub repository structure
+- Frontend–backend connectivity and local development setup
 
 ---
 
