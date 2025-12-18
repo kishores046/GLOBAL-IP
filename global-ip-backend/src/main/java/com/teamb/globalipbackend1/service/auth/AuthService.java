@@ -7,14 +7,12 @@ import com.teamb.globalipbackend1.model.Role;
 import com.teamb.globalipbackend1.model.User;
 import com.teamb.globalipbackend1.repository.RoleRepository;
 import com.teamb.globalipbackend1.repository.UserRepository;
-import com.teamb.globalipbackend1.security.CustomUserDetailsService;
 import com.teamb.globalipbackend1.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +23,9 @@ public class AuthService {
 
 
     @Autowired
-    public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, CustomUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
+    public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -39,8 +36,6 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-
-    private final CustomUserDetailsService userDetailsService;
     private  final PasswordEncoder passwordEncoder;
 
 
