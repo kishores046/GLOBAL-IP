@@ -11,6 +11,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -39,10 +40,13 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("roles", roles)
+                .issuer("global-ip-backend")
                 .issuedAt(new Date(now))
                 .expiration(new Date(exp))
+                .id(UUID.randomUUID().toString())
                 .signWith(getSigningKey())
                 .compact();
+
     }
 
     public String extractUsername(String token) {
