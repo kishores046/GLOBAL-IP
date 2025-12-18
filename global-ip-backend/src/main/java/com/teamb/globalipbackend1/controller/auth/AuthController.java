@@ -27,10 +27,6 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     @PostMapping("/register")
     public ResponseEntity<@NonNull RegisterResponse> register(@Valid @RequestBody RegisterRequest req) {
         authService.registerUser(req);
