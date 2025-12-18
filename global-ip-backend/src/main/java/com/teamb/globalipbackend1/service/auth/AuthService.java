@@ -12,7 +12,9 @@ import com.teamb.globalipbackend1.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,25 +71,18 @@ public class AuthService {
 
         return new RegisterResponse("Registered Successfully");
     }
-        public JwtResponse login(LoginRequest loginRequest) {
+    public JwtResponse authenticate(LoginRequest request) {
 
-            // 1. Authenticate using Spring Security
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.email(),
-                            loginRequest.password()
-                    )
-            );
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
 
-            // 2. Load user details
-            UserDetails user = userDetailsService.loadUserByUsername(loginRequest.email());
-
-            // 3. Generate JWT
-            String token = jwtUtil.generateToken(user);
-
-            // 4. Return token
-            return new JwtResponse(token);
-        }
-
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String token = jwtUtil.generateToken(userDetails);
+        return new JwtResponse(token);
+    }
 
     }
