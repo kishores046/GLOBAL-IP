@@ -40,24 +40,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            // Debug: Check if user exists and password format
-            User user = userRepository.findByEmail(request.email())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-            System.out.println("Found user: " + user.getEmail());
-            System.out.println("Stored password hash: " + user.getPassword());
-            System.out.println("Provided password: " + request.password());
-            System.out.println("Password matches: " + passwordEncoder.matches(request.password(), user.getPassword()));
-
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
-            );
-
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            String token = jwtUtil.generateToken(userDetails);
-
-            return ResponseEntity.ok(new JwtResponse(token));
-
+            JwtResponse response = authService.authenticate(request);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Login failed: " + e.getMessage());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
