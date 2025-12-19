@@ -1,6 +1,6 @@
 package com.teamb.globalipbackend1.repository;
 
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.User;
 
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;

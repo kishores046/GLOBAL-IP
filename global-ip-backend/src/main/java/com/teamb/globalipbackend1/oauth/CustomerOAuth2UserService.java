@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.oauth;
 
-import com.teamb.globalipbackend1.model.Role;
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.Role;
+import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.RoleRepository;
 import com.teamb.globalipbackend1.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

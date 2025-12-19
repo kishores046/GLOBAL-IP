@@ -1,6 +1,6 @@
 package com.teamb.globalipbackend1.dto.authentication;
 
-import com.teamb.globalipbackend1.model.Role;
+import com.teamb.globalipbackend1.model.user.Role;
 
 public record AuthResponse(
         String token,

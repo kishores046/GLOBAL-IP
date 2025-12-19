@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.dto.authentication;
 
-import com.teamb.globalipbackend1.model.Role;
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.Role;
+import com.teamb.globalipbackend1.model.user.User;
 
 import java.time.LocalDateTime;
 import java.util.Set;

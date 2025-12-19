@@ -2,20 +2,11 @@ package com.teamb.globalipbackend1.controller.auth;
 
 import com.teamb.globalipbackend1.dto.security.JwtResponse;
 import com.teamb.globalipbackend1.dto.authentication.*;
-import com.teamb.globalipbackend1.model.User;
-import com.teamb.globalipbackend1.repository.UserRepository;
-import com.teamb.globalipbackend1.security.JwtUtil;
 import com.teamb.globalipbackend1.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

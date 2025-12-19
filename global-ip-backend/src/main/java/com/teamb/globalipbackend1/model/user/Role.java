@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.model;
+package com.teamb.globalipbackend1.model.user;
 
 import com.teamb.globalipbackend1.util.id.PrefixedId;
 import jakarta.persistence.*;

@@ -2,8 +2,8 @@ package com.teamb.globalipbackend1.util.id;
 
 
 import com.teamb.globalipbackend1.auth.entity.RoleRequest;
-import com.teamb.globalipbackend1.model.Role;
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.Role;
+import com.teamb.globalipbackend1.model.user.User;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
