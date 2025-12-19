@@ -3,7 +3,7 @@ package com.teamb.globalipbackend1.service.user;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileRequest;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileResponse;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.UserRepository;
 import com.teamb.globalipbackend1.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;

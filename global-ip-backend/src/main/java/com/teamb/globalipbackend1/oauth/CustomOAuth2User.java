@@ -1,6 +1,6 @@
 package com.teamb.globalipbackend1.oauth;
 
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.User;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 

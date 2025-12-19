@@ -54,5 +54,39 @@ api.interceptors.response.use(
   }
 );
 
+// Patent Search Types
+export interface PatentSearchRequest {
+  keyword: string;
+  jurisdiction?: string | null;
+  filingDateFrom?: string | null;
+  filingDateTo?: string | null;
+  assignee?: string;
+  inventor?: string;
+}
+
+export interface PatentSearchResult {
+  publicationNumber: string;
+  jurisdiction: string;
+  title: string;
+  publicationDate: string;
+  assignees: string[];
+  inventors: string[];
+}
+
+// Patent Search API
+export const patentSearchAPI = {
+  advancedSearch: async (searchParams: PatentSearchRequest): Promise<PatentSearchResult[]> => {
+    const response = await api.post('/patents/search/advanced', searchParams);
+    return response.data;
+  },
+  
+  quickSearch: async (keyword: string): Promise<PatentSearchResult[]> => {
+    const response = await api.get('/patents/search', {
+      params: { title: keyword }
+    });
+    return response.data;
+  },
+};
+
 export default api;
 export { API_BASE_URL };

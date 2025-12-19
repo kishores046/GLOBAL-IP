@@ -5,7 +5,7 @@ import { TrendChart } from "../components/dashboard/TrendChart";
 import { GlobalHeatmap } from "../components/dashboard/GlobalHeatmap";
 import { RecentAlerts } from "../components/dashboard/RecentAlerts";
 import { RecommendedAssets } from "../components/dashboard/RecommendedAssets";
-import { FileText, Award, TrendingUp, Bell, Search, Filter, Eye, Plus, X, Shield, ArrowRight } from "lucide-react";
+import { FileText, Award, TrendingUp, Bell, Eye, Plus, X, Shield, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -58,9 +58,6 @@ const legalMilestones = [
 export function UserDashboard() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
   const [showAddAssetModal, setShowAddAssetModal] = useState(false);
   const [showSetAlertModal, setShowSetAlertModal] = useState(false);
   const [showViewReportsModal, setShowViewReportsModal] = useState(false);
@@ -113,73 +110,6 @@ export function UserDashboard() {
             <div className="mb-8">
               <h1 className="text-4xl text-blue-900 mb-2">Dashboard</h1>
               <p className="text-slate-600">Overview of your IP intelligence activity</p>
-            </div>
-
-            {/* Search + Filters Section */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
-              <div className="mb-4">
-                <h3 className="text-2xl text-slate-900 mb-1">Quick IP Search</h3>
-                <p className="text-slate-600">Search your tracked patents and trademarks</p>
-              </div>
-              
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by title, applicant, or asset ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-                
-                <div className="flex gap-3">
-                  <select
-                    value={selectedCountry}
-                    onChange={(e) => setSelectedCountry(e.target.value)}
-                    className="px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                  >
-                    <option value="">All Countries</option>
-                    <option value="US">United States</option>
-                    <option value="EP">Europe</option>
-                    <option value="CN">China</option>
-                    <option value="JP">Japan</option>
-                  </select>
-                  
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                  >
-                    <option value="">All Status</option>
-                    <option value="granted">Granted</option>
-                    <option value="application">Application</option>
-                    <option value="published">Published</option>
-                  </select>
-                  
-                  <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl">
-                    <Search className="w-5 h-5" />
-                    <span>Search</span>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Filter Chips */}
-              <div className="flex flex-wrap gap-2 mt-4">
-                <button className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-all">
-                  <Filter className="w-3 h-3 inline mr-1" />
-                  Technology
-                </button>
-                <button className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-all">
-                  <Filter className="w-3 h-3 inline mr-1" />
-                  Filing Year
-                </button>
-                <button className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm transition-all">
-                  <Filter className="w-3 h-3 inline mr-1" />
-                  Category
-                </button>
-              </div>
             </div>
 
             {/* Hero Summary Bar */}

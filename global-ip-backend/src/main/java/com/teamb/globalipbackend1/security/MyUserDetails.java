@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.security;
 
-import com.teamb.globalipbackend1.model.Role;
-import com.teamb.globalipbackend1.model.User;
+import com.teamb.globalipbackend1.model.user.Role;
+import com.teamb.globalipbackend1.model.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,71 +1,48 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2, X } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { motion } from "motion/react";
-
-interface SearchResult {
-  assetId: string;
-  title: string;
-  assignee: string;
-  jurisdiction: string;
-  status: "Application" | "Granted";
-  filingDate: string;
-}
-
-const mockSearchResults: SearchResult[] = [
-  {
-    assetId: "WO2023071234",
-    title: "Quantum-Resistant Cryptography Method",
-    assignee: "Future Tech Inc.",
-    jurisdiction: "WIPO",
-    status: "Application",
-    filingDate: "2023-05-15",
-  },
-  {
-    assetId: "US11234567B2",
-    title: "AI-Powered Drug Discovery Platform",
-    assignee: "BioInnovate LLC",
-    jurisdiction: "USPTO",
-    status: "Granted",
-    filingDate: "2021-11-20",
-  },
-  {
-    assetId: "EP3456789A1",
-    title: "Method for Manufacturing Graphene Supercapacitors",
-    assignee: "NanoMaterials AG",
-    jurisdiction: "EPO",
-    status: "Application",
-    filingDate: "2022-08-01",
-  },
-  {
-    assetId: "TM018765432",
-    title: "Synergy AI",
-    assignee: "Cognitive Solutions Ltd.",
-    jurisdiction: "TMView",
-    status: "Granted",
-    filingDate: "2020-03-10",
-  },
-  {
-    assetId: "US10987654B1",
-    title: "Decentralized Identity Verification System",
-    assignee: "VeriChain Corp.",
-    jurisdiction: "USPTO",
-    status: "Granted",
-    filingDate: "2019-07-22",
-  },
-];
+import { patentSearchAPI, PatentSearchResult } from "../services/api";
 
 export function GlobalIPSearchPage() {
-  const [keywords, setKeywords] = useState("");
-  const [assignee, setAssignee] = useState("");
-  const [jurisdiction, setJurisdiction] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>(mockSearchResults);
-  const [hasSearched, setHasSearched] = useState(true);
+  const [keyword, setKeyword] = useState("");
+  const [searchResults, setSearchResults] = useState<PatentSearchResult[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = () => {
-    setHasSearched(true);
-    // In a real application, this would filter the results based on the search criteria
-    setSearchResults(mockSearchResults);
+  const handleSearch = async () => {
+    // Validation: keyword is required
+    const trimmedKeyword = keyword.trim();
+    if (!trimmedKeyword) {
+      setError("Please enter a keyword to search");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setHasSearched(false);
+
+    try {
+      const results = await patentSearchAPI.quickSearch(trimmedKeyword);
+      setSearchResults(results);
+      setHasSearched(true);
+    } catch (err: any) {
+      console.error("Patent search error:", err);
+      setError(
+        err.response?.data?.message ?? 
+        "Failed to search patents. Please try again."
+      );
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !isLoading) {
+      handleSearch();
+    }
   };
 
   return (
@@ -85,7 +62,7 @@ export function GlobalIPSearchPage() {
               <p className="text-slate-600">Search for patents and trademarks across multiple jurisdictions</p>
             </motion.div>
 
-            {/* Advanced Search Section */}
+            {/* Quick IP Search Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -93,57 +70,50 @@ export function GlobalIPSearchPage() {
               className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl mb-8"
             >
               <div className="mb-6">
-                <h2 className="text-2xl text-slate-900 mb-1">Advanced IP Search</h2>
+                <h2 className="text-2xl text-slate-900 mb-1">Quick IP Search</h2>
                 <p className="text-slate-600">
-                  Search for patents and trademarks across multiple jurisdictions.
+                  Fast keyword-based patent search across all jurisdictions
                 </p>
               </div>
 
-              {/* Search Inputs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="lg:col-span-2">
-                  <input
-                    type="text"
-                    placeholder="Keywords..."
-                    value={keywords}
-                    onChange={(e) => setKeywords(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Assignee / Inventor..."
-                    value={assignee}
-                    onChange={(e) => setAssignee(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <select
-                    value={jurisdiction}
-                    onChange={(e) => setJurisdiction(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                  >
-                    <option value="">Jurisdiction</option>
-                    <option value="USPTO">USPTO</option>
-                    <option value="EPO">EPO</option>
-                    <option value="WIPO">WIPO</option>
-                    <option value="TMView">TMView</option>
-                    <option value="JPO">JPO</option>
-                    <option value="CNIPA">CNIPA</option>
-                  </select>
-
-                  <button
-                    onClick={handleSearch}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg"
-                  >
-                    <Search className="w-5 h-5" />
-                    Search
+              {/* Error Alert */}
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center justify-between">
+                  <span>{error}</span>
+                  <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700">
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
+              )}
+
+              {/* Search Input */}
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Enter keyword (e.g., artificial intelligence, battery technology)..."
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
+                />
+                <button
+                  onClick={handleSearch}
+                  disabled={isLoading || !keyword.trim()}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-5 h-5" />
+                      Search
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
 
@@ -157,52 +127,75 @@ export function GlobalIPSearchPage() {
               >
                 <div className="mb-6">
                   <h2 className="text-2xl text-slate-900 mb-1">Search Results</h2>
-                  <p className="text-slate-600">Found {searchResults.length} results:</p>
+                  <p className="text-slate-600">
+                    {searchResults.length === 0 
+                      ? "No patents found for the given keyword." 
+                      : (() => {
+                          const resultText = searchResults.length === 1 ? 'result' : 'results';
+                          return `Found ${searchResults.length} ${resultText}`;
+                        })()
+                    }
+                  </p>
                 </div>
 
                 {/* Results Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b-2 border-blue-200">
-                        <th className="text-left py-4 px-4 text-slate-700">Asset ID</th>
-                        <th className="text-left py-4 px-4 text-slate-700">Title</th>
-                        <th className="text-left py-4 px-4 text-slate-700">Assignee</th>
-                        <th className="text-left py-4 px-4 text-slate-700">Jurisdiction</th>
-                        <th className="text-left py-4 px-4 text-slate-700">Status</th>
-                        <th className="text-left py-4 px-4 text-slate-700">Filing Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {searchResults.map((result, index) => (
-                        <motion.tr
-                          key={result.assetId}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 + index * 0.05 }}
-                          className="border-b border-blue-100 hover:bg-blue-50/50 transition-all cursor-pointer"
-                        >
-                          <td className="py-4 px-4 text-slate-900">{result.assetId}</td>
-                          <td className="py-4 px-4 text-slate-900">{result.title}</td>
-                          <td className="py-4 px-4 text-slate-700">{result.assignee}</td>
-                          <td className="py-4 px-4 text-slate-700">{result.jurisdiction}</td>
-                          <td className="py-4 px-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs ${
-                                result.status === "Granted"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}
-                            >
-                              {result.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-slate-700">{result.filingDate}</td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {searchResults.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-blue-200">
+                          <th className="text-left py-4 px-4 text-slate-700">Publication Number</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Title</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Assignees</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Jurisdiction</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Publication Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {searchResults.map((result, index) => (
+                          <motion.tr
+                            key={result.publicationNumber}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + index * 0.05 }}
+                            className="border-b border-blue-100 hover:bg-blue-50/50 transition-all cursor-pointer"
+                          >
+                            <td className="py-4 px-4 text-slate-900 font-medium">
+                              {result.publicationNumber}
+                            </td>
+                            <td className="py-4 px-4 text-slate-900">
+                              {result.title || "Untitled"}
+                            </td>
+                            <td className="py-4 px-4 text-slate-700">
+                              {result.assignees && result.assignees.length > 0 
+                                ? result.assignees.join(", ")
+                                : <span className="text-slate-400 italic">Not disclosed</span>
+                              }
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                                {result.jurisdiction}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-slate-700">
+                              {result.publicationDate || "N/A"}
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500 text-lg">
+                      No patents found for the given keyword.
+                    </p>
+                    <p className="text-slate-400 mt-2">
+                      Try using different or more general search terms.
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
           </div>
