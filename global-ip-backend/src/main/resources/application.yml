@@ -31,6 +31,7 @@ spring:
     hibernate:
       ddl-auto: update
 
+
   sql:
     init:
       mode: never
@@ -56,10 +57,13 @@ spring:
             issuer-uri: https://accounts.google.com
 
 
-
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+epo:
+  base-url: ${EPO_BASE_URL}
+  consumer-key: ${EPO_CONSUMER_KEY}
+  consumer-secret: ${EPO_CONSUMER_SECRET}
 
 # ---------------------------------- TEST PROFILE ----------------------------------
 ---
@@ -144,3 +148,14 @@ jwt:
 
 server:
   port: ${SERVER_PORT}
+
+epo:
+  base-url: ${EPO_BASE_URL}
+  consumer-key: ${EPO_CONSUMER_KEY}
+  consumer-secret: ${EPO_CONSUMER_SECRET}
+
+
+
+
+
+
