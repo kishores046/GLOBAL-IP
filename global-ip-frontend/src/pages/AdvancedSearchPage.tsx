@@ -19,7 +19,7 @@ export function AdvancedSearchPage() {
   const handleSearch = async () => {
     // Validation: keyword is required
     if (!keyword.trim()) {
-      setError("Please enter a keyword to search");
+      setError("Keyword is required");
       return;
     }
 
@@ -28,24 +28,45 @@ export function AdvancedSearchPage() {
     setHasSearched(false);
 
     try {
-      const searchParams = {
+      // Build dynamic request body - only include fields with values
+      const searchParams: any = {
         keyword: keyword.trim(),
-        jurisdiction: jurisdiction === "ALL" ? null : jurisdiction,
-        filingDateFrom: filingDateFrom || null,
-        filingDateTo: filingDateTo || null,
-        assignee: assignee.trim() || "",
-        inventor: inventor.trim() || "",
       };
 
-      const results = await patentSearchAPI.advancedSearch(searchParams);
+      // Add optional fields only if they have values
+      if (jurisdiction && jurisdiction !== "ALL") {
+        searchParams.jurisdiction = jurisdiction;
+      }
+      if (filingDateFrom) {
+        searchParams.filingDateFrom = filingDateFrom;
+      }
+      if (filingDateTo) {
+        searchParams.filingDateTo = filingDateTo;
+      }
+      if (assignee.trim()) {
+        searchParams.assignee = assignee.trim();
+      }
+      if (inventor.trim()) {
+        searchParams.inventor = inventor.trim();
+      }
+
+      const results = await patentSearchAPI.search(searchParams);
       setSearchResults(results);
       setHasSearched(true);
     } catch (err: any) {
       console.error("Patent search error:", err);
-      setError(
-        err.response?.data?.message ?? 
-        "Failed to search patents. Please try again."
-      );
+      
+      // Handle specific error codes
+      if (err.response?.status === 400) {
+        setError("Keyword is required");
+      } else if (err.response?.status === 500) {
+        setError("An error occurred while searching. Please try again later.");
+      } else {
+        setError(
+          err.response?.data?.message ?? 
+          "Failed to search patents. Please try again."
+        );
+      }
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -133,8 +154,9 @@ export function AdvancedSearchPage() {
                       <option value="US">United States (US)</option>
                       <option value="EP">European Patent Office (EP)</option>
                       <option value="JP">Japan (JP)</option>
-                      <option value="WO">WIPO (WO)</option>
+                      <option value="KR">Korea (KR)</option>
                       <option value="CN">China (CN)</option>
+                      <option value="WO">WIPO (WO)</option>
                     </select>
                   </div>
 

@@ -56,11 +56,10 @@ public class EpoClient {
     public List<EpoDocumentId> searchByTitle(String titleKeyword) throws IOException, InterruptedException {
 
         try {
-            // Build query parameter
+
             String query = "ti=" + URLEncoder.encode(titleKeyword, StandardCharsets.UTF_8);
 
-            // CRITICAL FIX: The base URL should NOT include /rest-services
-            // It should be: https://ops.epo.org/3.2
+
             String baseUrl = properties.getBaseUrl();
 
             // Remove /rest-services if it's in the base URL
@@ -146,13 +145,14 @@ public class EpoClient {
                     .getPublications()
                     .stream()
                     .map(EpoPublicationReferenceSearch::getDocumentId)
+                    .filter(id -> id.getKind() != null && id.getKind().startsWith("B"))
                     .toList();
+
 
 
 
         } catch (Exception e) {
             log.error("OPS FAILURE for title [{}]", titleKeyword);
-            e.printStackTrace();   // TEMPORARY
             throw e;
         }
 
@@ -162,17 +162,21 @@ public class EpoClient {
     public List<EpoExchangeDocument> fetchBiblio(EpoDocumentId docId) {
 
         String publicationId =
-                docId.getCountry() + "." +
-                        docId.getDocNumber() + "." +
-                        docId.getKind();
-        log.info("Fetching biblio for {}", publicationId);
+                docId.getCountry()
+                        + docId.getDocNumber()
+                        + docId.getKind();
+        if (docId.getKind() == null || docId.getKind().startsWith("A")) {
+            log.info("Skipping application publication {}",
+                    docId.getCountry() + docId.getDocNumber() + docId.getKind());
+            return List.of();
+        }
+
+
+        log.info("Fetching biblio (EPODOC) for {}", publicationId);
 
 
         try {
-            String url = properties.getBaseUrl()
-                    + "/rest-services/published-data/publication/docdb/"
-                    + publicationId
-                    + "/biblio";
+            String url = buildBiblioUrl(docId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -186,6 +190,9 @@ public class EpoClient {
 
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            log.info("OPS RESPONSE,{}",response.body());
+
 
             if (response.statusCode() != 200) {
                 log.warn("OPS biblio not available for {}", publicationId);
@@ -209,18 +216,38 @@ public class EpoClient {
             );
 
 
-            return biblioResponse.getExchangeDocuments().getDocuments();
+            List<EpoExchangeDocument> docs =
+                    biblioResponse.getExchangeDocuments().getDocuments();
+
+
+
+
+            if (docs == null || docs.isEmpty()) {
+                return List.of();
+            }
+
+
+            return docs.stream()
+                    .sorted((a, b) -> {
+                        if ("B1".equals(a.getKind())) return -1;
+                        if ("B1".equals(b.getKind())) return 1;
+                        return 0;
+                    })
+                    .toList();
+
+
+
 
         } catch (Exception e) {
             log.warn("OPS biblio fetch failed for {}", publicationId, e);
-            return List.of(); // NEVER throw here
+            return List.of();
         }
     }
 
 
 
 
-    /* ---------------- TOKEN HANDLING ---------------- */
+
 
     private synchronized String getAccessToken() {
 
@@ -272,7 +299,7 @@ public class EpoClient {
             accessToken = json.get("access_token").asText();
             long expiresIn = json.get("expires_in").asLong();
 
-            // Refresh 60 seconds before expiry
+
             tokenExpiry = Instant.now().plusSeconds(expiresIn - 60);
 
             log.info("Successfully obtained EPO access token, expires in {} seconds", expiresIn);
@@ -284,4 +311,35 @@ public class EpoClient {
             throw new RuntimeException("Failed to obtain OPS access token", e);
         }
     }
+
+    private String buildBiblioUrl(EpoDocumentId docId) {
+
+        String format;
+        String identifier;
+
+        if ("EP".equalsIgnoreCase(docId.getCountry())) {
+            // EP → epodoc
+            format = "epodoc";
+            identifier =
+                    docId.getCountry()
+                            + docId.getDocNumber()
+                            + docId.getKind();
+        } else {
+            // Non-EP → docdb
+            format = "docdb";
+            identifier =
+                    docId.getCountry() + "."
+                            + docId.getDocNumber() + "."
+                            + docId.getKind();
+        }
+
+        return properties.getBaseUrl()
+                + "/rest-services/published-data/publication/"
+                + format + "/"
+                + identifier
+                + "/biblio";
+    }
+
+
+
 }

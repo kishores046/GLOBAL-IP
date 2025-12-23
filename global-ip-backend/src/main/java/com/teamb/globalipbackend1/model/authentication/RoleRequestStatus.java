@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.auth.entity;
+package com.teamb.globalipbackend1.model.authentication;
 
 public enum RoleRequestStatus {
     PENDING,
