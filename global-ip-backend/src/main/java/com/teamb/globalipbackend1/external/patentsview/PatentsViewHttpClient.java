@@ -2,7 +2,10 @@ package com.teamb.globalipbackend1.external.patentsview;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.teamb.globalipbackend1.external.patentsview.config.PatentsViewProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +19,13 @@ import java.time.Duration;
 @Slf4j
 public class PatentsViewHttpClient {
 
-    private static final String API_URL =
-            "https://search.patentsview.org/api/v1/patent/";
+    public PatentsViewHttpClient(PatentsViewProperties patentsViewProperties) {
+        this.API_URL= patentsViewProperties.apiUrl();
+        this.API_KEY= patentsViewProperties.apiKey();
+    }
 
-    @Value("${patentsview.api-key}")
-    private String apiKey;
+    private  final String API_URL ;
+    private final String API_KEY;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(1200))
@@ -32,7 +37,7 @@ public class PatentsViewHttpClient {
                     .uri(URI.create(API_URL))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .header("Content-Type", "application/json")
-                    .header("X-API-Key", apiKey)
+                    .header("X-API-Key", API_KEY)
                     .timeout(Duration.ofSeconds(1200))
                     .build();
 
