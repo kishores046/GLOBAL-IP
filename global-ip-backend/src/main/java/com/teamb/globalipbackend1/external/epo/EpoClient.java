@@ -60,7 +60,7 @@ public class EpoClient {
             String query = "ti=" + URLEncoder.encode(titleKeyword, StandardCharsets.UTF_8);
 
 
-            String baseUrl = properties.getBaseUrl();
+            String baseUrl = properties.baseUrl();
 
             // Remove /rest-services if it's in the base URL
             if (baseUrl.endsWith("/rest-services")) {
@@ -260,7 +260,7 @@ public class EpoClient {
 
         try {
             String auth =
-                    properties.getConsumerKey() + ":" + properties.getConsumerSecret();
+                    properties.consumerKey() + ":" + properties.consumerSecret();
 
             String encodedAuth = Base64.getEncoder()
                     .encodeToString(auth.getBytes(StandardCharsets.UTF_8));
@@ -333,7 +333,7 @@ public class EpoClient {
                             + docId.getKind();
         }
 
-        return properties.getBaseUrl()
+        return properties.baseUrl()
                 + "/rest-services/published-data/publication/"
                 + format + "/"
                 + identifier
