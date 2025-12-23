@@ -1,12 +1,12 @@
-package com.teamb.globalipbackend1.auth.repository;
+package com.teamb.globalipbackend1.repository;
 
 import java.util.List;
 
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.teamb.globalipbackend1.auth.entity.RoleRequest;
-import com.teamb.globalipbackend1.auth.entity.RoleRequestStatus;
+import com.teamb.globalipbackend1.model.authentication.RoleRequest;
+import com.teamb.globalipbackend1.model.authentication.RoleRequestStatus;
 
 public interface RoleRequestRepository extends JpaRepository<@NonNull RoleRequest, @NonNull String> {
 

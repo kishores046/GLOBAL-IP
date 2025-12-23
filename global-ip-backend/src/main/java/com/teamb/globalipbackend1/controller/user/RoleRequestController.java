@@ -1,16 +1,15 @@
-package com.teamb.globalipbackend1.auth.controller;
+package com.teamb.globalipbackend1.controller.user;
 
 import java.util.List;
 import java.util.Objects;
 
-import com.teamb.globalipbackend1.auth.dto.RoleRequestAdminViewDto;
+import com.teamb.globalipbackend1.dto.authentication.RoleRequestAdminViewDto;
 import com.teamb.globalipbackend1.security.MyUserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.teamb.globalipbackend1.auth.entity.RoleRequest;
-import com.teamb.globalipbackend1.auth.service.RoleRequestService;
+import com.teamb.globalipbackend1.service.auth.RoleRequestService;
 import com.teamb.globalipbackend1.dto.ApiResponse;
 
 @RestController

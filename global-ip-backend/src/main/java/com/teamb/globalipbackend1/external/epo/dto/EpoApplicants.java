@@ -6,16 +6,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
 
 import java.util.List;
-
-
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EpoParties {
+public class EpoApplicants {
 
-    @JacksonXmlProperty(localName = "applicants")
-    private EpoApplicants applicants;
-
-    @JacksonXmlProperty(localName = "inventors")
-    private EpoInventors inventors;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "applicant")
+    private List<EpoApplicant> list;
 }
-

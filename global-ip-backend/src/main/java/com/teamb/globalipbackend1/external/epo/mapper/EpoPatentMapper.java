@@ -2,18 +2,18 @@ package com.teamb.globalipbackend1.external.epo.mapper;
 
 import com.teamb.globalipbackend1.external.epo.dto.*;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
 import java.util.List;
 
+@Slf4j
 @Component
 public class EpoPatentMapper {
 
     public PatentDocument map(EpoExchangeDocument doc) {
-
         if (doc == null) return null;
 
         PatentDocument patent = new PatentDocument();
@@ -25,15 +25,20 @@ public class EpoPatentMapper {
         patent.setAssignees(extractAssignees(doc));
         patent.setInventors(extractInventors(doc));
 
+        log.info(
+                "Mapped patent {} → assignees={}, inventors={}",
+                patent.getPublicationNumber(),
+                patent.getAssignees().size(),
+                patent.getInventors().size()
+        );
+
         return patent;
     }
 
-    /* ---------------- helper methods ---------------- */
+    /* ---------------- helpers ---------------- */
 
     private String buildPublicationNumber(EpoExchangeDocument doc) {
-        if (doc.getCountry() == null || doc.getDocNumber() == null) {
-            return null;
-        }
+        if (doc.getCountry() == null || doc.getDocNumber() == null) return null;
         return doc.getCountry() + doc.getDocNumber();
     }
 
@@ -50,7 +55,7 @@ public class EpoPatentMapper {
                 .filter(t -> "en".equalsIgnoreCase(t.getLang()))
                 .map(EpoTitle::getValue)
                 .findFirst()
-                .orElseGet(() ->
+                .orElse(
                         titles.stream()
                                 .filter(t -> t != null && t.getValue() != null)
                                 .map(EpoTitle::getValue)
@@ -60,10 +65,11 @@ public class EpoPatentMapper {
     }
 
     private LocalDate extractPublicationDate(EpoExchangeDocument doc) {
-        if (doc.getBibliographicData() == null) return null;
-        if (doc.getBibliographicData().getPublicationReference() == null) return null;
-        if (doc.getBibliographicData().getPublicationReference().getDocumentId() == null)
+        if (doc.getBibliographicData() == null ||
+                doc.getBibliographicData().getPublicationReference() == null ||
+                doc.getBibliographicData().getPublicationReference().getDocumentId() == null) {
             return null;
+        }
 
         String rawDate =
                 doc.getBibliographicData()
@@ -76,44 +82,54 @@ public class EpoPatentMapper {
         try {
             return LocalDate.parse(rawDate, DateTimeFormatter.BASIC_ISO_DATE);
         } catch (Exception e) {
-            return null; // OPS date formats are not sacred
+            log.warn("Failed to parse publication date: {}", rawDate);
+            return null;
         }
     }
 
+    /* ================== FIXED PART ================== */
+
     private List<String> extractAssignees(EpoExchangeDocument doc) {
+        if (doc.getBibliographicData() == null ||
+                doc.getBibliographicData().getParties() == null ||
+                doc.getBibliographicData().getParties().getApplicants() == null ||
+                doc.getBibliographicData().getParties().getApplicants().getList() == null) {
 
-        if (doc.getBibliographicData() == null) return List.of();
-        if (doc.getBibliographicData().getParties() == null) return List.of();
+            log.debug("No applicants found in OPS XML");
+            return List.of();
+        }
 
-        List<EpoApplicant> applicants =
-                doc.getBibliographicData()
-                        .getParties()
-                        .getApplicants();
-
-        if (applicants == null || applicants.isEmpty()) return List.of();
-
-        return applicants.stream()
-                .filter(a -> a != null && a.getName() != null)
-                .map(a -> a.getName().getValue())
+        return doc.getBibliographicData()
+                .getParties()
+                .getApplicants()
+                .getList()
+                .stream()
+                .map(EpoApplicant::getName)
+                .map(EpoName::getValue)
                 .filter(v -> v != null && !v.isBlank())
                 .distinct()
                 .toList();
     }
 
-
     private List<String> extractInventors(EpoExchangeDocument doc) {
-        if (doc.getBibliographicData() == null) return List.of();
-        if (doc.getBibliographicData().getParties() == null) return List.of();
+        if (doc.getBibliographicData() == null ||
+                doc.getBibliographicData().getParties() == null ||
+                doc.getBibliographicData().getParties().getInventors() == null ||
+                doc.getBibliographicData().getParties().getInventors().getList() == null) {
 
-        List<EpoInventor> inventors =
-                doc.getBibliographicData().getParties().getInventors();
+            log.debug("No inventors found in OPS XML");
+            return List.of();
+        }
 
-        if (inventors == null || inventors.isEmpty()) return List.of();
-
-        return inventors.stream()
-                .filter(i -> i != null && i.getName() != null)
-                .map(i -> i.getName().getValue())
+        return doc.getBibliographicData()
+                .getParties()
+                .getInventors()
+                .getList()
+                .stream()
+                .map(EpoInventor::getName)
+                .map(EpoName::getValue)
                 .filter(v -> v != null && !v.isBlank())
+                .distinct()
                 .toList();
     }
 }

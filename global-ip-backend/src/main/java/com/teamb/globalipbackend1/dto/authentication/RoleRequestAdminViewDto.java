@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.auth.dto;
+package com.teamb.globalipbackend1.dto.authentication;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

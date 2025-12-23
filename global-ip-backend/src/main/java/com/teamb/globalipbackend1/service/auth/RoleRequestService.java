@@ -1,18 +1,18 @@
-package com.teamb.globalipbackend1.auth.service;
+package com.teamb.globalipbackend1.service.auth;
 
 
 import java.util.List;
 import java.util.Set;
 
-import com.teamb.globalipbackend1.auth.dto.RoleRequestAdminViewDto;
+import com.teamb.globalipbackend1.dto.authentication.RoleRequestAdminViewDto;
 import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamb.globalipbackend1.auth.entity.RoleRequest;
-import com.teamb.globalipbackend1.auth.entity.RoleRequestStatus;
-import com.teamb.globalipbackend1.auth.repository.RoleRequestRepository;
+import com.teamb.globalipbackend1.model.authentication.RoleRequest;
+import com.teamb.globalipbackend1.model.authentication.RoleRequestStatus;
+import com.teamb.globalipbackend1.repository.RoleRequestRepository;
 import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.UserRepository;
 

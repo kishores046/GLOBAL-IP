@@ -7,15 +7,12 @@ import lombok.Getter;
 
 import java.util.List;
 
-
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EpoParties {
+public class EpoInventors {
 
-    @JacksonXmlProperty(localName = "applicants")
-    private EpoApplicants applicants;
-
-    @JacksonXmlProperty(localName = "inventors")
-    private EpoInventors inventors;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "inventor")
+    private List<EpoInventor> list;
 }
 

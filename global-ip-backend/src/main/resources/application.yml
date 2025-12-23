@@ -65,6 +65,10 @@ epo:
   consumer-key: ${EPO_CONSUMER_KEY}
   consumer-secret: ${EPO_CONSUMER_SECRET}
 
+patentsview:
+  api-key: ${PATENTS_VIEW_API_KEY}
+  api-url: ${PATENTS_VIEW_API_URL}
+
 # ---------------------------------- TEST PROFILE ----------------------------------
 ---
 spring:
@@ -153,6 +157,10 @@ epo:
   base-url: ${EPO_BASE_URL}
   consumer-key: ${EPO_CONSUMER_KEY}
   consumer-secret: ${EPO_CONSUMER_SECRET}
+
+patentsview:
+  api-key: ${PATENTS_VIEW_API_KEY}
+  api-url: ${PATENTS_VIEW_API_URL}
 
 
 

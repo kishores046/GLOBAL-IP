@@ -75,15 +75,31 @@ export interface PatentSearchResult {
 
 // Patent Search API
 export const patentSearchAPI = {
-  advancedSearch: async (searchParams: PatentSearchRequest): Promise<PatentSearchResult[]> => {
-    const response = await api.post('/patents/search/advanced', searchParams);
-    return response.data;
-  },
-  
-  quickSearch: async (keyword: string): Promise<PatentSearchResult[]> => {
-    const response = await api.get('/patents/search', {
-      params: { title: keyword }
-    });
+  // Unified search endpoint - dynamically builds request body
+  search: async (searchParams: PatentSearchRequest): Promise<PatentSearchResult[]> => {
+    // Build request body with only non-empty fields
+    const requestBody: any = {
+      keyword: searchParams.keyword,
+    };
+    
+    // Add optional fields only if they have values
+    if (searchParams.jurisdiction && searchParams.jurisdiction !== 'ALL') {
+      requestBody.jurisdiction = searchParams.jurisdiction;
+    }
+    if (searchParams.filingDateFrom) {
+      requestBody.filingDateFrom = searchParams.filingDateFrom;
+    }
+    if (searchParams.filingDateTo) {
+      requestBody.filingDateTo = searchParams.filingDateTo;
+    }
+    if (searchParams.assignee?.trim()) {
+      requestBody.assignee = searchParams.assignee.trim();
+    }
+    if (searchParams.inventor?.trim()) {
+      requestBody.inventor = searchParams.inventor.trim();
+    }
+    
+    const response = await api.post('/patents/search', requestBody);
     return response.data;
   },
 };

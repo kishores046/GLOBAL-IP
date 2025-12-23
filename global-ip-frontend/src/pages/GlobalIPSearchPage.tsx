@@ -15,7 +15,7 @@ export function GlobalIPSearchPage() {
     // Validation: keyword is required
     const trimmedKeyword = keyword.trim();
     if (!trimmedKeyword) {
-      setError("Please enter a keyword to search");
+      setError("Keyword is required");
       return;
     }
 
@@ -24,15 +24,24 @@ export function GlobalIPSearchPage() {
     setHasSearched(false);
 
     try {
-      const results = await patentSearchAPI.quickSearch(trimmedKeyword);
+      // Send only keyword to backend
+      const results = await patentSearchAPI.search({ keyword: trimmedKeyword });
       setSearchResults(results);
       setHasSearched(true);
     } catch (err: any) {
       console.error("Patent search error:", err);
-      setError(
-        err.response?.data?.message ?? 
-        "Failed to search patents. Please try again."
-      );
+      
+      // Handle specific error codes
+      if (err.response?.status === 400) {
+        setError("Keyword is required");
+      } else if (err.response?.status === 500) {
+        setError("An error occurred while searching. Please try again later.");
+      } else {
+        setError(
+          err.response?.data?.message ?? 
+          "Failed to search patents. Please try again."
+        );
+      }
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -146,9 +155,9 @@ export function GlobalIPSearchPage() {
                         <tr className="border-b-2 border-blue-200">
                           <th className="text-left py-4 px-4 text-slate-700">Publication Number</th>
                           <th className="text-left py-4 px-4 text-slate-700">Title</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Assignees</th>
                           <th className="text-left py-4 px-4 text-slate-700">Jurisdiction</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Publication Date</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Assignees</th>
+                          <th className="text-left py-4 px-4 text-slate-700">Inventors</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -166,19 +175,22 @@ export function GlobalIPSearchPage() {
                             <td className="py-4 px-4 text-slate-900">
                               {result.title || "Untitled"}
                             </td>
-                            <td className="py-4 px-4 text-slate-700">
-                              {result.assignees && result.assignees.length > 0 
-                                ? result.assignees.join(", ")
-                                : <span className="text-slate-400 italic">Not disclosed</span>
-                              }
-                            </td>
                             <td className="py-4 px-4">
                               <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
                                 {result.jurisdiction}
                               </span>
                             </td>
                             <td className="py-4 px-4 text-slate-700">
-                              {result.publicationDate || "N/A"}
+                              {result.assignees && result.assignees.length > 0 
+                                ? result.assignees.join(", ")
+                                : <span className="text-slate-400 italic">Not disclosed</span>
+                              }
+                            </td>
+                            <td className="py-4 px-4 text-slate-700">
+                              {result.inventors && result.inventors.length > 0 
+                                ? result.inventors.join(", ")
+                                : <span className="text-slate-400 italic">Not disclosed</span>
+                              }
                             </td>
                           </motion.tr>
                         ))}
