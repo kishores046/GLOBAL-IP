@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,25 +25,43 @@ public class PatentsViewSearchService {
     private final ObjectMapper objectMapper;
     private final PatentsViewMapStructMapper mapper;
 
-    public List<PatentDocument> advancedSearch(
-           PatentSearchFilter patentSearchFilter
-    ) {
-        String queryJson = queryBuilder.buildAdvancedQuery(
-                patentSearchFilter.getKeyword(),patentSearchFilter.getFilingDateFrom().toString(),patentSearchFilter.getFilingDateTo().toString(), patentSearchFilter.getAssignee(),patentSearchFilter.getInventor()
-        );
-
-
-        PatentsViewResponse patentsViewResponse=objectMapper.readValue(httpClient.post(queryJson), PatentsViewResponse.class);
-        return mapper.toPatentDocuments(patentsViewResponse.getResponseDocuments());
-
-
-    }
-
-    public List<PatentDocument> searchPatents(String keyword) {
-        log.info("Starting PatentsView patent search for keyword: {}", keyword);
+    public List<PatentDocument> advancedSearch(PatentSearchFilter filter) {
 
         try {
-            // Build simple keyword search query
+            String queryJson = queryBuilder.buildAdvancedQuery(
+                    filter.getKeyword(),
+                    filter.getFilingDateFrom() != null ? filter.getFilingDateFrom().toString() : null,
+                    filter.getFilingDateTo() != null ? filter.getFilingDateTo().toString() : null,
+                    filter.getAssignee(),
+                    filter.getInventor()
+            );
+            log.debug("PatentsView Advanced Query: {}", queryJson);
+
+            String responseBody = httpClient.post(queryJson);
+
+            PatentsViewResponse response =
+                    objectMapper.readValue(responseBody, PatentsViewResponse.class);
+
+            if (response == null || response.getResponseDocuments() == null) {
+                return List.of();
+            }
+
+            return mapper.toPatentDocuments(response.getResponseDocuments());
+
+        } catch (Exception e) {
+            log.error("PatentsView advanced search failed", e);
+            return List.of();
+        }
+    }
+
+
+    public List<PatentDocument> searchPatentsByKeyword(String keyword) {
+        log.info("Starting PatentsView patent searchByKeyword for keyword: {}", keyword);
+
+        List<PatentDocument> results=new ArrayList<>();
+
+        try {
+            // Build simple keyword searchByKeyword query
             String queryJson = buildSimpleKeywordQuery(keyword);
 
             log.debug("PatentsView query: {}", queryJson);
@@ -63,25 +82,25 @@ public class PatentsViewSearchService {
 
             log.info("PatentsView returned {} patents", response.getResponseDocuments().size());
 
-            List<PatentDocument> results = mapper.toPatentDocuments(response.getResponseDocuments());
+           results= mapper.toPatentDocuments(response.getResponseDocuments());
 
             log.info("Successfully mapped {} patents from PatentsView", results.size());
 
-            return results;
+
 
         } catch (Exception e) {
-            log.error("PatentsView search failed for keyword: {}", keyword, e);
-            throw new RuntimeException("PatentsView search failed: " + e.getMessage(), e);
+            log.error("PatentsView searchByKeyword failed for keyword: {}", keyword, e);
+
         }
+        return results;
     }
 
     /**
-     * Build a simple keyword-only query for text search
+     * Build a simple keyword-only query for text searchByKeyword
      * Filters will be applied later by PatentFilterService
      */
     private String buildSimpleKeywordQuery(String keyword) {
-        // Use your existing query builder but with only keyword
-        // Pass nulls for other parameters since filtering happens separately
+
         return queryBuilder.buildAdvancedQuery(
                 keyword,  // keyword
                 null,     // fromDate - will be filtered later
@@ -90,5 +109,7 @@ public class PatentsViewSearchService {
                 null      // inventor - will be filtered later
         );
     }
+
+
 }
 

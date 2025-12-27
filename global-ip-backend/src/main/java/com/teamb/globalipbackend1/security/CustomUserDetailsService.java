@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.security;
 
 import com.teamb.globalipbackend1.model.user.User;
-import com.teamb.globalipbackend1.repository.UserRepository;
+import com.teamb.globalipbackend1.repository.user.UserRepository;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

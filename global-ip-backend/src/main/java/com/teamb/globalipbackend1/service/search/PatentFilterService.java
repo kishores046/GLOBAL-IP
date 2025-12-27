@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Service responsible for filtering patent documents based on search criteria
+ * Service responsible for filtering patent documents based on searchByKeyword criteria
  * Separated from I/O operations for better testability and maintainability
  */
 @Slf4j
@@ -64,7 +64,7 @@ public class PatentFilterService {
             return true;
         }
 
-        LocalDate patentDate = patent.getPublicationDate();
+        LocalDate patentDate = patent.getGrantDate();
 
         if (patentDate == null) {
             log.debug("Patent {} has no publication date, including it",
@@ -94,7 +94,7 @@ public class PatentFilterService {
         return true;
     }
 
-    private boolean matchesAssignee(PatentDocument patent, PatentSearchFilter filter) {
+    boolean matchesAssignee(PatentDocument patent, PatentSearchFilter filter) {
 
         if (filter.getAssignee() == null || filter.getAssignee().isBlank()) {
             return true;
@@ -123,7 +123,7 @@ public class PatentFilterService {
         return matches;
     }
 
-    private boolean matchesInventor(PatentDocument patent, PatentSearchFilter filter) {
+    boolean matchesInventor(PatentDocument patent, PatentSearchFilter filter) {
 
         if (filter.getInventor() == null || filter.getInventor().isBlank()) {
             return true;

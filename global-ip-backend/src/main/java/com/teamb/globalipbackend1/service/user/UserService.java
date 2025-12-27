@@ -3,8 +3,9 @@ package com.teamb.globalipbackend1.service.user;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileRequest;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileResponse;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
+import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.model.user.User;
-import com.teamb.globalipbackend1.repository.UserRepository;
+import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getRoles().stream()
-                        .map(role -> role.getRoleType())
+                        .map(Role::getRoleType)
                         .collect(Collectors.toSet()),
                 user.getPhoneNumber(),
                 user.getCompany(),

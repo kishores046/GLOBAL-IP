@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { RoleRoute } from '../components/RoleRoute';
-import { RequireRole } from '../components/RequireRole';
 import { ROUTES, ROLES } from './routeConfig';
 
 // Lazy load pages for better performance
@@ -43,6 +42,8 @@ const AdminSettingsPage = lazy(() => import('../pages/AdminSettingsPage').then(m
 
 // Shared Pages
 const GlobalIPSearchPage = lazy(() => import('../pages/GlobalIPSearchPage').then(m => ({ default: m.GlobalIPSearchPage })));
+const UnifiedSearchResultsPage = lazy(() => import('../pages/UnifiedSearchResultsPage').then(m => ({ default: m.UnifiedSearchResultsPage })));
+const PatentDetailPage = lazy(() => import('../pages/PatentDetailPage').then(m => ({ default: m.PatentDetailPage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
 // Loading component
@@ -157,6 +158,14 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.IP_SEARCH} 
           element={<PrivateRoute><GlobalIPSearchPage /></PrivateRoute>} 
+        />
+        <Route 
+          path={ROUTES.SEARCH_RESULTS} 
+          element={<PrivateRoute><UnifiedSearchResultsPage /></PrivateRoute>} 
+        />
+        <Route 
+          path={ROUTES.PATENT_DETAIL} 
+          element={<PrivateRoute><PatentDetailPage /></PrivateRoute>} 
         />
         <Route 
           path={ROUTES.SETTINGS} 

@@ -129,12 +129,20 @@
             <version>2.20.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <!-- Annotations (@JsonProperty, etc.) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>2.20</version> <!-- No patch version in 2.20+ -->
         </dependency>
+
+
+
 
         <!-- ===================== TESTING ===================== -->
 

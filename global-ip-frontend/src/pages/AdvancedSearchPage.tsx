@@ -1,18 +1,20 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { Search, X, Loader2, Calendar } from "lucide-react";
-import { patentSearchAPI, PatentSearchResult } from "../services/api";
+import { unifiedSearchAPI } from "../services/api";
 
 export function AdvancedSearchPage() {
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [jurisdiction, setJurisdiction] = useState("ALL");
   const [assignee, setAssignee] = useState("");
   const [inventor, setInventor] = useState("");
+  const [owner, setOwner] = useState("");
+  const [state, setState] = useState("");
   const [filingDateFrom, setFilingDateFrom] = useState("");
   const [filingDateTo, setFilingDateTo] = useState("");
-  const [searchResults, setSearchResults] = useState<PatentSearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +27,6 @@ export function AdvancedSearchPage() {
 
     setIsLoading(true);
     setError(null);
-    setHasSearched(false);
 
     try {
       // Build dynamic request body - only include fields with values
@@ -49,12 +50,28 @@ export function AdvancedSearchPage() {
       if (inventor.trim()) {
         searchParams.inventor = inventor.trim();
       }
+      if (owner.trim()) {
+        searchParams.owner = owner.trim();
+      }
+      if (state.trim()) {
+        searchParams.state = state.trim();
+      }
 
-      const results = await patentSearchAPI.search(searchParams);
-      setSearchResults(results);
-      setHasSearched(true);
+      const response = await unifiedSearchAPI.search(searchParams);
+      
+      // Increment search count
+      const currentCount = parseInt(localStorage.getItem('searchQueryCount') || '0', 10);
+      localStorage.setItem('searchQueryCount', (currentCount + 1).toString());
+      
+      // Navigate to results page with data
+      navigate("/search/results", {
+        state: {
+          patents: response.patents,
+          trademarks: response.trademarks,
+        },
+      });
     } catch (err: any) {
-      console.error("Patent search error:", err);
+      console.error("Unified search error:", err);
       
       // Handle specific error codes
       if (err.response?.status === 400) {
@@ -64,10 +81,9 @@ export function AdvancedSearchPage() {
       } else {
         setError(
           err.response?.data?.message ?? 
-          "Failed to search patents. Please try again."
+          "Failed to search. Please try again."
         );
       }
-      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -78,10 +94,10 @@ export function AdvancedSearchPage() {
     setJurisdiction("ALL");
     setAssignee("");
     setInventor("");
+    setOwner("");
+    setState("");
     setFilingDateFrom("");
     setFilingDateTo("");
-    setSearchResults([]);
-    setHasSearched(false);
     setError(null);
   };
 
@@ -110,7 +126,7 @@ export function AdvancedSearchPage() {
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Search className="w-6 h-6 text-blue-600" />
                 </div>
-                <h2 className="text-2xl text-blue-900">Advanced Patent Search</h2>
+                <h2 className="text-2xl text-blue-900">Advanced IP Search</h2>
               </div>
 
               {/* Error Alert */}
@@ -138,7 +154,7 @@ export function AdvancedSearchPage() {
                     onKeyDown={handleKeyDown}
                     className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                   />
-                  <p className="mt-1 text-sm text-slate-500">Title-based search (required)</p>
+                  <p className="mt-1 text-sm text-slate-500">Search across patents and trademarks (required)</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -189,31 +205,67 @@ export function AdvancedSearchPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="assignee-input" className="block text-slate-700 mb-2 font-medium">Assignee (optional)</label>
-                    <input
-                      id="assignee-input"
-                      type="text"
-                      placeholder="Company or organization name..."
-                      value={assignee}
-                      onChange={(e) => setAssignee(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  </div>
+                {/* Patent-specific fields */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Patent Filters</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="assignee-input" className="block text-slate-700 mb-2 font-medium">Assignee</label>
+                      <input
+                        id="assignee-input"
+                        type="text"
+                        placeholder="Company or organization name..."
+                        value={assignee}
+                        onChange={(e) => setAssignee(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="inventor-input" className="block text-slate-700 mb-2 font-medium">Inventor (optional)</label>
-                    <input
-                      id="inventor-input"
-                      type="text"
-                      placeholder="Inventor name..."
-                      value={inventor}
-                      onChange={(e) => setInventor(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
+                    <div>
+                      <label htmlFor="inventor-input" className="block text-slate-700 mb-2 font-medium">Inventor</label>
+                      <input
+                        id="inventor-input"
+                        type="text"
+                        placeholder="Inventor name..."
+                        value={inventor}
+                        onChange={(e) => setInventor(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trademark-specific fields */}
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Trademark Filters</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="owner-input" className="block text-slate-700 mb-2 font-medium">Owner</label>
+                      <input
+                        id="owner-input"
+                        type="text"
+                        placeholder="Trademark owner..."
+                        value={owner}
+                        onChange={(e) => setOwner(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="state-input" className="block text-slate-700 mb-2 font-medium">State</label>
+                      <input
+                        id="state-input"
+                        type="text"
+                        placeholder="State (e.g., CA, NY)..."
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -231,7 +283,7 @@ export function AdvancedSearchPage() {
                     ) : (
                       <>
                         <Search className="w-5 h-5" />
-                        Search Patents
+                        Search IP
                       </>
                     )}
                   </button>
@@ -245,67 +297,6 @@ export function AdvancedSearchPage() {
                 </div>
               </div>
             </div>
-
-            {/* Search Results */}
-            {hasSearched && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg p-6">
-                <h2 className="text-2xl text-blue-900 mb-6">
-                  Search Results 
-                  {searchResults.length > 0 && ` (${searchResults.length} found)`}
-                </h2>
-                
-                {searchResults.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600 text-lg mb-2">
-                      No patents matched the selected filters.
-                    </p>
-                    <p className="text-slate-400">
-                      Try adjusting your search criteria or using different keywords.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {searchResults.map((result, index) => (
-                      <div key={result.publicationNumber} className="border border-slate-200 rounded-lg p-4 hover:bg-blue-50 transition-all">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg text-blue-900 font-semibold">{result.publicationNumber}</h3>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                            {result.jurisdiction}
-                          </span>
-                        </div>
-                        <p className="text-slate-700 mb-3 font-medium">
-                          {result.title || "Untitled"}
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-600">
-                          <div>
-                            <span className="font-medium">Assignees:</span>{" "}
-                            {result.assignees && result.assignees.length > 0 
-                              ? result.assignees.join(", ")
-                              : <span className="text-slate-400 italic">Not disclosed</span>
-                            }
-                          </div>
-                          <div>
-                            <span className="font-medium">Inventors:</span>{" "}
-                            {result.inventors && result.inventors.length > 0 
-                              ? result.inventors.join(", ")
-                              : <span className="text-slate-400 italic">Not disclosed</span>
-                            }
-                          </div>
-                          <div>
-                            <span className="font-medium">Publication Date:</span>{" "}
-                            {result.publicationDate || "N/A"}
-                          </div>
-                          <div>
-                            <span className="font-medium">Jurisdiction:</span> {result.jurisdiction}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </main>
       </div>

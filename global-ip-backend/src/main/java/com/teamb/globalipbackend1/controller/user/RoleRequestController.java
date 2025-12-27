@@ -38,7 +38,7 @@ public class RoleRequestController {
     }
 
 
-    @PostMapping("/{id}/approve")
+    @PostMapping("/adminOnly/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse approve(@PathVariable String id, Authentication auth) {
         String adminId = ((MyUserDetails) Objects.requireNonNull(auth.getPrincipal())).getUser().getUserId();
@@ -47,7 +47,7 @@ public class RoleRequestController {
     }
 
 
-    @PostMapping("/{id}/reject")
+    @PostMapping("/adminOnly/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse reject(@PathVariable String id, Authentication auth) {
         String adminId = ((MyUserDetails) Objects.requireNonNull(auth.getPrincipal())).getUser().getUserId();
@@ -55,7 +55,7 @@ public class RoleRequestController {
         return new ApiResponse("Admin request rejected");
     }
 
-    @PostMapping("/{id}/waitlist")
+    @PostMapping("/adminOnly/{id}/waitlist")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse waitlist(@PathVariable String id, Authentication auth) {
         String adminId = ((MyUserDetails) Objects.requireNonNull(auth.getPrincipal())).getUser().getUserId();

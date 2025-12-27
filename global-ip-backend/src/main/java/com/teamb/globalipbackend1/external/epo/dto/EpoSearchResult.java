@@ -1,6 +1,5 @@
 package com.teamb.globalipbackend1.external.epo.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -13,8 +12,6 @@ import java.util.List;
 public class EpoSearchResult {
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "publication-reference")
+    @JacksonXmlProperty(localName = "publication-reference", namespace = "http://ops.epo.org")
     private List<EpoPublicationReferenceSearch> publications;
 }
-
-

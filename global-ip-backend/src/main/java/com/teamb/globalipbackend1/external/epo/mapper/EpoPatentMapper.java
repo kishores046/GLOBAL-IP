@@ -21,9 +21,11 @@ public class EpoPatentMapper {
         patent.setPublicationNumber(buildPublicationNumber(doc));
         patent.setJurisdiction(doc.getCountry());
         patent.setTitle(extractEnglishTitle(doc));
-        patent.setPublicationDate(extractPublicationDate(doc));
-        patent.setAssignees(extractAssignees(doc));
-        patent.setInventors(extractInventors(doc));
+        patent.setFilingDate(extractPublicationDate(doc));
+        patent.setAssignees(cleanNames(extractAssignees(doc)));
+        patent.setInventors(cleanNames(extractInventors(doc)));
+        patent.setGrantDate(extractPublicationDate(doc));
+        patent.setFilingDate(extractFilingDate(doc));
 
         log.info(
                 "Mapped patent {} → assignees={}, inventors={}",
@@ -131,5 +133,40 @@ public class EpoPatentMapper {
                 .filter(v -> v != null && !v.isBlank())
                 .distinct()
                 .toList();
+
     }
+    private List<String> cleanNames(List<String> names) {
+        if (names == null || names.isEmpty()) return List.of();
+
+        return names.stream()
+                .map(String::trim)
+                .map(name -> name.replaceAll(",\\s*$", "")) // Remove trailing commas
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .toList();
+    }
+
+    private LocalDate extractFilingDate(EpoExchangeDocument doc) {
+        if (doc.getBibliographicData() == null ||
+                doc.getBibliographicData().getApplicationReference() == null ||
+                doc.getBibliographicData().getApplicationReference().getDocumentId() == null) {
+            return null;
+        }
+
+        String rawDate =
+                doc.getBibliographicData()
+                        .getApplicationReference()
+                        .getDocumentId()
+                        .getDate();
+
+        if (rawDate == null || rawDate.isBlank()) return null;
+
+        try {
+            return LocalDate.parse(rawDate, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (Exception e) {
+            log.warn("Failed to parse filing date: {}", rawDate);
+            return null;
+        }
+    }
+
 }

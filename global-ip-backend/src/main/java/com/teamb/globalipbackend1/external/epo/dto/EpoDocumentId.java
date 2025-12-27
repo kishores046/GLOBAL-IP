@@ -2,8 +2,9 @@ package com.teamb.globalipbackend1.external.epo.dto;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
+import lombok.Setter;
 
-@Getter
+@Getter @Setter
 public class EpoDocumentId {
 
     @JacksonXmlProperty(localName = "doc-number")

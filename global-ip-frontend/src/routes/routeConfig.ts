@@ -36,6 +36,8 @@ export const ROUTES = {
   
   // Shared routes (all authenticated users)
   IP_SEARCH: '/search',
+  SEARCH_RESULTS: '/search/results',
+  PATENT_DETAIL: '/patents/:publicationNumber',
   SETTINGS: '/settings',
 } as const;
 

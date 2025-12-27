@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.repository;
+package com.teamb.globalipbackend1.repository.user;
 
 import com.teamb.globalipbackend1.model.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;

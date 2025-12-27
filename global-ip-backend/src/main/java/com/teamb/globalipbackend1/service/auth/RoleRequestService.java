@@ -6,15 +6,15 @@ import java.util.Set;
 
 import com.teamb.globalipbackend1.dto.authentication.RoleRequestAdminViewDto;
 import com.teamb.globalipbackend1.model.user.Role;
-import com.teamb.globalipbackend1.repository.RoleRepository;
+import com.teamb.globalipbackend1.repository.user.RoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.teamb.globalipbackend1.model.authentication.RoleRequest;
 import com.teamb.globalipbackend1.model.authentication.RoleRequestStatus;
-import com.teamb.globalipbackend1.repository.RoleRequestRepository;
+import com.teamb.globalipbackend1.repository.user.RoleRequestRepository;
 import com.teamb.globalipbackend1.model.user.User;
-import com.teamb.globalipbackend1.repository.UserRepository;
+import com.teamb.globalipbackend1.repository.user.UserRepository;
 
 @Service
 public class RoleRequestService {
