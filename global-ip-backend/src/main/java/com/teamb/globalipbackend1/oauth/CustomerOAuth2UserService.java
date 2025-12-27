@@ -2,8 +2,8 @@ package com.teamb.globalipbackend1.oauth;
 
 import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.model.user.User;
-import com.teamb.globalipbackend1.repository.RoleRepository;
-import com.teamb.globalipbackend1.repository.UserRepository;
+import com.teamb.globalipbackend1.repository.user.RoleRepository;
+import com.teamb.globalipbackend1.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;

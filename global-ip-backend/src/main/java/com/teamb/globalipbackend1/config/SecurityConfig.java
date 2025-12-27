@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -90,6 +91,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/analyst/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/patents/**").hasAnyRole("USER","ADMIN","ANALYST")
+                        .requestMatchers("api/search/").hasAnyRole("USER","ADMIN","ANALYST")
+                        .requestMatchers("api/search/advanced").hasAnyRole("ANALYST","ADMIN")
+                        .requestMatchers("api/trademarks/**").hasAnyRole("USER", "ANALYST", "ADMIN")
+                        .requestMatchers("api/role-requests/admin").hasAnyRole("USER","ANALYST","ADMIN")
+                        .requestMatchers("api/role-requests/pending").hasAnyRole("ADMIN")
+                        .requestMatchers("api/role-requests/adminOnly/**").hasAnyRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 
@@ -102,7 +109,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 );
 
         return http.build();

@@ -1,13 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Loader2, X } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { motion } from "motion/react";
-import { patentSearchAPI, PatentSearchResult } from "../services/api";
+import { unifiedSearchAPI } from "../services/api";
 
 export function GlobalIPSearchPage() {
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
-  const [searchResults, setSearchResults] = useState<PatentSearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,15 +21,24 @@ export function GlobalIPSearchPage() {
 
     setIsLoading(true);
     setError(null);
-    setHasSearched(false);
 
     try {
-      // Send only keyword to backend
-      const results = await patentSearchAPI.search({ keyword: trimmedKeyword });
-      setSearchResults(results);
-      setHasSearched(true);
+      // Use unified search API
+      const response = await unifiedSearchAPI.search({ keyword: trimmedKeyword });
+      
+      // Increment search count
+      const currentCount = parseInt(localStorage.getItem('searchQueryCount') || '0', 10);
+      localStorage.setItem('searchQueryCount', (currentCount + 1).toString());
+      
+      // Navigate to results page with data
+      navigate("/search/results", {
+        state: {
+          patents: response.patents,
+          trademarks: response.trademarks,
+        },
+      });
     } catch (err: any) {
-      console.error("Patent search error:", err);
+      console.error("Unified search error:", err);
       
       // Handle specific error codes
       if (err.response?.status === 400) {
@@ -39,10 +48,9 @@ export function GlobalIPSearchPage() {
       } else {
         setError(
           err.response?.data?.message ?? 
-          "Failed to search patents. Please try again."
+          "Failed to search. Please try again."
         );
       }
-      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -125,91 +133,6 @@ export function GlobalIPSearchPage() {
                 </button>
               </div>
             </motion.div>
-
-            {/* Search Results Section */}
-            {hasSearched && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl"
-              >
-                <div className="mb-6">
-                  <h2 className="text-2xl text-slate-900 mb-1">Search Results</h2>
-                  <p className="text-slate-600">
-                    {searchResults.length === 0 
-                      ? "No patents found for the given keyword." 
-                      : (() => {
-                          const resultText = searchResults.length === 1 ? 'result' : 'results';
-                          return `Found ${searchResults.length} ${resultText}`;
-                        })()
-                    }
-                  </p>
-                </div>
-
-                {/* Results Table */}
-                {searchResults.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b-2 border-blue-200">
-                          <th className="text-left py-4 px-4 text-slate-700">Publication Number</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Title</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Jurisdiction</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Assignees</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Inventors</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {searchResults.map((result, index) => (
-                          <motion.tr
-                            key={result.publicationNumber}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 + index * 0.05 }}
-                            className="border-b border-blue-100 hover:bg-blue-50/50 transition-all cursor-pointer"
-                          >
-                            <td className="py-4 px-4 text-slate-900 font-medium">
-                              {result.publicationNumber}
-                            </td>
-                            <td className="py-4 px-4 text-slate-900">
-                              {result.title || "Untitled"}
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
-                                {result.jurisdiction}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-slate-700">
-                              {result.assignees && result.assignees.length > 0 
-                                ? result.assignees.join(", ")
-                                : <span className="text-slate-400 italic">Not disclosed</span>
-                              }
-                            </td>
-                            <td className="py-4 px-4 text-slate-700">
-                              {result.inventors && result.inventors.length > 0 
-                                ? result.inventors.join(", ")
-                                : <span className="text-slate-400 italic">Not disclosed</span>
-                              }
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500 text-lg">
-                      No patents found for the given keyword.
-                    </p>
-                    <p className="text-slate-400 mt-2">
-                      Try using different or more general search terms.
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            )}
           </div>
         </main>
       </div>

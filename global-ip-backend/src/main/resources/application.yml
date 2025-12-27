@@ -69,6 +69,10 @@ patentsview:
   api-key: ${PATENTS_VIEW_API_KEY}
   api-url: ${PATENTS_VIEW_API_URL}
 
+services:
+  trademark:
+    base-url: http://localhost:9090
+
 # ---------------------------------- TEST PROFILE ----------------------------------
 ---
 spring:

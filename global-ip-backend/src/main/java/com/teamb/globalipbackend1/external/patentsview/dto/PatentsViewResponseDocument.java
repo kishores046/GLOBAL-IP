@@ -39,4 +39,25 @@ public class PatentsViewResponseDocument {
 
     @JsonProperty("wipo")
     private List<PatentsViewWipo> patentsViewWipos;
+
+    @JsonProperty("ipc_current")
+    private List<PatentsViewIpcClass> patentsViewIpcCurrent;
+
+
+
+    @JsonProperty("patent_earliest_application_date")
+    private LocalDate patentEarliestApplicationDate;
+
+    @JsonProperty("wipo_kind")
+    private String wipoKind;
+
+    @JsonProperty("patent_num_times_cited_by_us_patents")
+    private Integer patentNumTimesCitedByUsPatents;
+
+    @JsonProperty("patent_num_total_documents_cited")
+    private Integer patentNumTotalDocumentsCited;
+
+
+
+
 }

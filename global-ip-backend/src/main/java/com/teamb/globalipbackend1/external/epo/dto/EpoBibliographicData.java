@@ -8,7 +8,6 @@ import java.util.List;
 @Getter
 public class EpoBibliographicData {
 
-
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "invention-title")
     private List<EpoTitle> inventionTitles;
@@ -26,5 +25,31 @@ public class EpoBibliographicData {
     @JacksonXmlProperty(localName = "parties")
     private EpoParties parties;
 
+    // IPC Classifications - handle both wrapper and direct list
+    @JacksonXmlProperty(localName = "classifications-ipcr")
+    private EpoIpcClassifications ipcClassifications;
 
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "classification-ipcr")
+    private List<EpoIpcClassification> ipcClassificationsList;
+
+
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JacksonXmlProperty(localName = "patent-classification")
+    private List<EpoCpcClassification> cpcClassifications;
+
+
+    public List<EpoIpcClassification> getIpcList() {
+        if (ipcClassificationsList != null && !ipcClassificationsList.isEmpty()) {
+            return ipcClassificationsList;
+        }
+        if (ipcClassifications != null && ipcClassifications.getList() != null) {
+            return ipcClassifications.getList();
+        }
+        return List.of();
+    }
+
+    public List<EpoCpcClassification> getCpcList() {
+        return cpcClassifications != null ? cpcClassifications : List.of();
+    }
 }

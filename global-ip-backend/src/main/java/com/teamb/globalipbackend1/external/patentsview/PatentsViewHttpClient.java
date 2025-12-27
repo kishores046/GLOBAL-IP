@@ -19,42 +19,54 @@ import java.time.Duration;
 @Slf4j
 public class PatentsViewHttpClient {
 
-    public PatentsViewHttpClient(PatentsViewProperties patentsViewProperties) {
-        this.API_URL= patentsViewProperties.apiUrl();
-        this.API_KEY= patentsViewProperties.apiKey();
-    }
-
-    private  final String API_URL ;
+    private final String API_URL;
     private final String API_KEY;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(1200))
+            .connectTimeout(Duration.ofSeconds(120))
             .build();
+
+    public PatentsViewHttpClient(PatentsViewProperties patentsViewProperties) {
+        this.API_URL = patentsViewProperties.apiUrl();
+        this.API_KEY = patentsViewProperties.apiKey();
+        log.info("PatentsView API URL configured: {}", API_URL);
+    }
 
     public String post(String jsonBody) {
         try {
+            log.info("Sending request to PatentsView API");
+            log.debug("Request body:\n{}", jsonBody);
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .header("Content-Type", "application/json")
-                    .header("X-API-Key", API_KEY)
-                    .timeout(Duration.ofSeconds(1200))
+                    .header("X-Api-Key", API_KEY)
+                    .timeout(Duration.ofSeconds(120))
                     .build();
 
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            log.info("PatentsView API response status: {}", response.statusCode());
+
             if (response.statusCode() != 200) {
+                String errorBody = response.body();
+                log.error("PatentsView API error response body: {}", errorBody);
+                log.error("Request that failed: {}", jsonBody);
+
                 throw new RuntimeException(
-                        "PatentsView API error: " + response.statusCode()
+                        String.format("PatentsView API error: %d - %s",
+                                response.statusCode(),
+                                errorBody)
                 );
             }
 
-
-            log.info("PatentsView");
+            log.debug("PatentsView API response: {}", response.body().substring(0, Math.min(200, response.body().length())));
             return response.body();
 
         } catch (Exception e) {
+            log.error("PatentsView HTTP call failed", e);
             throw new RuntimeException("PatentsView HTTP call failed", e);
         }
     }

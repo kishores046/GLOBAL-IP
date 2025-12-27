@@ -5,9 +5,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
 
 @Getter
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EpoBiblioSearch {
 
-    @JacksonXmlProperty(localName = "search-result")
+    @JacksonXmlProperty(localName = "search-result", namespace = "http://ops.epo.org")
     private EpoSearchResult searchResult;
 }

@@ -5,7 +5,7 @@ import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
 import com.teamb.globalipbackend1.exception.ResourceNotFoundException;
 import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.model.user.User;
-import com.teamb.globalipbackend1.repository.UserRepository;
+import com.teamb.globalipbackend1.repository.user.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
