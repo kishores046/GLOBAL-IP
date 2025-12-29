@@ -28,6 +28,15 @@ public class CaffeineCacheConfig {
                                 .build()
                 );
 
+        CaffeineCache trademarkSnapshot =
+                new CaffeineCache(
+                        CacheNames.TRADEMARK_SNAPSHOT,
+                        Caffeine.newBuilder()
+                                .maximumSize(10_000)
+                                .expireAfterWrite(Duration.ofHours(6))
+                                .recordStats()
+                                .build()
+                );
 
         CaffeineCache patentSnapshot =
                 new CaffeineCache(
@@ -54,7 +63,7 @@ public class CaffeineCacheConfig {
         manager.setCaches(List.of(
                 patentSearch,
                 patentSnapshot,
-                trademarkSearch
+                trademarkSearch, trademarkSnapshot
         ));
 
         return manager;

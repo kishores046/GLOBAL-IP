@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../routes/routeConfig";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
-import { bookmarkAPI, patentDetailAPI, BookmarkedPatent } from "../services/api";
+import { bookmarkAPI, patentDetailAPI, trademarkDetailAPI, BookmarkedPatent, BookmarkedTrademark, dashboardAPI } from "../services/api";
 
 const legalMilestones = [
   { label: "Filed", date: "2023-01-15", completed: true },
@@ -28,17 +28,36 @@ export function UserDashboard() {
   const [showViewReportsModal, setShowViewReportsModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [bookmarkedPatents, setBookmarkedPatents] = useState<BookmarkedPatent[]>([]);
+  const [bookmarkedTrademarks, setBookmarkedTrademarks] = useState<BookmarkedTrademark[]>([]);
   const [loadingBookmarks, setLoadingBookmarks] = useState(true);
+  const [searchCount, setSearchCount] = useState<number>(0);
+  const [loadingSearchCount, setLoadingSearchCount] = useState(true);
   
-  // Load bookmarked patents
+  // Load bookmarked patents and trademarks
   useEffect(() => {
     loadBookmarks();
+    loadSearchCount();
   }, []);
+  
+  const loadSearchCount = async () => {
+    try {
+      const count = await dashboardAPI.getUserSearchCount();
+      setSearchCount(count);
+    } catch (error) {
+      console.error("Error loading search count:", error);
+    } finally {
+      setLoadingSearchCount(false);
+    }
+  };
   
   const loadBookmarks = async () => {
     try {
-      const bookmarks = await bookmarkAPI.getBookmarkedPatents();
-      setBookmarkedPatents(bookmarks);
+      const [patents, trademarks] = await Promise.all([
+        bookmarkAPI.getBookmarkedPatents(),
+        bookmarkAPI.getBookmarkedTrademarks()
+      ]);
+      setBookmarkedPatents(patents);
+      setBookmarkedTrademarks(trademarks);
     } catch (error) {
       console.error("Error loading bookmarks:", error);
     } finally {
@@ -168,6 +187,38 @@ export function UserDashboard() {
     navigate(`/patents/${publicationNumber}`);
   };
   
+  const handleViewTrademarkDetails = (trademarkId: string) => {
+    navigate(`/trademarks/${trademarkId}`);
+  };
+  
+  const handleRemoveTrademarkBookmark = async (trademarkId: string) => {
+    console.log("Attempting to remove bookmark for trademark ID:", trademarkId);
+    
+    if (!trademarkId || trademarkId === 'undefined') {
+      console.error("Invalid trademark ID provided:", trademarkId);
+      alert("Cannot remove bookmark: Invalid trademark ID");
+      return;
+    }
+    
+    try {
+      await trademarkDetailAPI.unbookmark(trademarkId);
+      setBookmarkedTrademarks(bookmarkedTrademarks.filter(t => t.trademarkId !== trademarkId));
+    } catch (error: any) {
+      console.error("Error removing trademark bookmark:", error);
+      
+      // Check for specific backend error messages
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
+      
+      if (errorMessage?.includes('EntityManager') || errorMessage?.includes('transaction')) {
+        alert("Backend transaction error. Please contact the administrator to add @Transactional annotation to the unbookmark method.");
+      } else if (error.response?.status === 403) {
+        alert("You don't have permission to remove this bookmark.");
+      } else {
+        alert("Failed to remove bookmark. Please try again.");
+      }
+    }
+  };
+  
   const formatDate = (date?: string) => {
     if (!date) return "—";
     try {
@@ -233,29 +284,29 @@ export function UserDashboard() {
             {/* Hero Summary Bar */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Tracked Patents"
-                value="1,284"
+                title="Search Queries"
+                value={loadingSearchCount ? "..." : searchCount.toString()}
                 icon={FileText}
                 gradient="from-blue-500 to-blue-600"
                 delay={0}
               />
               <StatCard
                 title="Tracked Trademarks"
-                value="856"
+                value="0"
                 icon={Award}
                 gradient="from-blue-500 to-blue-600"
                 delay={100}
               />
               <StatCard
                 title="New Filings This Week"
-                value="142"
+                value="0"
                 icon={TrendingUp}
                 gradient="from-blue-500 to-blue-600"
                 delay={200}
               />
               <StatCard
                 title="Live Alerts"
-                value="23"
+                value="0"
                 icon={Bell}
                 gradient="from-blue-500 to-blue-600"
                 delay={300}
@@ -500,6 +551,90 @@ export function UserDashboard() {
                           </button>
                           <button
                             onClick={() => handleRemoveBookmark(patent.publicationNumber)}
+                            className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all"
+                            title="Remove bookmark"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bookmarked Trademarks Section */}
+            <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl text-slate-900 mb-1 flex items-center gap-2">
+                    <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                    Bookmarked Trademarks
+                  </h3>
+                  <p className="text-slate-600">Trademarks you've saved for later</p>
+                </div>
+              </div>
+
+              {loadingBookmarks ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-slate-600">Loading bookmarks...</p>
+                </div>
+              ) : bookmarkedTrademarks.length === 0 ? (
+                <div className="text-center py-12">
+                  <Star className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-600 text-lg mb-2">No bookmarked trademarks yet</p>
+                  <p className="text-slate-400">
+                    Search for trademarks and bookmark them to see them here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {bookmarkedTrademarks.map((trademark) => (
+                    <div
+                      key={trademark.trademarkId}
+                      className="border border-blue-200 rounded-xl p-4 hover:bg-blue-50 transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                            {trademark.markName || trademark.trademarkId}
+                          </h4>
+                          <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                            {trademark.jurisdiction && (
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                  {trademark.jurisdiction}
+                                </span>
+                              </div>
+                            )}
+                            {trademark.statusCode && (
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                  {trademark.statusCode}
+                                </span>
+                              </div>
+                            )}
+                            {trademark.filingDate && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4 text-slate-400" />
+                                <span>Filed: {formatDate(trademark.filingDate)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleViewTrademarkDetails(trademark.trademarkId)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleRemoveTrademarkBookmark(trademark.trademarkId)}
                             className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-all"
                             title="Remove bookmark"
                           >

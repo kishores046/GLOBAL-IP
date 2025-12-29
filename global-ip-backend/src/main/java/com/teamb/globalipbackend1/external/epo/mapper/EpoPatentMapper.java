@@ -18,6 +18,7 @@ public class EpoPatentMapper {
 
         PatentDocument patent = new PatentDocument();
 
+
         patent.setPublicationNumber(buildPublicationNumber(doc));
         patent.setJurisdiction(doc.getCountry());
         patent.setTitle(extractEnglishTitle(doc));

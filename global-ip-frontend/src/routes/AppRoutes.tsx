@@ -44,6 +44,7 @@ const AdminSettingsPage = lazy(() => import('../pages/AdminSettingsPage').then(m
 const GlobalIPSearchPage = lazy(() => import('../pages/GlobalIPSearchPage').then(m => ({ default: m.GlobalIPSearchPage })));
 const UnifiedSearchResultsPage = lazy(() => import('../pages/UnifiedSearchResultsPage').then(m => ({ default: m.UnifiedSearchResultsPage })));
 const PatentDetailPage = lazy(() => import('../pages/PatentDetailPage').then(m => ({ default: m.PatentDetailPage })));
+const TrademarkDetailPage = lazy(() => import('../pages/TrademarkDetailPage').then(m => ({ default: m.TrademarkDetailPage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
 // Loading component
@@ -166,6 +167,10 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.PATENT_DETAIL} 
           element={<PrivateRoute><PatentDetailPage /></PrivateRoute>} 
+        />
+        <Route 
+          path={ROUTES.TRADEMARK_DETAIL} 
+          element={<PrivateRoute><TrademarkDetailPage /></PrivateRoute>} 
         />
         <Route 
           path={ROUTES.SETTINGS} 

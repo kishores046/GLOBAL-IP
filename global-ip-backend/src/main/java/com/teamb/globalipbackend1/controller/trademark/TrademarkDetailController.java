@@ -34,7 +34,7 @@ public class TrademarkDetailController {
     @PreAuthorize("hasAnyRole('USER','ANALYST','ADMIN')")
     public ResponseEntity<Void> bookmark(
             @PathVariable String id,
-            @RequestParam String source,
+            @RequestParam(defaultValue = "TMVIEW") String source,
             Authentication auth
     ) {
         bookmarkService.save(auth.getName(), id, source);

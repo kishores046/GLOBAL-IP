@@ -4,6 +4,7 @@ package com.teamb.globalipbackend1.controller.search;
 
 import com.teamb.globalipbackend1.dto.search.GlobalSearchRequest;
 import com.teamb.globalipbackend1.dto.search.UnifiedSearchResponse;
+import com.teamb.globalipbackend1.service.search.SearchActivityService;
 import com.teamb.globalipbackend1.service.search.UnifiedSearchService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UnifiedSearchController {
 
     private final UnifiedSearchService unifiedSearchService;
+    private final SearchActivityService searchActivityService;
 
     /**
      * Unified searchByKeyword across patents + trademarks
@@ -38,6 +40,8 @@ public class UnifiedSearchController {
         try {
             UnifiedSearchResponse response =
                     unifiedSearchService.searchByKeyword(request);
+
+            searchActivityService.incrementSearchCount("SIMPLE");
 
             return ResponseEntity.ok(response);
 
@@ -63,6 +67,7 @@ public class UnifiedSearchController {
         try {
             UnifiedSearchResponse response =
                     unifiedSearchService.searchAdvanced(request);
+            searchActivityService.incrementSearchCount("ADVANCED");
 
             return ResponseEntity.ok(response);
 

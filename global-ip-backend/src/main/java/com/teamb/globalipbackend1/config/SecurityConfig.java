@@ -52,7 +52,6 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder =
@@ -60,6 +59,7 @@ public class SecurityConfig {
         authBuilder.authenticationProvider(authenticationProvider());
         return authBuilder.build();
     }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -91,12 +91,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/analyst/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/patents/**").hasAnyRole("USER","ADMIN","ANALYST")
-                        .requestMatchers("api/search/").hasAnyRole("USER","ADMIN","ANALYST")
-                        .requestMatchers("api/search/advanced").hasAnyRole("ANALYST","ADMIN")
-                        .requestMatchers("api/trademarks/**").hasAnyRole("USER", "ANALYST", "ADMIN")
-                        .requestMatchers("api/role-requests/admin").hasAnyRole("USER","ANALYST","ADMIN")
-                        .requestMatchers("api/role-requests/pending").hasAnyRole("ADMIN")
-                        .requestMatchers("api/role-requests/adminOnly/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/api/search/").hasAnyRole("USER","ADMIN","ANALYST")
+                        .requestMatchers("/api/search/advanced").hasAnyRole("ANALYST","ADMIN")
+                        .requestMatchers("/api/trademarks/**").hasAnyRole("USER", "ANALYST", "ADMIN")
+                        .requestMatchers("/api/role-requests/admin").hasAnyRole("USER","ANALYST","ADMIN")
+                        .requestMatchers("/api/role-requests/pending").hasAnyRole("ADMIN")
+                        .requestMatchers("/api/role-requests/adminOnly/**").hasAnyRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 

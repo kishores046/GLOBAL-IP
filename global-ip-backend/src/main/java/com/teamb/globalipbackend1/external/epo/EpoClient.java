@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -70,55 +71,109 @@ public class EpoClient {
     }
 
     public GlobalPatentDetailDto fetchGlobalDetail(String publicationNumber) {
+        log.info("Fetching global detail for: {}", publicationNumber);
 
         EpoDocumentId id = parser.parse(publicationNumber);
+        log.debug("Parsed document ID - Country: {}, DocNumber: {}, Kind: {}",
+                id.getCountry(), id.getDocNumber(), id.getKind());
 
         List<EpoExchangeDocument> docs = fetchBiblio(id);
-        if (docs.isEmpty()) return null;
+        if (docs.isEmpty()) {
+            log.warn("No biblio documents found for: {}", publicationNumber);
+            return null;
+        }
 
-        // Prefer B1 if present
-        EpoExchangeDocument doc =
-                docs.stream()
-                        .sorted((a, b) -> {
-                            if ("B1".equals(a.getKind())) return -1;
-                            if ("B1".equals(b.getKind())) return 1;
-                            return 0;
-                        })
-                        .findFirst()
-                        .orElse(docs.getFirst());
+        log.debug("Found {} biblio documents", docs.size());
+
+        // Prefer B1 if present, otherwise use first document
+        EpoExchangeDocument doc = docs.stream()
+                .sorted((a, b) -> {
+                    if ("B1".equals(a.getKind())) return -1;
+                    if ("B1".equals(b.getKind())) return 1;
+                    return 0;
+                })
+                .findFirst()
+                .orElse(docs.getFirst());
+
+        log.debug("Selected document with kind: {}", doc.getKind());
 
         EpoBibliographicData b = doc.getBibliographicData();
 
         GlobalPatentDetailDto dto = new GlobalPatentDetailDto();
         dto.setPublicationNumber(publicationNumber);
         dto.setJurisdiction(id.getCountry());
-        dto.setWipoKind(doc.getKind()); // Use actual kind from document
 
-        dto.setTitle(first(b.getInventionTitles(), EpoTitle::getValue));
+        // Set WIPO kind - use parsed kind or document kind
+        String wipoKind = doc.getKind();
+        if (wipoKind == null || wipoKind.isBlank()) {
+            wipoKind = id.getKind();
+        }
+        dto.setWipoKind(wipoKind);
+        log.debug("Set WIPO kind: {}", wipoKind);
+
+        // Extract title
+        String title = first(b.getInventionTitles(), EpoTitle::getValue);
+        dto.setTitle(title);
+        log.debug("Title: {}", title);
 
         // Try to get abstract from biblio first
         String abstractText = extractAbstract(b);
+        log.debug("Abstract from biblio: {}", abstractText != null ? "found" : "null");
 
         // If no abstract in biblio, try dedicated abstract endpoint
         if (abstractText == null || abstractText.isBlank()) {
+            log.debug("Attempting to fetch abstract from dedicated endpoint");
             List<EpoAbstract> abstracts = fetchAbstract(id);
-            abstractText = abstracts.stream()
-                    .filter(a -> "en".equalsIgnoreCase(a.getLang()))
-                    .map(EpoAbstract::getValue)
-                    .findFirst()
-                    .orElse(null);
+            if (!abstracts.isEmpty()) {
+                log.debug("Found {} abstracts from dedicated endpoint", abstracts.size());
+                abstractText = abstracts.stream()
+                        .filter(a -> "en".equalsIgnoreCase(a.getLang()))
+                        .map(EpoAbstract::getValue)
+                        .findFirst()
+                        .orElseGet(() -> {
+                            // If no English abstract, get first available
+                            return abstracts.isEmpty() ? null : abstracts.get(0).getValue();
+                        });
+            }
         }
-        dto.setAbstractText(abstractText);
 
-        dto.setAssignees(extractApplicants(b));
-        dto.setInventors(extractInventors(b));
-        dto.setIpcClasses(extractIpc(b));
-        dto.setCpcClasses(extractCpc(b));
+        // Final check - if still null, log warning
+        if (abstractText == null || abstractText.isBlank()) {
+            log.warn("No abstract found for {} after trying all methods", publicationNumber);
+            dto.setAbstractText(null); // Explicitly set to null for clarity
+        } else {
+            dto.setAbstractText(abstractText);
+            log.debug("Abstract set successfully, length: {}", abstractText.length());
+        }
+
+        // Extract parties with deduplication
+        List<String> assignees = extractApplicants(b);
+        dto.setAssignees(assignees);
+        log.debug("Assignees: {}", assignees);
+
+        List<String> inventors = extractInventors(b);
+        dto.setInventors(inventors);
+        log.debug("Inventors: {}", inventors);
+
+        // Extract classifications
+        List<String> ipcClasses = extractIpc(b);
+        dto.setIpcClasses(ipcClasses);
+        log.debug("IPC classes: {}", ipcClasses.size());
+
+        List<String> cpcClasses = extractCpc(b);
+        dto.setCpcClasses(cpcClasses);
+        log.debug("CPC classes: {}", cpcClasses.size());
 
         // Extract dates
-        dto.setFilingDate(extractFilingDate(b));
-        dto.setGrantDate(extractPublicationDate(b));
+        LocalDate filingDate = extractFilingDate(b);
+        dto.setFilingDate(filingDate);
+        log.debug("Filing date: {}", filingDate);
 
+        LocalDate grantDate = extractPublicationDate(b);
+        dto.setGrantDate(grantDate);
+        log.debug("Grant/Publication date: {}", grantDate);
+
+        log.info("Successfully fetched global detail for: {}", publicationNumber);
         return dto;
     }
 
@@ -145,41 +200,86 @@ public class EpoClient {
     }
 
     private String extractAbstract(EpoBibliographicData b) {
-        if (b.getAbstracts() == null || b.getAbstracts().isEmpty()) return null;
-        return b.getAbstracts().stream()
-                .filter(a -> "en".equalsIgnoreCase(a.getLang()))
+        if (b == null || b.getAbstracts() == null || b.getAbstracts().isEmpty()) {
+            log.debug("No abstracts in bibliographic data");
+            return null;
+        }
+
+        log.debug("Found {} abstracts in biblio data", b.getAbstracts().size());
+
+        // Try to find English abstract first
+        String englishAbstract = b.getAbstracts().stream()
+                .filter(a -> a != null && "en".equalsIgnoreCase(a.getLang()))
                 .map(EpoAbstract::getValue)
                 .filter(v -> v != null && !v.isBlank())
                 .findFirst()
-                .orElse(b.getAbstracts().getFirst().getValue()); // Fallback to first abstract
+                .orElse(null);
+
+        if (englishAbstract != null) {
+            log.debug("Found English abstract");
+            return englishAbstract;
+        }
+
+        // Fallback to first available abstract
+        String firstAbstract = b.getAbstracts().stream()
+                .filter(a -> a != null && a.getValue() != null && !a.getValue().isBlank())
+                .map(EpoAbstract::getValue)
+                .findFirst()
+                .orElse(null);
+
+        if (firstAbstract != null) {
+            log.debug("Using first available abstract (non-English)");
+        } else {
+            log.debug("No valid abstract text found in biblio data");
+        }
+
+        return firstAbstract;
     }
 
     private List<String> extractApplicants(EpoBibliographicData b) {
-        if (b.getParties() == null || b.getParties().getApplicants() == null) return List.of();
+        if (b == null || b.getParties() == null || b.getParties().getApplicants() == null) {
+            return List.of();
+        }
+
         return b.getParties().getApplicants().getList()
                 .stream()
+                .filter(a -> a != null && a.getName() != null)
                 .map(a -> a.getName().getValue())
                 .filter(name -> name != null && !name.isBlank())
+                .map(String::trim)
                 .distinct()
                 .toList();
     }
 
     private List<String> extractInventors(EpoBibliographicData b) {
-        if (b.getParties() == null || b.getParties().getInventors() == null) return List.of();
+        if (b == null || b.getParties() == null || b.getParties().getInventors() == null) {
+            return List.of();
+        }
+
+        // Normalize inventor names to avoid duplicates like "SMITH STEVEN" and "SMITH, Steven"
         return b.getParties().getInventors().getList()
                 .stream()
+                .filter(i -> i != null && i.getName() != null)
                 .map(i -> i.getName().getValue())
                 .filter(name -> name != null && !name.isBlank())
-                .map(name -> name.replaceAll(",\\s*$", "").trim()) // Remove trailing comma
+                .map(name -> {
+                    // Remove trailing comma and whitespace
+                    String cleaned = name.replaceAll(",\\s*$", "").trim();
+                    // Normalize format: convert "LAST, First" to "LAST First" for deduplication
+                    return cleaned.replaceAll(",\\s+", " ");
+                })
                 .distinct()
                 .toList();
     }
 
     private List<String> extractIpc(EpoBibliographicData b) {
+        if (b == null) return List.of();
+
         List<EpoIpcClassification> ipcList = b.getIpcList();
         if (ipcList == null || ipcList.isEmpty()) return List.of();
 
         return ipcList.stream()
+                .filter(ipc -> ipc != null)
                 .map(EpoIpcClassification::getFullClassificationCode)
                 .filter(code -> code != null && !code.isBlank())
                 .distinct()
@@ -187,10 +287,13 @@ public class EpoClient {
     }
 
     private List<String> extractCpc(EpoBibliographicData b) {
+        if (b == null) return List.of();
+
         List<EpoCpcClassification> cpcList = b.getCpcList();
         if (cpcList == null || cpcList.isEmpty()) return List.of();
 
         return cpcList.stream()
+                .filter(cpc -> cpc != null)
                 .map(EpoCpcClassification::getFullClassificationCode)
                 .filter(code -> code != null && !code.isBlank())
                 .distinct()
@@ -198,23 +301,37 @@ public class EpoClient {
     }
 
     private LocalDate extractFilingDate(EpoBibliographicData b) {
-        if (b.getApplicationReference() == null ||
+        if (b == null || b.getApplicationReference() == null ||
                 b.getApplicationReference().getDocumentId() == null) {
+            log.debug("No application reference found for filing date");
             return null;
         }
 
         String dateStr = b.getApplicationReference().getDocumentId().getDate();
-        return parseDate(dateStr);
+        LocalDate date = parseDate(dateStr);
+
+        if (date == null) {
+            log.debug("Could not parse filing date from: {}", dateStr);
+        }
+
+        return date;
     }
 
     private LocalDate extractPublicationDate(EpoBibliographicData b) {
-        if (b.getPublicationReference() == null ||
+        if (b == null || b.getPublicationReference() == null ||
                 b.getPublicationReference().getDocumentId() == null) {
+            log.debug("No publication reference found for grant date");
             return null;
         }
 
         String dateStr = b.getPublicationReference().getDocumentId().getDate();
-        return parseDate(dateStr);
+        LocalDate date = parseDate(dateStr);
+
+        if (date == null) {
+            log.debug("Could not parse publication date from: {}", dateStr);
+        }
+
+        return date;
     }
 
     private LocalDate parseDate(String dateStr) {
@@ -231,7 +348,12 @@ public class EpoClient {
     }
 
     private <T> String first(List<T> list, Function<T, String> fn) {
-        return list == null || list.isEmpty() ? null : fn.apply(list.getFirst());
+        if (list == null || list.isEmpty()) return null;
+
+        T firstItem = list.getFirst();
+        if (firstItem == null) return null;
+
+        return fn.apply(firstItem);
     }
 
     public List<EpoDocumentId> searchByTitle(String titleKeyword) {
@@ -243,7 +365,7 @@ public class EpoClient {
                 base = base.substring(0, base.length() - 14);
             }
 
-            String url = base + "/rest-services/published-data/searchByKeyword?q=" + query;
+            String url = base + "/rest-services/published-data/search?q=" + query;
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -259,7 +381,7 @@ public class EpoClient {
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.warn("EPO searchByKeyword failed [{}]: {}", response.statusCode(), response.body());
+                log.warn("EPO search failed [{}]: {}", response.statusCode(), response.body());
                 return List.of();
             }
 
@@ -278,11 +400,11 @@ public class EpoClient {
                     .getPublications()
                     .stream()
                     .map(EpoPublicationReferenceSearch::getDocumentId)
-                    .filter(id -> id.getKind() != null)
+                    .filter(id -> id != null && id.getKind() != null)
                     .toList();
 
         } catch (Exception e) {
-            log.error("EPO title searchByKeyword failed for [{}]", titleKeyword, e);
+            log.error("EPO title search failed for [{}]", titleKeyword, e);
             return List.of();
         }
     }
@@ -290,11 +412,18 @@ public class EpoClient {
     public List<EpoAbstract> fetchAbstract(EpoDocumentId id) {
         try {
             String url = buildUrl(id, "abstract");
+            log.debug("Fetching abstract from: {}", url);
+
             HttpResponse<String> res = send(url);
 
-            if (res.statusCode() != 200 || res.body() == null || res.body().isBlank()) {
-                log.debug("No abstract available for {}{}{}",
-                        id.getCountry(), id.getDocNumber(), id.getKind());
+            if (res.statusCode() != 200) {
+                log.debug("Abstract endpoint returned {}: {}",
+                        res.statusCode(), res.body() != null ? res.body().substring(0, Math.min(200, res.body().length())) : "null");
+                return List.of();
+            }
+
+            if (res.body() == null || res.body().isBlank()) {
+                log.debug("Abstract endpoint returned empty body");
                 return List.of();
             }
 
@@ -305,6 +434,7 @@ public class EpoClient {
                     response.getExchangeDocuments() == null ||
                     response.getExchangeDocuments().getDocuments() == null ||
                     response.getExchangeDocuments().getDocuments().isEmpty()) {
+                log.debug("No exchange documents in abstract response");
                 return List.of();
             }
 
@@ -313,10 +443,13 @@ public class EpoClient {
 
             if (doc.getBibliographicData() == null ||
                     doc.getBibliographicData().getAbstracts() == null) {
+                log.debug("No abstracts in exchange document");
                 return List.of();
             }
 
-            return doc.getBibliographicData().getAbstracts();
+            List<EpoAbstract> abstracts = doc.getBibliographicData().getAbstracts();
+            log.debug("Successfully fetched {} abstracts", abstracts.size());
+            return abstracts;
 
         } catch (Exception e) {
             log.debug("Abstract fetch failed for {}{}{}",
@@ -328,11 +461,17 @@ public class EpoClient {
     public List<EpoExchangeDocument> fetchBiblio(EpoDocumentId id) {
         try {
             String url = buildUrl(id, "biblio");
+            log.debug("Fetching biblio from: {}", url);
+
             HttpResponse<String> res = send(url);
 
-            if (res.statusCode() != 200 || res.body() == null || res.body().isBlank()) {
-                log.debug("No biblio available for {}{}{}",
-                        id.getCountry(), id.getDocNumber(), id.getKind());
+            if (res.statusCode() != 200) {
+                log.debug("Biblio endpoint returned {}", res.statusCode());
+                return List.of();
+            }
+
+            if (res.body() == null || res.body().isBlank()) {
+                log.debug("Biblio endpoint returned empty body");
                 return List.of();
             }
 
@@ -342,10 +481,13 @@ public class EpoClient {
             if (response == null ||
                     response.getExchangeDocuments() == null ||
                     response.getExchangeDocuments().getDocuments() == null) {
+                log.debug("No exchange documents in biblio response");
                 return List.of();
             }
 
-            return response.getExchangeDocuments().getDocuments();
+            List<EpoExchangeDocument> documents = response.getExchangeDocuments().getDocuments();
+            log.debug("Successfully fetched {} biblio documents", documents.size());
+            return documents;
 
         } catch (Exception e) {
             log.warn("Biblio fetch failed for {}{}{}",
@@ -397,7 +539,6 @@ public class EpoClient {
         }
 
         if (parts.isEmpty()) {
-
             return "pd>20180101";
         }
 
@@ -492,7 +633,6 @@ public class EpoClient {
 
         } catch (Exception e) {
             log.error("EPO advanced search failed", e);
-            e.printStackTrace();
             return List.of();
         }
     }

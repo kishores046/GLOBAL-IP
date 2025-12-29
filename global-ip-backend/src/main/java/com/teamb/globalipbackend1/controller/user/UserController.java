@@ -4,7 +4,9 @@ import com.teamb.globalipbackend1.dto.ApiResponse;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileRequest;
 import com.teamb.globalipbackend1.dto.user.UpdateProfileResponse;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
+import com.teamb.globalipbackend1.service.search.SearchActivityService;
 import com.teamb.globalipbackend1.service.user.UserService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,7 @@ public class UserController{
 
 
     private final UserService userService;
+    private final SearchActivityService searchActivityService;
 
     @GetMapping("/profile")
     @PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
@@ -29,6 +32,18 @@ public class UserController{
     @PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
     public UpdateProfileResponse updateProfile(@RequestBody UpdateProfileRequest request) {
        return  userService.updateProfile(request);
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getAdminDashboard() {
+        return ResponseEntity.ok("User Dashboard Data");
+    }
+
+    @GetMapping("/dashboard/my/searchCount")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<@NonNull Long> searchCount(){
+        return ResponseEntity.ok(searchActivityService.getAnalystSearchCount());
     }
 
 }

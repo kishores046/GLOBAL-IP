@@ -35,12 +35,11 @@ public class PatentDocument {
     private List<String> inventors;
     private List<String> assignees;
 
-    /* ---------------- Classification ---------------- */
+
 
     private List<String> ipcClasses;
     private List<String> cpcClasses;
 
-    /* ---------------- Analytics ---------------- */
 
     /** WIPO kind code (A1, B2, etc.) */
     private String wipoKind;
