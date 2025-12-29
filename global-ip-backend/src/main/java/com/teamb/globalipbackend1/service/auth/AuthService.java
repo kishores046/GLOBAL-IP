@@ -8,6 +8,8 @@ import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.user.RoleRepository;
 import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,19 +20,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-
-    @Autowired
-    public AuthService(AuthenticationManager authenticationManager, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
-        this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-
-    }
 
     private final RoleRepository roleRepository;
 
@@ -42,7 +36,7 @@ public class AuthService {
     private final UserRepository userRepository;
 
     public RegisterResponse registerUser(RegisterRequest registerRequest){
-        System.out.println("REGISTER REQUEST RECEIVED: " + registerRequest.email());
+        log.info("REGISTER REQUEST RECEIVED: {}",registerRequest.email());
 
         if (userRepository.existsByEmail(registerRequest.email())) {
             throw new DuplicateResourceException("Email already exists");
@@ -61,8 +55,8 @@ public class AuthService {
         user.setRoles(Set.of(role));
         userRepository.save(user);
 
-        System.out.println("USER SAVED SUCCESSFULLY");
-        System.out.println("User count = " + userRepository.count());
+        log.info("USER SAVED SUCCESSFULLY");
+        log.info("User count = {}", userRepository.count());
 
         return new RegisterResponse("Registered Successfully");
     }

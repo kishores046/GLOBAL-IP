@@ -59,12 +59,14 @@ public class PatentFilterService {
     }
 
     private boolean matchesDateRange(PatentDocument patent, PatentSearchFilter filter) {
-        // If no date filter is specified, include all
+
         if (filter.getFilingDateFrom() == null && filter.getFilingDateTo() == null) {
             return true;
         }
 
-        LocalDate patentDate = patent.getGrantDate();
+
+        LocalDate patentDate = patent.getFilingDate();
+
 
         if (patentDate == null) {
             log.debug("Patent {} has no publication date, including it",
@@ -81,7 +83,7 @@ public class PatentFilterService {
             return false;
         }
 
-        // Check to date
+
         if (filter.getFilingDateTo() != null &&
                 patentDate.isAfter(filter.getFilingDateTo())) {
             log.debug("Patent {} date {} is after filter to date {}",

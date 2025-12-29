@@ -38,18 +38,27 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle 401 Unauthorized - token expired or invalid
       if (error.response.status === 401) {
-        console.log('401 Unauthorized - clearing tokens and redirecting to login');
+        console.error('401 Unauthorized - Token may be expired or invalid');
         localStorage.removeItem('jwt_token');
         localStorage.removeItem('user');
-        // Redirect to login page
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
+      }
+      
+      // Handle 403 Forbidden - user doesn't have required role
+      if (error.response.status === 403) {
+        console.error('403 Forbidden - User does not have required permissions');
+        console.error('403 Error details:', error.response.data);
+        console.error('Request URL:', error.config?.url);
+        console.error('Request method:', error.config?.method);
+        console.error('Auth header:', error.config?.headers?.Authorization);
       }
     } else if (error.request) {
       console.error('No response received from backend:', error.request);
       console.error('Make sure your backend is running on http://localhost:8080');
     }
+    
     return Promise.reject(error);
   }
 );
@@ -86,13 +95,34 @@ export interface PatentDocument {
 }
 
 export interface TrademarkResultDto {
-  trademarkId: string;
+  trademarkId?: string;
+  id?: string;
+  applicationNumber?: string;
+  registrationNumber?: string;
   markName: string;
   jurisdiction: string;
   filingDate?: string;
   status?: string;
+  statusCode?: string;
   owners?: string[];
   state?: string;
+  [key: string]: any; // Allow any additional fields from backend
+}
+
+export interface GlobalTrademarkDetailDto {
+  id?: string;
+  trademarkId?: string;
+  markName: string;
+  owners?: string[];
+  goodsAndServices?: string | string[];
+  internationalClasses?: string[];
+  filingDate?: string;
+  statusCode?: string;
+  jurisdiction?: string;
+  source?: string;
+  bookmarked: boolean;
+  drawingCode?: string;
+  [key: string]: any; // Allow any additional fields from backend
 }
 
 export interface UnifiedSearchResponse {
@@ -134,6 +164,16 @@ export interface BookmarkedPatent {
   publicationDate?: string;
 }
 
+export interface BookmarkedTrademark {
+  trademarkId: string;
+  markName?: string;
+  jurisdiction?: string;
+  filingDate?: string;
+  statusCode?: string;
+  source?: string;
+  bookmarkedAt?: string;
+}
+
 // ==================== API FUNCTIONS ====================
 
 // Unified Search API
@@ -165,7 +205,7 @@ export const unifiedSearchAPI = {
       requestBody.state = searchParams.state.trim();
     }
     
-    const response = await api.post('/search/advanced', requestBody);
+    const response = await api.post('/search', requestBody);
     return response.data;
   },
 };
@@ -188,10 +228,53 @@ export const patentDetailAPI = {
   },
 };
 
+// Trademark Detail API
+export const trademarkDetailAPI = {
+  getDetail: async (trademarkId: string): Promise<GlobalTrademarkDetailDto> => {
+    console.log("Fetching trademark detail for ID:", trademarkId);
+    const response = await api.get(`/trademarks/${trademarkId}`);
+    const data = response.data;
+    
+    // Normalize the response - backend returns 'id' but frontend expects 'trademarkId'
+    if (data.id && !data.trademarkId) {
+      data.trademarkId = data.id;
+    }
+    
+    console.log("Trademark detail response:", data);
+    return data;
+  },
+  
+  bookmark: async (trademarkId: string, source: string = 'TMVIEW'): Promise<void> => {
+    console.log("Bookmarking trademark:", trademarkId, "with source:", source);
+    const url = `/trademarks/${encodeURIComponent(trademarkId)}/bookmark?source=${encodeURIComponent(source)}`;
+    console.log("POST URL:", url);
+    await api.post(url);
+    console.log("Bookmark successful");
+  },
+  
+  unbookmark: async (trademarkId: string): Promise<void> => {
+    console.log("Unbookmarking trademark:", trademarkId);
+    const url = `/trademarks/${encodeURIComponent(trademarkId)}/bookmark`;
+    console.log("DELETE URL:", url);
+    await api.delete(url);
+    console.log("Unbookmark successful");
+  },
+};
+
 // Bookmark Management API
 export const bookmarkAPI = {
   getBookmarkedPatents: async (): Promise<BookmarkedPatent[]> => {
     const response = await api.get('/users/me/bookmarks/patents');
+    return response.data;
+  },
+  
+  getBookmarkedTrademarks: async (): Promise<BookmarkedTrademark[]> => {
+    const response = await api.get('/users/me/bookmarks/trademarks');
+    console.log("Bookmarked trademarks response:", response.data);
+    if (response.data && response.data.length > 0) {
+      console.log("First bookmarked trademark from API:", response.data[0]);
+      console.log("Fields in bookmarked trademark:", Object.keys(response.data[0]));
+    }
     return response.data;
   },
 };
@@ -238,6 +321,19 @@ export const patentSearchAPI = {
     }
     
     const response = await api.post('/patents/search', requestBody);
+    return response.data;
+  },
+};
+
+// Dashboard API
+export const dashboardAPI = {
+  getUserSearchCount: async (): Promise<number> => {
+    const response = await api.get('/user/dashboard/my/searchCount');
+    return response.data;
+  },
+  
+  getAnalystSearchCount: async (): Promise<number> => {
+    const response = await api.get('/analyst/dashboard/my/searchCount');
     return response.data;
   },
 };

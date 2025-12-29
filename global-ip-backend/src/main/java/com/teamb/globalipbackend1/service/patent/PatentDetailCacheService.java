@@ -66,13 +66,12 @@ public class PatentDetailCacheService {
 
         String normalized = publicationNumber.trim().toUpperCase();
 
-        // Check if it starts with US
+
         if (normalized.startsWith("US")) {
             return true;
         }
 
-        // Check if it's just digits (assume US patent)
-        // US patents are typically 7-8 digits
+
         if (normalized.matches("^\\d{7,8}$")) {
             return true;
         }

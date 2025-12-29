@@ -1,6 +1,5 @@
 package com.teamb.globalipbackend1.service.search;
 
-
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.external.patentsview.PatentsViewHttpClient;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewResponse;
@@ -55,21 +54,25 @@ public class PatentsViewSearchService {
     }
 
 
-    public List<PatentDocument> searchPatentsByKeyword(String keyword) {
-        log.info("Starting PatentsView patent searchByKeyword for keyword: {}", keyword);
+    public List<PatentDocument> searchPatentsByKeyword(String keyword, PatentSearchFilter filter) {
+        log.info("Starting PatentsView patent search for keyword: {}", keyword);
 
-        List<PatentDocument> results=new ArrayList<>();
+        List<PatentDocument> results = new ArrayList<>();
 
         try {
-            // Build simple keyword searchByKeyword query
-            String queryJson = buildSimpleKeywordQuery(keyword);
+
+            String queryJson = queryBuilder.buildAdvancedQuery(
+                    keyword,
+                    filter.getFilingDateFrom() != null ? filter.getFilingDateFrom().toString() : null,
+                    filter.getFilingDateTo() != null ? filter.getFilingDateTo().toString() : null,
+                    filter.getAssignee(),
+                    filter.getInventor()
+            );
 
             log.debug("PatentsView query: {}", queryJson);
 
-            // Make API call
             String responseBody = httpClient.post(queryJson);
 
-            // Parse response
             PatentsViewResponse response = objectMapper.readValue(
                     responseBody,
                     PatentsViewResponse.class
@@ -82,34 +85,13 @@ public class PatentsViewSearchService {
 
             log.info("PatentsView returned {} patents", response.getResponseDocuments().size());
 
-           results= mapper.toPatentDocuments(response.getResponseDocuments());
+            results = mapper.toPatentDocuments(response.getResponseDocuments());
 
             log.info("Successfully mapped {} patents from PatentsView", results.size());
 
-
-
         } catch (Exception e) {
-            log.error("PatentsView searchByKeyword failed for keyword: {}", keyword, e);
-
+            log.error("PatentsView search failed for keyword: {}", keyword, e);
         }
         return results;
     }
-
-    /**
-     * Build a simple keyword-only query for text searchByKeyword
-     * Filters will be applied later by PatentFilterService
-     */
-    private String buildSimpleKeywordQuery(String keyword) {
-
-        return queryBuilder.buildAdvancedQuery(
-                keyword,  // keyword
-                null,     // fromDate - will be filtered later
-                null,     // toDate - will be filtered later
-                null,     // assignee - will be filtered later
-                null      // inventor - will be filtered later
-        );
-    }
-
-
 }
-

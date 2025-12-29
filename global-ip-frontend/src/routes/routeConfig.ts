@@ -38,6 +38,7 @@ export const ROUTES = {
   IP_SEARCH: '/search',
   SEARCH_RESULTS: '/search/results',
   PATENT_DETAIL: '/patents/:publicationNumber',
+  TRADEMARK_DETAIL: '/trademarks/:trademarkId',
   SETTINGS: '/settings',
 } as const;
 

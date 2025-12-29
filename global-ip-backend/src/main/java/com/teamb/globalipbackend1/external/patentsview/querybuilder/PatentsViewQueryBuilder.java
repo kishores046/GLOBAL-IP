@@ -36,11 +36,11 @@ public class PatentsViewQueryBuilder {
         }
 
         if (fromDate != null && !fromDate.isBlank()) {
-            andArray.add(gte("patent_date", fromDate));
+            andArray.add(gte("patent_earliest_application_date", fromDate));
         }
 
         if (toDate != null && !toDate.isBlank()) {
-            andArray.add(lte("patent_date", toDate));
+            andArray.add(lte("patent_earliest_application_date", toDate));
         }
 
         if (assignee != null && !assignee.isBlank()) {
@@ -63,18 +63,18 @@ public class PatentsViewQueryBuilder {
 
 
         root.putArray("f")
-                // Identity
+
                 .add("patent_id")
 
-                // Core content
+
                 .add("patent_title")
                 .add("patent_abstract")
 
-                // Dates (CRITICAL)
+
                 .add("patent_date") // grant date
                 .add("patent_earliest_application_date") // filing date
 
-                // Parties
+
                 .add("assignees.assignee_organization")
                 .add("inventors.inventor_name_first")
                 .add("inventors.inventor_name_last")

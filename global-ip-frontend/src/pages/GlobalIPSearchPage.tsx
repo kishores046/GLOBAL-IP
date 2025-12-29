@@ -26,6 +26,13 @@ export function GlobalIPSearchPage() {
       // Use unified search API
       const response = await unifiedSearchAPI.search({ keyword: trimmedKeyword });
       
+      console.log("Search response:", response);
+      console.log("Trademarks in response:", response.trademarks);
+      if (response.trademarks && response.trademarks.length > 0) {
+        console.log("First trademark object:", response.trademarks[0]);
+        console.log("First trademark keys:", Object.keys(response.trademarks[0]));
+      }
+      
       // Increment search count
       const currentCount = parseInt(localStorage.getItem('searchQueryCount') || '0', 10);
       localStorage.setItem('searchQueryCount', (currentCount + 1).toString());

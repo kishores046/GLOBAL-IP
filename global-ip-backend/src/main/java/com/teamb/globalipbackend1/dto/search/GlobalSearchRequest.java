@@ -21,6 +21,7 @@ public class GlobalSearchRequest {
 
     public PatentSearchFilter toPatentFilter() {
         PatentSearchFilter f = new PatentSearchFilter();
+
         f.setKeyword(keyword);
         f.setJurisdiction(jurisdiction);
         f.setFilingDateFrom(filingDateFrom);

@@ -2,10 +2,7 @@ package com.teamb.globalipbackend1.service.search;
 
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.external.epo.EpoClient;
-import com.teamb.globalipbackend1.external.epo.dto.EpoCpcClassification;
-import com.teamb.globalipbackend1.external.epo.dto.EpoDocumentId;
-import com.teamb.globalipbackend1.external.epo.dto.EpoExchangeDocument;
-import com.teamb.globalipbackend1.external.epo.dto.EpoIpcClassification;
+import com.teamb.globalipbackend1.external.epo.dto.*;
 import com.teamb.globalipbackend1.external.epo.mapper.EpoPatentMapper;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
 import lombok.RequiredArgsConstructor;
@@ -105,9 +102,11 @@ public class EPOPatentSearchService {
             var abstracts = epoClient.fetchAbstract(id);
 
             abstracts.stream()
-                    .filter(a -> "en".equalsIgnoreCase(a.getLang()))
+                    .filter(a -> a.getLang() == null || "en".equalsIgnoreCase(a.getLang()))
+                    .map(EpoAbstract::getValue)
+                    .filter(v -> v != null && !v.isBlank())
                     .findFirst()
-                    .ifPresent(a -> patent.setAbstractText(a.getValue()));
+                    .orElse(null);
 
         } catch (Exception e) {
             log.debug("Abstract not available for {}", patent.getPublicationNumber());

@@ -4,6 +4,7 @@ import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { Search, X, Loader2, Calendar } from "lucide-react";
 import { unifiedSearchAPI } from "../services/api";
+import { validateFilingDateRange, getMaxFilingDate } from "../utils/trademarkUtils";
 
 export function AdvancedSearchPage() {
   const navigate = useNavigate();
@@ -18,10 +19,19 @@ export function AdvancedSearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const maxDate = getMaxFilingDate();
+
   const handleSearch = async () => {
     // Validation: keyword is required
     if (!keyword.trim()) {
       setError("Keyword is required");
+      return;
+    }
+
+    // Validate filing date range
+    const dateValidation = validateFilingDateRange(filingDateFrom, filingDateTo);
+    if (!dateValidation.isValid) {
+      setError(dateValidation.error || "Invalid date range");
       return;
     }
 
@@ -185,9 +195,11 @@ export function AdvancedSearchPage() {
                       id="filing-date-from"
                       type="date"
                       value={filingDateFrom}
+                      max={maxDate}
                       onChange={(e) => setFilingDateFrom(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
+                    <p className="mt-1 text-xs text-slate-500">Cannot be in the future</p>
                   </div>
 
                   <div>
@@ -199,9 +211,11 @@ export function AdvancedSearchPage() {
                       id="filing-date-to"
                       type="date"
                       value={filingDateTo}
+                      max={maxDate}
                       onChange={(e) => setFilingDateTo(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
+                    <p className="mt-1 text-xs text-slate-500">Cannot be in the future</p>
                   </div>
                 </div>
 

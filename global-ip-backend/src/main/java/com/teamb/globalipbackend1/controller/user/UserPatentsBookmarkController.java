@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users/me/bookmarks")
 @RequiredArgsConstructor
-public class UserBookmarkController {
+public class UserPatentsBookmarkController {
 
     private final PatentBookmarkService bookmarkQueryService;
 

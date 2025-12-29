@@ -29,11 +29,6 @@ public class UnifiedPatentSearchService {
     private final Executor patentSearchExecutor;
     private final PatentSnapshotCacheService snapshotCacheService;
 
-
-    /**
-     * Search patents from all available sources and apply filters
-     */
-
     @Cacheable(
             cacheNames = CacheNames.PATENT_SEARCH,
             key = "T(java.util.Objects).hash("
@@ -45,7 +40,7 @@ public class UnifiedPatentSearchService {
                     + "#filter.inventor)"
     )
     public List<PatentDocument> searchPatentsByKeyword(PatentSearchFilter filter) {
-        log.info("Starting unified patent searchByKeyword with filter: {}", filter);
+        log.info("Starting unified patent search with filter: {}", filter);
 
         boolean searchEPO = shouldSearchEPO(filter.getJurisdiction());
         boolean searchPatentsView = shouldSearchPatentsView(filter.getJurisdiction());
@@ -56,7 +51,7 @@ public class UnifiedPatentSearchService {
                     log.info("Searching EPO for keyword: {}", filter.getKeyword());
                     return epoSearchService.searchPatents(filter.getKeyword());
                 }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("EPO searchByKeyword failed", ex);
+                    log.error("EPO search failed", ex);
                     return List.of();
                 })
                         : CompletableFuture.completedFuture(List.of());
@@ -65,21 +60,29 @@ public class UnifiedPatentSearchService {
                 searchPatentsView
                         ? CompletableFuture.supplyAsync(() -> {
                     log.info("Searching PatentsView for keyword: {}", filter.getKeyword());
-                    return patentsViewSearchService.searchPatentsByKeyword(filter.getKeyword());
+                    return patentsViewSearchService.searchPatentsByKeyword(filter.getKeyword(), filter);
                 }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("PatentsView searchByKeyword failed", ex);
+                    log.error("PatentsView search failed", ex);
                     return List.of();
                 })
                         : CompletableFuture.completedFuture(List.of());
 
-        // Wait for both searches to complete
-        CompletableFuture.allOf(epoFuture, patentsViewFuture).join();
+        return getPatentDocuments(filter, patentsViewFuture, epoFuture);
+    }
+
+    private List<PatentDocument> getPatentDocuments(
+            PatentSearchFilter filter,
+            CompletableFuture<List<PatentDocument>> patentsViewFuture,
+            CompletableFuture<List<PatentDocument>> epoFuture) {
+
+        CompletableFuture.allOf(patentsViewFuture, epoFuture).join();
 
         List<PatentDocument> allResults = new ArrayList<>();
-        allResults.addAll(epoFuture.join());
         allResults.addAll(patentsViewFuture.join());
+        allResults.addAll(epoFuture.join());
 
         log.info("Total results before filtering: {}", allResults.size());
+
 
         List<PatentDocument> filteredResults =
                 patentFilterService.applyFilters(allResults, filter);
@@ -89,7 +92,6 @@ public class UnifiedPatentSearchService {
 
         return filteredResults;
     }
-
 
     private boolean shouldSearchEPO(String jurisdiction) {
         if (jurisdiction == null || jurisdiction.equalsIgnoreCase("ALL")) {
@@ -115,7 +117,6 @@ public class UnifiedPatentSearchService {
                     + "#filter.assignee,"
                     + "#filter.inventor)"
     )
-
     public List<PatentDocument> searchPatentsAdvanced(PatentSearchFilter filter) {
         log.info("Starting unified patent advanced search with filter: {}", filter);
 
@@ -128,7 +129,7 @@ public class UnifiedPatentSearchService {
                     log.info("Searching EPO for advanced query: {}", filter.toString());
                     return epoSearchService.searchAdvanced(filter);
                 }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("EPO searchByKeyword failed", ex);
+                    log.error("EPO search failed", ex);
                     return List.of();
                 })
                         : CompletableFuture.completedFuture(List.of());
@@ -139,26 +140,11 @@ public class UnifiedPatentSearchService {
                     log.info("Searching PatentsView for advanced query: {}", filter);
                     return patentsViewSearchService.advancedSearch(filter);
                 }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("PatentsView searchByKeyword failed", ex);
+                    log.error("PatentsView search failed", ex);
                     return List.of();
                 })
                         : CompletableFuture.completedFuture(List.of());
 
-
-        CompletableFuture.allOf(epoFuture, patentsViewFuture).join();
-
-        List<PatentDocument> allResults = new ArrayList<>();
-        allResults.addAll(epoFuture.join());
-        allResults.addAll(patentsViewFuture.join());
-
-        log.info("Total results before filtering: {}", allResults.size());
-
-        List<PatentDocument> filteredResults =
-                patentFilterService.applyFilters(allResults, filter);
-
-        log.info("Total results after filtering: {}", filteredResults.size());
-        filteredResults.forEach(snapshotCacheService::cache);
-
-        return filteredResults;
+        return getPatentDocuments(filter, patentsViewFuture, epoFuture);
     }
 }
