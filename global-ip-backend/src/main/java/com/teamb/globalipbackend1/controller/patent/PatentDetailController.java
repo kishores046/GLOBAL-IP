@@ -3,6 +3,12 @@ package com.teamb.globalipbackend1.controller.patent;
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.service.bookmark.PatentBookmarkService;
 import com.teamb.globalipbackend1.service.patent.PatentDetailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +23,28 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/patents")
 @RequiredArgsConstructor
+@Tag(name = "Patents", description = "Patent search, details, and bookmark APIs")
+@SecurityRequirement(name = "Bearer Authentication")
 public class PatentDetailController {
 
     private final PatentDetailService detailService;
     private final PatentBookmarkService bookmarkService;
 
+
+
+    @Operation(
+            summary = "Get patent details",
+            description = "Returns detailed patent information for the given publication number.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Patent details retrieved",
+                            content = @Content(schema = @Schema(implementation = GlobalPatentDetailDto.class))
+                    ),
+                    @ApiResponse(responseCode = "404", description = "Patent not found"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
     @GetMapping("/{publicationNumber}")
     @PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
     public ResponseEntity<@NonNull GlobalPatentDetailDto> getDetail(
@@ -53,6 +76,15 @@ public class PatentDetailController {
         }
     }
 
+
+    @Operation(
+            summary = "Bookmark patent",
+            description = "Bookmarks a patent for the logged-in user.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Patent bookmarked"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
     @PostMapping("/{publicationNumber}/bookmark")
     @PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
     public ResponseEntity<Void> bookmark(
@@ -64,6 +96,14 @@ public class PatentDetailController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "Remove patent bookmark",
+            description = "Removes a bookmarked patent for the logged-in user.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Bookmark removed"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
     @DeleteMapping("/{publicationNumber}/bookmark")
     @PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
     public ResponseEntity<Void> unbookmark(

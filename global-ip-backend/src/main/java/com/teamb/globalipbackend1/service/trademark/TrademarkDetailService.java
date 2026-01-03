@@ -2,70 +2,56 @@ package com.teamb.globalipbackend1.service.trademark;
 
 
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.trademark.GlobalTrademarkDetailDto;
 import com.teamb.globalipbackend1.external.tmview.TmViewClient;
 import com.teamb.globalipbackend1.repository.bookmark.TrademarkBookmarkRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrademarkDetailService {
 
     private final TmViewClient trademarkClient;
     private final TrademarkBookmarkRepository bookmarkRepository;
-    private final CacheManager cacheManager;
+    private final LoadingCache<@NonNull String,GlobalTrademarkDetailDto> trademarkDetailDtoLoadingCache=
+            Caffeine.newBuilder()
+                    .expireAfterWrite(6, TimeUnit.HOURS)
+                    .maximumSize(10_000)
+                    .recordStats()
+                    .removalListener(((key, value, cause) -> log.info("Trademark {} removed due to {}",key,cause)))
+                    .build(this::loadTradeMarkDetail);
 
     public GlobalTrademarkDetailDto getTrademarkDetail(
             String trademarkId,
             String userId
     ) {
-        var cache = cacheManager.getCache(CacheNames.TRADEMARK_SNAPSHOT);
 
-        if (cache == null) {
-            throw new RuntimeException("Trademark snapshot cache not available");
-        }
+        GlobalTrademarkDetailDto dto = trademarkDetailDtoLoadingCache.get(trademarkId);
 
-        TrademarkSnapshot snapshot =
-                cache.get(trademarkId, TrademarkSnapshot.class);
-
-        if (snapshot == null) {
-            throw new RuntimeException(
-                    "Trademark not found (not present in search results): " + trademarkId
+        if (dto!=null){
+            dto.setBookmarked(
+                    bookmarkRepository
+                            .findByUserIdAndTrademarkId(userId, trademarkId)
+                            .isPresent()
             );
         }
 
-        GlobalTrademarkDetailDto dto = mapToDetail(snapshot);
-
-        dto.setBookmarked(
-                bookmarkRepository
-                        .findByUserIdAndTrademarkId(userId, trademarkId)
-                        .isPresent()
-        );
-
+        else throw new RuntimeException("No trademark found by id");
         return dto;
     }
 
-    private GlobalTrademarkDetailDto mapToDetail(TrademarkSnapshot s) {
-
-        GlobalTrademarkDetailDto dto = new GlobalTrademarkDetailDto();
-
-        dto.setId(s.getId());
-        dto.setMarkName(s.getMarkName());
-        dto.setJurisdiction(s.getJurisdiction());
-
-        dto.setFilingDate(s.getFilingDate());
-        dto.setStatusCode(s.getStatusCode());
-        dto.setDrawingCode(s.getDrawingCode());
-        dto.setStandardCharacters(s.getStandardCharacters());
-        dto.setOwners(s.getOwners());
-        dto.setInternationalClasses(s.getInternationalClasses());
-        dto.setGoodsAndServices(s.getGoodsAndServices());
-
-        return dto;
+    private GlobalTrademarkDetailDto loadTradeMarkDetail(String trademarkId){
+        return trademarkClient.fetchTrademarkDetail(trademarkId);
     }
-
 
 }

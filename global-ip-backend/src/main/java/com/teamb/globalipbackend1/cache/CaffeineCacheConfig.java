@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.teamb.globalipbackend1.cache.CacheNames;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
@@ -11,8 +11,11 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 @Configuration
 public class CaffeineCacheConfig {
+
+
 
     @Bean
     public CacheManager cacheManager() {
@@ -45,10 +48,10 @@ public class CaffeineCacheConfig {
                                 .maximumSize(10_000)
                                 .expireAfterWrite(Duration.ofHours(6))
                                 .recordStats()
-                                .build()
+                                .removalListener(((key, value, cause) -> log.info("Patent {} removed due to {}",key,cause))).build()
                 );
 
-        // 🔹 Trademark search cache
+
         CaffeineCache trademarkSearch =
                 new CaffeineCache(
                         CacheNames.TRADEMARK_SEARCH,

@@ -73,6 +73,59 @@ services:
   trademark:
     base-url: http://localhost:9090
 
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+    syntax-highlight:
+      activated: true
+    persist-authorization: true
+
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+  # API Groups
+  group-configs:
+    - group: authentication
+      paths-to-match: /api/auth/**
+      display-name: Authentication API
+
+    - group: search
+      paths-to-match: /api/search/**
+      display-name: Search API
+
+    - group: patents
+      paths-to-match: /api/patents/**
+      display-name: Patents API
+
+    - group: trademarks
+      paths-to-match: /api/trademarks/**
+      display-name: Trademarks API
+
+    - group: user
+      paths-to-match: /api/user/**
+      display-name: User Management API
+
+    - group: admin
+      paths-to-match: /api/admin/**
+      display-name: Admin API
+
+    - group: analyst
+      paths-to-match: /api/analyst/**
+      display-name: Analyst API
+
+
 # ---------------------------------- TEST PROFILE ----------------------------------
 ---
 spring:
@@ -102,6 +155,10 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+server:
+  port: ${SERVER_PORT}
+
+
 
 # ---------------------------------- PROD PROFILE ----------------------------------
 ---
@@ -165,6 +222,57 @@ epo:
 patentsview:
   api-key: ${PATENTS_VIEW_API_KEY}
   api-url: ${PATENTS_VIEW_API_URL}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+    syntax-highlight:
+      activated: true
+    persist-authorization: true
+
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+  # API Groups
+  group-configs:
+    - group: authentication
+      paths-to-match: /api/auth/**
+      display-name: Authentication API
+
+    - group: search
+      paths-to-match: /api/search/**
+      display-name: Search API
+
+    - group: patents
+      paths-to-match: /api/patents/**
+      display-name: Patents API
+
+    - group: trademarks
+      paths-to-match: /api/trademarks/**
+      display-name: Trademarks API
+
+    - group: user
+      paths-to-match: /api/user/**
+      display-name: User Management API
+
+    - group: admin
+      paths-to-match: /api/admin/**
+      display-name: Admin API
+
+    - group: analyst
+      paths-to-match: /api/analyst/**
+      display-name: Analyst API
 
 
 

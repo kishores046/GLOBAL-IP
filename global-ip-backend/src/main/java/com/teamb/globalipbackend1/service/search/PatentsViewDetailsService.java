@@ -34,7 +34,7 @@ public class PatentsViewDetailsService {
         log.info("Input publicationNumber: {}", publicationNumber);
 
         try {
-            // ⚠️ DO NOT normalize here – QueryBuilder owns normalization
+
             String query = queryBuilder.buildPatentDetailQuery(publicationNumber);
             log.debug("PatentsView query: {}", query);
 
@@ -73,7 +73,7 @@ public class PatentsViewDetailsService {
         // Grant date
         parseDate(p, "patent_date", dto::setGrantDate);
 
-        // 🔥 Filing date (THIS WAS MISSING)
+
         parseDate(p, "patent_earliest_application_date", dto::setFillingDate);
 
         dto.setWipoKind(p.path("wipo_kind").asText(null));

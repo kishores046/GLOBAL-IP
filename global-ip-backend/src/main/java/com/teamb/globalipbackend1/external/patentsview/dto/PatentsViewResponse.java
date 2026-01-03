@@ -11,7 +11,6 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatentsViewResponse {
 
-
     @JsonProperty("error")
     private boolean error;
 
