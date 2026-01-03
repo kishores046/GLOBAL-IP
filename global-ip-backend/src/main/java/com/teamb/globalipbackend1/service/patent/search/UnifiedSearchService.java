@@ -32,7 +32,7 @@ public class UnifiedSearchService {
 
         CompletableFuture<List<PatentDocument>> patentFuture =
                 CompletableFuture.supplyAsync(
-                        () -> patentSearchService.searchPatentsByKeyword(patentFilter),
+                        () -> patentSearchService.searchByKeyword(patentFilter),
                         patentSearchExecutor
                 ).exceptionally(ex -> {
                     log.error("Patent searchByKeyword failed", ex);
@@ -69,7 +69,7 @@ public class UnifiedSearchService {
 
         CompletableFuture<List<PatentDocument>> patentFuture =
                 CompletableFuture.supplyAsync(
-                        () -> patentSearchService.searchPatentsAdvanced(patentFilter),
+                        () -> patentSearchService.searchAdvanced(patentFilter),
                         patentSearchExecutor
                 ).exceptionally(ex -> {
                     log.error("Patent searchByKeyword failed", ex);
