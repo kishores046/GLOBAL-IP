@@ -36,9 +36,9 @@ public class CustomerOAuth2UserService extends DefaultOAuth2UserService {
                     Role newRole = new Role("USER");
                     return roleRepository.save(newRole);
                 });
-        // Check if exists
+
         User user = userRepo.findByEmail(info.getEmail()).orElseGet(() -> {
-            // register new user
+
             User newUser = new User();
             newUser.setEmail(info.getEmail());
             newUser.setUsername(info.getName());

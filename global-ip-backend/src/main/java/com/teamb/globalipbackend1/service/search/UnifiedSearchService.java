@@ -5,8 +5,6 @@ package com.teamb.globalipbackend1.service.search;
 import com.teamb.globalipbackend1.dto.search.*;
 import com.teamb.globalipbackend1.external.tmview.TmViewClient;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
-import com.teamb.globalipbackend1.service.trademark.TrademarkSnapshot;
-import com.teamb.globalipbackend1.service.trademark.TrademarkSnapshotCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,9 +22,6 @@ public class UnifiedSearchService {
     private final UnifiedPatentSearchService patentSearchService;
     private final TmViewClient tmViewClient;
     private final Executor patentSearchExecutor;
-    private final TrademarkSnapshotCacheService trademarkSnapshotCacheService;
-
-
 
     public UnifiedSearchResponse searchByKeyword(GlobalSearchRequest request) {
 
@@ -57,17 +52,10 @@ public class UnifiedSearchService {
 
         CompletableFuture.allOf(patentFuture, trademarkFuture).join();
 
-        PageResponse<TrademarkResultDto> trademarkPage = trademarkFuture.join();
-
-
-        trademarkPage.getContent().forEach(dto -> {
-            TrademarkSnapshot snapshot = mapToSnapshot(dto);
-            trademarkSnapshotCacheService.cache(snapshot);
-        });
 
         return new UnifiedSearchResponse(
                 patentFuture.join(),
-                trademarkPage.getContent()
+                trademarkFuture.join().getContent()
         );
     }
 
@@ -100,14 +88,6 @@ public class UnifiedSearchService {
 
         CompletableFuture.allOf(patentFuture, trademarkFuture).join();
 
-        PageResponse<TrademarkResultDto> trademarkPage = trademarkFuture.join();
-
-
-        trademarkPage.getContent().forEach(dto -> {
-            TrademarkSnapshot snapshot = mapToSnapshot(dto);
-            trademarkSnapshotCacheService.cache(snapshot);
-        });
-
         return new UnifiedSearchResponse(
                 patentFuture.join(),
                 trademarkFuture.join().getContent()
@@ -123,28 +103,6 @@ public class UnifiedSearchService {
         resp.setLast(true);
         return resp;
     }
-
-
-    private TrademarkSnapshot mapToSnapshot(TrademarkResultDto dto) {
-
-        TrademarkSnapshot snapshot = new TrademarkSnapshot();
-
-        snapshot.setId(dto.getId());
-        snapshot.setMarkName(dto.getMarkName());
-        snapshot.setFilingDate(dto.getFilingDate());
-        snapshot.setStatusCode(dto.getStatusCode());
-        snapshot.setDrawingCode(dto.getDrawingCode());
-        snapshot.setStandardCharacters(dto.getStandardCharacters());
-        snapshot.setOwners(dto.getOwners());
-        snapshot.setInternationalClasses(dto.getInternationalClasses());
-        snapshot.setGoodsAndServices(dto.getGoodsAndServices());
-
-        return snapshot;
-    }
-
-
-
-
-    }
+}
 
 

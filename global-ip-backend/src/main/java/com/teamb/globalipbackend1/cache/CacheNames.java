@@ -6,7 +6,6 @@ public final class CacheNames {
 
     public static final String PATENT_SEARCH = "patent-searchByKeyword";
     public static final String TRADEMARK_SEARCH = "trademark-searchByKeyword";
-    public static final String PATENT_DETAIL = "patent-detail";
     public static final String PATENT_SNAPSHOT = "patent_snapshot";
     public static final String TRADEMARK_SNAPSHOT = "trademark_snapshot";
 

@@ -11,7 +11,7 @@ public class AsyncConfig {
 
     @Bean
     public Executor patentSearchExecutor() {
-        return Executors.newFixedThreadPool(4);
+        return Executors.newCachedThreadPool();
     }
 }
 

@@ -44,7 +44,7 @@ class RoleRequestService {
    * ADMIN: Approve a role request
    */
   async approveRequest(requestId: number): Promise<ApiResponse> {
-    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/approve`);
+    const response = await api.post<ApiResponse>(`/role-requests/adminOnly/${requestId}/approve`);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ class RoleRequestService {
    * ADMIN: Reject a role request
    */
   async rejectRequest(requestId: number): Promise<ApiResponse> {
-    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/reject`);
+    const response = await api.post<ApiResponse>(`/role-requests/adminOnly/${requestId}/reject`);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ class RoleRequestService {
    * ADMIN: Waitlist a role request
    */
   async waitlistRequest(requestId: number): Promise<ApiResponse> {
-    const response = await api.post<ApiResponse>(`/role-requests/${requestId}/waitlist`);
+    const response = await api.post<ApiResponse>(`/role-requests/adminOnly/${requestId}/waitlist`);
     return response.data;
   }
 }

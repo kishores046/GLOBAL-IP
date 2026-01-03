@@ -84,7 +84,10 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/oauth2/**",
                                 "/h2-console/**",
-                                "/error"
+                                "/error",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/api-docs/**"
                         ).permitAll()
 
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ANALYST", "ADMIN")
