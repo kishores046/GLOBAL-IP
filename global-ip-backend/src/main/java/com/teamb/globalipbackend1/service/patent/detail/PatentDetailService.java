@@ -26,7 +26,7 @@ public class PatentDetailService {
     ) {
         var cache = cacheManager.getCache(CacheNames.PATENT_SNAPSHOT);
         if (cache == null) {
-            throw new RuntimeException("Patent snapshot cache not available");
+            throw new RuntimeException("Patent snapshot logPatents not available");
         }
 
         PatentDocument doc =

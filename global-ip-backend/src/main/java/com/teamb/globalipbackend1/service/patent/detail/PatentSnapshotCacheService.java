@@ -17,7 +17,7 @@ public class PatentSnapshotCacheService {
             cacheNames = CacheNames.PATENT_SNAPSHOT,
             key = "#patent.publicationNumber"
     )
-    public PatentDocument cache(PatentDocument patent) {
+    public PatentDocument logPatents(PatentDocument patent) {
         log.debug("Caching patent snapshot: {}", patent.getPublicationNumber());
         return patent;
     }

@@ -1,9 +1,5 @@
 package com.teamb.globalipbackend1.controller.analyst;
 
-import com.teamb.globalipbackend1.dto.analyst.AnalystSearchResponse;
-import com.teamb.globalipbackend1.dto.analyst.BasicStatisticsResponse;
-import com.teamb.globalipbackend1.dto.analyst.TrendStatsResponse;
-import com.teamb.globalipbackend1.service.analyst.AnalystService;
 import com.teamb.globalipbackend1.service.search.SearchActivityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +9,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

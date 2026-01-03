@@ -4,6 +4,7 @@ import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
 import com.teamb.globalipbackend1.service.patent.detail.PatentSnapshotCacheService;
+import com.teamb.globalipbackend1.service.patent.search.provider.PatentSearchProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,11 +24,10 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 public class UnifiedPatentSearchService {
 
-    private final EPOPatentSearchService epoSearchService;
-    private final PatentsViewSearchService patentsViewSearchService;
-    private final PatentFilterService patentFilterService;
-    private final Executor patentSearchExecutor;
+    private final List<PatentSearchProvider> providers;
+    private final PatentFilterService filterService;
     private final PatentSnapshotCacheService snapshotCacheService;
+    private final Executor patentSearchExecutor;
 
     @Cacheable(
             cacheNames = CacheNames.PATENT_SEARCH,
@@ -39,112 +39,55 @@ public class UnifiedPatentSearchService {
                     + "#filter.assignee,"
                     + "#filter.inventor)"
     )
-    public List<PatentDocument> searchPatentsByKeyword(PatentSearchFilter filter) {
-        log.info("Starting unified patent search with filter: {}", filter);
+    public List<PatentDocument> searchByKeyword(PatentSearchFilter filter) {
 
-        boolean searchEPO = shouldSearchEPO(filter.getJurisdiction());
-        boolean searchPatentsView = shouldSearchPatentsView(filter.getJurisdiction());
+        List<CompletableFuture<List<PatentDocument>>> futures =
+                providers.stream()
+                        .filter(p -> p.supportsJurisdiction(filter.getJurisdiction()))
+                        .map(p -> CompletableFuture.supplyAsync(
+                                () -> p.searchByKeyword(filter),
+                                patentSearchExecutor
+                        ).exceptionally(ex -> {
+                            log.error("{} search failed", p.getSource(), ex);
+                            return List.of();
+                        }))
+                        .toList();
 
-        CompletableFuture<List<PatentDocument>> epoFuture =
-                searchEPO
-                        ? CompletableFuture.supplyAsync(() -> {
-                    log.info("Searching EPO for keyword: {}", filter.getKeyword());
-                    return epoSearchService.searchPatents(filter.getKeyword());
-                }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("EPO search failed", ex);
-                    return List.of();
-                })
-                        : CompletableFuture.completedFuture(List.of());
-
-        CompletableFuture<List<PatentDocument>> patentsViewFuture =
-                searchPatentsView
-                        ? CompletableFuture.supplyAsync(() -> {
-                    log.info("Searching PatentsView for keyword: {}", filter.getKeyword());
-                    return patentsViewSearchService.searchPatentsByKeyword(filter.getKeyword(), filter);
-                }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("PatentsView search failed", ex);
-                    return List.of();
-                })
-                        : CompletableFuture.completedFuture(List.of());
-
-        return getPatentDocuments(filter, patentsViewFuture, epoFuture);
+        return collectAndFilter(filter, futures);
     }
 
-    private List<PatentDocument> getPatentDocuments(
+    public List<PatentDocument> searchAdvanced(PatentSearchFilter filter) {
+
+        List<CompletableFuture<List<PatentDocument>>> futures =
+                providers.stream()
+                        .filter(p -> p.supportsJurisdiction(filter.getJurisdiction()))
+                        .map(p -> CompletableFuture.supplyAsync(
+                                () -> p.searchAdvanced(filter),
+                                patentSearchExecutor
+                        ).exceptionally(ex -> {
+                            log.error("{} advanced search failed", p.getSource(), ex);
+                            return List.of();
+                        }))
+                        .toList();
+
+        return collectAndFilter(filter, futures);
+    }
+
+    private List<PatentDocument> collectAndFilter(
             PatentSearchFilter filter,
-            CompletableFuture<List<PatentDocument>> patentsViewFuture,
-            CompletableFuture<List<PatentDocument>> epoFuture) {
+            List<CompletableFuture<List<PatentDocument>>> futures
+    ) {
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        CompletableFuture.allOf(patentsViewFuture, epoFuture).join();
+        List<PatentDocument> all =
+                futures.stream()
+                        .flatMap(f -> f.join().stream())
+                        .toList();
 
-        List<PatentDocument> allResults = new ArrayList<>();
-        allResults.addAll(patentsViewFuture.join());
-        allResults.addAll(epoFuture.join());
+        List<PatentDocument> filtered =
+                filterService.applyFilters(all, filter);
 
-        log.info("Total results before filtering: {}", allResults.size());
-
-
-        List<PatentDocument> filteredResults =
-                patentFilterService.applyFilters(allResults, filter);
-
-        log.info("Total results after filtering: {}", filteredResults.size());
-        filteredResults.forEach(snapshotCacheService::cache);
-
-        return filteredResults;
-    }
-
-    private boolean shouldSearchEPO(String jurisdiction) {
-        if (jurisdiction == null || jurisdiction.equalsIgnoreCase("ALL")) {
-            return true;
-        }
-        return !jurisdiction.equalsIgnoreCase("US");
-    }
-
-    private boolean shouldSearchPatentsView(String jurisdiction) {
-        if (jurisdiction == null || jurisdiction.equalsIgnoreCase("ALL")) {
-            return true;
-        }
-        return jurisdiction.equalsIgnoreCase("US");
-    }
-
-    @Cacheable(
-            cacheNames = CacheNames.PATENT_SEARCH,
-            key = "T(java.util.Objects).hash("
-                    + "#filter.keyword,"
-                    + "#filter.jurisdiction,"
-                    + "#filter.filingDateFrom,"
-                    + "#filter.filingDateTo,"
-                    + "#filter.assignee,"
-                    + "#filter.inventor)"
-    )
-    public List<PatentDocument> searchPatentsAdvanced(PatentSearchFilter filter) {
-        log.info("Starting unified patent advanced search with filter: {}", filter);
-
-        boolean searchEPO = shouldSearchEPO(filter.getJurisdiction());
-        boolean searchPatentsView = shouldSearchPatentsView(filter.getJurisdiction());
-
-        CompletableFuture<List<PatentDocument>> epoFuture =
-                searchEPO
-                        ? CompletableFuture.supplyAsync(() -> {
-                    log.info("Searching EPO for advanced query: {}", filter.toString());
-                    return epoSearchService.searchAdvanced(filter);
-                }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("EPO search failed", ex);
-                    return List.of();
-                })
-                        : CompletableFuture.completedFuture(List.of());
-
-        CompletableFuture<List<PatentDocument>> patentsViewFuture =
-                searchPatentsView
-                        ? CompletableFuture.supplyAsync(() -> {
-                    log.info("Searching PatentsView for advanced query: {}", filter);
-                    return patentsViewSearchService.advancedSearch(filter);
-                }, patentSearchExecutor).exceptionally(ex -> {
-                    log.error("PatentsView search failed", ex);
-                    return List.of();
-                })
-                        : CompletableFuture.completedFuture(List.of());
-
-        return getPatentDocuments(filter, patentsViewFuture, epoFuture);
+        filtered.forEach(snapshotCacheService::logPatents);
+        return filtered;
     }
 }
