@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.service.search;
+package com.teamb.globalipbackend1.service.patent;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
