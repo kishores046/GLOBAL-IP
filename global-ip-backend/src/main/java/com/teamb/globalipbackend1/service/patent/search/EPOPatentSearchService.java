@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.service.search;
+package com.teamb.globalipbackend1.service.patent.search;
 
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.external.epo.EpoClient;

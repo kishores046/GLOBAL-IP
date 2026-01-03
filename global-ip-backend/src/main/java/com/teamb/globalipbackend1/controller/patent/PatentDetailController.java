@@ -2,7 +2,7 @@ package com.teamb.globalipbackend1.controller.patent;
 
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.service.bookmark.PatentBookmarkService;
-import com.teamb.globalipbackend1.service.patent.PatentDetailService;
+import com.teamb.globalipbackend1.service.patent.detail.PatentDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

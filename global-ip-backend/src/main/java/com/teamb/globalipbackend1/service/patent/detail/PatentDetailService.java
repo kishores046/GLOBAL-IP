@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.service.patent;
+package com.teamb.globalipbackend1.service.patent.detail;
 
 
 import com.teamb.globalipbackend1.cache.CacheNames;

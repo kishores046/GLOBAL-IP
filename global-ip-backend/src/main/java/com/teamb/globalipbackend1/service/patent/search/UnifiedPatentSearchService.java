@@ -1,9 +1,9 @@
-package com.teamb.globalipbackend1.service.search;
+package com.teamb.globalipbackend1.service.patent.search;
 
 import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
-import com.teamb.globalipbackend1.service.patent.PatentSnapshotCacheService;
+import com.teamb.globalipbackend1.service.patent.detail.PatentSnapshotCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

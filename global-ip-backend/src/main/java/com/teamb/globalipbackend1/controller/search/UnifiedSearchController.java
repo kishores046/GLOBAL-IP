@@ -5,7 +5,7 @@ package com.teamb.globalipbackend1.controller.search;
 import com.teamb.globalipbackend1.dto.search.GlobalSearchRequest;
 import com.teamb.globalipbackend1.dto.search.UnifiedSearchResponse;
 import com.teamb.globalipbackend1.service.search.SearchActivityService;
-import com.teamb.globalipbackend1.service.search.UnifiedSearchService;
+import com.teamb.globalipbackend1.service.patent.search.UnifiedSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
