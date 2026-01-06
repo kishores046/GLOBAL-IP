@@ -57,7 +57,4 @@ public class PatentsViewResponseDocument {
     @JsonProperty("patent_num_total_documents_cited")
     private Integer patentNumTotalDocumentsCited;
 
-
-
-
 }

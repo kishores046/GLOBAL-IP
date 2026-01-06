@@ -1,9 +1,12 @@
 package com.teamb.globalipbackend1.model.patents;
 
+import com.teamb.globalipbackend1.dto.citation.CitationDTO;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -49,4 +52,17 @@ public class PatentDocument {
 
     /** Total documents cited by this patent */
     private Integer totalCitations;
+
+
+    /**
+     * Patents that THIS patent cites (backward citations)
+     */
+    @Transient // Not stored in PatentDocument table
+    private List<CitationDTO> backwardCitations = new ArrayList<>();
+
+    /**
+     * Patents that cite THIS patent (forward citations)
+     */
+    @Transient
+    private List<CitationDTO> forwardCitations = new ArrayList<>();
 }

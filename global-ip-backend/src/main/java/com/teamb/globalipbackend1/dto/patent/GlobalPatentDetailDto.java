@@ -1,6 +1,7 @@
 package com.teamb.globalipbackend1.dto.patent;
 
 
+import com.teamb.globalipbackend1.dto.citation.CitationNetworkDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -62,4 +63,7 @@ public class GlobalPatentDetailDto {
 
     /** Whether the current user bookmarked this patent */
     private boolean bookmarked;
+
+
+    private CitationNetworkDTO citationNetwork;
 }
