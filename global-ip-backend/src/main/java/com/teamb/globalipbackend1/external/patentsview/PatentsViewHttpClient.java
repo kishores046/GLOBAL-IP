@@ -1,12 +1,7 @@
 package com.teamb.globalipbackend1.external.patentsview;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.teamb.globalipbackend1.external.patentsview.config.PatentsViewProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -32,42 +27,43 @@ public class PatentsViewHttpClient {
         log.info("PatentsView API URL configured: {}", API_URL);
     }
 
-    public String post(String jsonBody) {
+
+    public String post(String endpoint, String jsonBody) {
         try {
-            log.info("Sending request to PatentsView API");
-            log.debug("Request body:\n{}", jsonBody);
+            log.info("POST to: {}", endpoint);
+            log.info("Request body: {}", jsonBody);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_URL))
+                    .uri(URI.create(endpoint))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .header("Content-Type", "application/json")
                     .header("X-Api-Key", API_KEY)
                     .timeout(Duration.ofSeconds(120))
                     .build();
 
-            HttpResponse<String> response =
-                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
+            );
 
-            log.info("PatentsView API response status: {}", response.statusCode());
+            log.info("API response status: {}", response.statusCode());
 
             if (response.statusCode() != 200) {
-                String errorBody = response.body();
-                log.error("PatentsView API error response body: {}", errorBody);
-                log.error("Request that failed: {}", jsonBody);
-
-                throw new RuntimeException(
-                        String.format("PatentsView API error: %d - %s",
-                                response.statusCode(),
-                                errorBody)
-                );
+                log.error("API error response body: {}", response.body());
+                log.error("Failed request body: {}", jsonBody);
+                throw new RuntimeException("API error: " + response.statusCode() + " - " + response.body());
             }
 
-            log.debug("PatentsView API response: {}", response.body().substring(0, Math.min(200, response.body().length())));
             return response.body();
 
         } catch (Exception e) {
-            log.error("PatentsView HTTP call failed", e);
-            throw new RuntimeException("PatentsView HTTP call failed", e);
+            log.error("HTTP call failed to {}", endpoint, e);
+            throw new RuntimeException("HTTP call failed", e);
         }
+    }
+
+    // Keep your existing post() method for backward compatibility
+    public String post(String jsonBody) {
+        return post(API_URL, jsonBody);
     }
 }

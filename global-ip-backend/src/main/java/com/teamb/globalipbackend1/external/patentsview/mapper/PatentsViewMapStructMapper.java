@@ -6,15 +6,17 @@ import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewIpcClass;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewInventor;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewResponseDocument;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
+)
 public interface PatentsViewMapStructMapper {
 
 

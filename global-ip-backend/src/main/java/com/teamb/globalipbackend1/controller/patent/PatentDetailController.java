@@ -1,7 +1,9 @@
 package com.teamb.globalipbackend1.controller.patent;
 
+import com.teamb.globalipbackend1.dto.citation.CitationNetworkDTO;
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.service.bookmark.PatentBookmarkService;
+import com.teamb.globalipbackend1.service.patent.citations.PatentCitationService;
 import com.teamb.globalipbackend1.service.patent.detail.PatentDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,8 +31,7 @@ public class PatentDetailController {
 
     private final PatentDetailService detailService;
     private final PatentBookmarkService bookmarkService;
-
-
+    private final PatentCitationService citationService;
 
     @Operation(
             summary = "Get patent details",
@@ -53,27 +54,40 @@ public class PatentDetailController {
     ) {
         log.info("Received request for patent detail: {}", publicationNumber);
         String userId = auth.getName();
-
         try {
-            GlobalPatentDetailDto detail = detailService.getPatentDetail(publicationNumber, userId);
-            log.info("Successfully retrieved patent detail: {}", publicationNumber);
+
+            GlobalPatentDetailDto detail =
+                    detailService.getPatentDetail(publicationNumber, userId);
+
+
+            citationService.fetchAndStoreCitations(publicationNumber);
+
+            CitationNetworkDTO citationNetwork =
+                    citationService.getCitationNetwork(publicationNumber);
+
+
+            detail.setCitationNetwork(citationNetwork);
+
             return ResponseEntity.ok(detail);
+
         } catch (RuntimeException e) {
+            log.error("Failed to fetch patent detail: {}", publicationNumber, e);
+
             if (e.getMessage() != null && e.getMessage().contains("Patent not found")) {
-                log.warn("Patent not found: {}", publicationNumber);
                 throw new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Patent not found: " + publicationNumber,
                         e
                 );
             }
-            log.error("Failed to retrieve patent detail: {}", publicationNumber, e);
+
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to retrieve patent details",
                     e
             );
         }
+
     }
 
 

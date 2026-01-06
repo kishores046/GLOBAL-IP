@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isTokenExpired, clearAuthData, formatTokenForLog } from '../utils/authUtils';
 
 // Base API URL - update this to match your backend
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -15,12 +16,33 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('jwt_token');
+    
+    // Debug logging
+    console.log('🌐 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      hasToken: !!token,
+      tokenPreview: formatTokenForLog(token),
+    });
+    
+    // Check if token is expired before making request
+    if (token && isTokenExpired()) {
+      console.error('❌ Token expired, clearing auth data');
+      clearAuthData();
+      window.location.href = '/login';
+      return Promise.reject(new Error('Token expired'));
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn('⚠️ No JWT token found - request may fail if endpoint requires auth');
     }
+    
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -131,6 +153,30 @@ export interface UnifiedSearchResponse {
 }
 
 // ==================== PATENT DETAIL TYPES ====================
+// ==================== CITATION NETWORK TYPES ====================
+export interface Citation {
+  citingPatent: string;
+  citedPatent: string;
+  citationDirection: 'BACKWARD' | 'FORWARD';
+  citationType?: string;
+  country?: string;
+  title?: string;  // Patent title for tooltips
+}
+
+export interface CitationNetwork {
+  centerPatent: string;
+  backwardCitations: Citation[];   // already capped at 10
+  forwardCitations: Citation[];    // already capped at 10
+  backwardTotal: number;            // full count before truncation
+  forwardTotal: number;             // full count before truncation
+  truncated: boolean;               // true if totals > rendered
+  // Legacy fields for backward compatibility
+  patentNumber?: string;
+  backwardCount?: number;
+  forwardCount?: number;
+}
+
+// ==================== PATENT DETAIL TYPES ====================
 export interface GlobalPatentDetailDto {
   publicationNumber: string;
   jurisdiction: string;
@@ -149,6 +195,7 @@ export interface GlobalPatentDetailDto {
   ipcClasses?: string[];
   source?: string;
   bookmarked: boolean;
+  citationNetwork?: CitationNetwork | null;
 }
 
 // ==================== BOOKMARK TYPES ====================

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { patentDetailAPI, GlobalPatentDetailDto } from "../services/api";
+import { CitationSummary } from "../components/CitationSummary";
 
 export function PatentDetailPage() {
   const { publicationNumber } = useParams<{ publicationNumber: string }>();
@@ -430,6 +431,19 @@ export function PatentDetailPage() {
                 </div>
               </motion.div>
             )}
+
+            {/* Citation Summary Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <CitationSummary
+                citationNetwork={patent.citationNetwork || undefined}
+                patentId={patent.publicationNumber}
+                source={patent.source}
+              />
+            </motion.div>
           </div>
         </main>
       </div>

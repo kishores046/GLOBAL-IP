@@ -116,9 +116,10 @@ export function AppRoutes() {
           path={ROUTES.ADVANCED_SEARCH} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AdvancedSearchPage />} />} 
         />
+        {/* Visualization Engine - Available to all authenticated users for citation graphs */}
         <Route 
           path={ROUTES.VISUALIZATION_ENGINE} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<VisualizationEnginePage />} />} 
+          element={<PrivateRoute><VisualizationEnginePage /></PrivateRoute>} 
         />
         <Route 
           path={ROUTES.EXPORT_TOOLS} 

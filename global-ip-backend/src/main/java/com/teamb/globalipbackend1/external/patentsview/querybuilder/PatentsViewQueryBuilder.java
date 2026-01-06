@@ -171,16 +171,27 @@ public class PatentsViewQueryBuilder {
         String n = input.trim().toUpperCase();
 
 
-        if (n.matches("^US\\d+[A-Z]\\d?$")) {
+        if (n.startsWith("US")) {
+            n = n.substring(2);
+        }
+
+
+        n = n.replaceAll("[-\\s]", "");
+
+
+        if (n.matches("^\\d{7,8}$")) {
             return n;
         }
 
 
-        if (n.matches("^\\d{7,8}$")) {
-            return "US" + n + "B2";
+        if (n.matches("^\\d{7,8}[A-Z]\\d?$")) {
+            return n;
         }
 
-        throw new IllegalArgumentException("Unsupported patent format: " + input);
+        throw new IllegalArgumentException(
+                "Invalid patent format: " + input +
+                        ". Expected format: 10123456 or 10123456B2 (without US prefix)"
+        );
     }
 
 
