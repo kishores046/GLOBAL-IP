@@ -1,6 +1,0 @@
-import{e as a,l as o}from"./index-BbdKGyFO.js";/**
- * @license lucide-react v0.487.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */const n=[["path",{d:"M12 2v4",key:"3427ic"}],["path",{d:"m16.2 7.8 2.9-2.9",key:"r700ao"}],["path",{d:"M18 12h4",key:"wj9ykh"}],["path",{d:"m16.2 16.2 2.9 2.9",key:"1bxg5t"}],["path",{d:"M12 18v4",key:"jadmvz"}],["path",{d:"m4.9 19.1 2.9-2.9",key:"bwix9q"}],["path",{d:"M2 12h4",key:"j09sii"}],["path",{d:"m4.9 4.9 2.9 2.9",key:"giyufr"}]],i=a("loader",n),s="http://localhost:8080/api/analyst",r=o.create({baseURL:s,headers:{"Content-Type":"application/json"}});r.interceptors.request.use(t=>{const e=localStorage.getItem("jwt_token");return e&&(t.headers.Authorization=`Bearer ${e}`),t},t=>Promise.reject(t));const h=async t=>{try{return(await r.get(`/patents/${t}/lifecycle`)).data}catch(e){throw new Error(`Failed to fetch patent lifecycle: ${e instanceof Error?e.message:"Unknown error"}`)}},p=async t=>{try{return(await r.get(`/trademarks/${t}/lifecycle`)).data}catch(e){throw new Error(`Failed to fetch trademark lifecycle: ${e instanceof Error?e.message:"Unknown error"}`)}};export{i as L,p as a,h as f};
