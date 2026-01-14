@@ -55,7 +55,7 @@ export function MonitoringPage() {
     setShowUpgradeBanner(false);
     
     try {
-      const message = await monitoringApi.addMonitoringIp(patentInput.trim());());
+      const message = await monitoringApi.addMonitoringIp(patentInput.trim());
       showToast(message, 'success');
       setPatentInput('');
       await loadMonitoringList();

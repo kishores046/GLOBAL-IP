@@ -4,20 +4,19 @@ import { motion } from 'motion/react';
 import { Loader2, AlertCircle, Eye, Radio } from 'lucide-react';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { patentApi } from '../services/patentApi';
-import { ApplicationLifecycleDto } from '../types/lifecycle';
+import { trackingApi, TrackingPreferences } from '../services/trackingAPI';
 
 /**
  * Tracked Patents Page - PORTFOLIO VIEW
  * 
  * Purpose: List all patents the user is tracking
- * Shows: Patent list with basic info
+ * Shows: Patent list with tracking preferences
  * Actions: Navigate to detail page
  */
 export function TrackedPatentsPage() {
   const navigate = useNavigate();
 
-  const [trackedPatents, setTrackedPatents] = useState<ApplicationLifecycleDto[]>([]);
+  const [trackedPatents, setTrackedPatents] = useState<TrackingPreferences[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +29,7 @@ export function TrackedPatentsPage() {
     setError(null);
 
     try {
-      const data = await patentApi.getTrackedPatents();
+      const data = await trackingApi.getAllPreferences();
       setTrackedPatents(data);
     } catch (err) {
       console.error('Error loading tracked patents:', err);
@@ -40,33 +39,19 @@ export function TrackedPatentsPage() {
     }
   };
 
-  const formatDate = (date?: string | null) => {
-    if (!date) return '—';
-    try {
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return '—';
-    }
+  const getTrackingTypes = (patent: TrackingPreferences): string[] => {
+    const types: string[] = [];
+    if (patent.trackLifecycleEvents) types.push('Lifecycle');
+    if (patent.trackStatusChanges) types.push('Status');
+    if (patent.trackRenewalsExpiry) types.push('Renewals');
+    return types;
   };
 
-  const getStatusColor = (status: string) => {
-    const upperStatus = status.toUpperCase();
-    switch (upperStatus) {
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'GRANTED':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'EXPIRED':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'WITHDRAWN':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
+  const getNotificationTypes = (patent: TrackingPreferences): string[] => {
+    const types: string[] = [];
+    if (patent.enableDashboardAlerts) types.push('Dashboard');
+    if (patent.enableEmailNotifications) types.push('Email');
+    return types;
   };
 
   if (loading) {
@@ -165,16 +150,13 @@ export function TrackedPatentsPage() {
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Publication Number
+                          Patent ID
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Status
+                          Tracking Events
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Filing Date
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Grant Date
+                          Notifications
                         </th>
                         <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
                           Actions
@@ -184,7 +166,7 @@ export function TrackedPatentsPage() {
                     <tbody className="divide-y divide-slate-200">
                       {trackedPatents.map((patent, index) => (
                         <motion.tr
-                          key={patent.publicationNumber}
+                          key={patent.patentId}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
@@ -192,31 +174,50 @@ export function TrackedPatentsPage() {
                         >
                           <td className="px-6 py-4">
                             <span className="font-mono text-sm font-medium text-slate-900">
-                              {patent.publicationNumber}
+                              {patent.patentId}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(patent.status)}`}>
-                              {patent.status}
-                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {getTrackingTypes(patent).map((type) => (
+                                <span 
+                                  key={type}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
+                                >
+                                  {type}
+                                </span>
+                              ))}
+                              {getTrackingTypes(patent).length === 0 && (
+                                <span className="text-xs text-slate-400">No events tracked</span>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
-                            {formatDate(patent.filingDate)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
-                            {formatDate(patent.grantDate)}
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1">
+                              {getNotificationTypes(patent).map((type) => (
+                                <span 
+                                  key={type}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200"
+                                >
+                                  {type}
+                                </span>
+                              ))}
+                              {getNotificationTypes(patent).length === 0 && (
+                                <span className="text-xs text-slate-400">No notifications</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-center gap-2">
                               <button
-                                onClick={() => navigate(`/patents/${patent.publicationNumber}`)}
+                                onClick={() => navigate(`/patents/${patent.patentId}`)}
                                 className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                                 title="View details"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => navigate(`/patents/${patent.publicationNumber}/track`)}
+                                onClick={() => navigate(`/patents/${patent.patentId}/track`)}
                                 className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                 title="Configure tracking"
                               >

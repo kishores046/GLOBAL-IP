@@ -166,21 +166,21 @@ export function Sidebar() {
   const menuItems = isAnalyst ? analystMenuItems : userMenuItems;
 
   return (
-    <aside className="w-72 bg-[#1e3a5f] border-r border-[#2d4a6f] h-screen sticky top-0 flex flex-col">
+    <aside className="w-64 bg-gradient-to-b from-[#1e3a5f] via-[#1a2f4d] to-[#1e3a5f] border-r border-blue-900/30 h-screen sticky top-0 flex flex-col shadow-2xl">
       {/* Logo Section */}
-      <div className="p-6 border-b border-[#2d4a6f]">
+      <div className="p-6 border-b border-blue-800/30">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xl">P</span>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/50">
+            <span className="text-white text-xl font-bold">IP</span>
           </div>
           <div>
-            <h1 className="text-white text-lg leading-tight">IPIntel</h1>
-            <p className="text-blue-200 text-sm">Intelligence Platform</p>
+            <h1 className="text-white text-lg font-bold leading-tight">IPIntel</h1>
+            <p className="text-blue-300 text-xs">Intelligence Platform</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-transparent">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeItem === item.id;
@@ -189,27 +189,27 @@ export function Sidebar() {
             <button
               key={item.id}
               onClick={() => handleNavigation(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left group ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-blue-100 hover:bg-[#2d4a6f]"
+                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
+                  : "text-blue-300/70 hover:bg-blue-900/40 hover:text-white"
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <Icon className={`w-5 h-5 transition-transform ${isActive ? "" : "group-hover:scale-110"}`} />
+              <span className="text-sm font-medium">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-slate-700">
+      <div className="p-4 border-t border-blue-800/30">
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-950 hover:text-red-300 rounded-lg transition-all"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-300 hover:bg-red-900/30 hover:text-red-200 rounded-lg transition-all group"
         >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
+          <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-medium">Logout</span>
         </button>
       </div>
     </aside>

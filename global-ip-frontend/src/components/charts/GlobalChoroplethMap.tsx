@@ -17,9 +17,11 @@ const geoUrl =
 const nameToISO2: Record<string, string> = {
   'United States of America': 'US',
   'China': 'CN',
+  "People's Republic of China": 'CN',
   'Japan': 'JP',
   'Germany': 'DE',
   'South Korea': 'KR',
+  'Republic of Korea': 'KR',
   'France': 'FR',
   'United Kingdom': 'GB',
   'India': 'IN',

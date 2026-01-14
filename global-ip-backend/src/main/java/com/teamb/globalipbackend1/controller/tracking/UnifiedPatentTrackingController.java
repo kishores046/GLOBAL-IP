@@ -141,6 +141,20 @@ public class UnifiedPatentTrackingController {
                 source == PatentSourceDetector.PatentSource.EPO ? "Every 2 hours" : "Hourly"
         ));
     }
+    /**
+     * Get all tracked patents for a user with their preferences
+     */
+    @GetMapping("/preferences")
+    public ResponseEntity<@NonNull List<TrackingPreferencesDto>> getAllTrackingPreferences() {
+        String userId = securityUtil.getUserId();
+
+        log.info("Fetching all tracking preferences for user={}", userId);
+
+        List<TrackingPreferencesDto> preferences =
+                trackingPreferencesService.getAllTrackingPreferences(userId);
+
+        return ResponseEntity.ok(preferences);
+    }
 
     /**
      * DTO for patent source info
