@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+tm-mock-service/src/main/resources/*.xml
