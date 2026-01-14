@@ -1,10 +1,11 @@
 package com.teamb.globalipbackend1.external.patentsview.querybuilder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -12,6 +13,140 @@ public class PatentsViewQueryBuilder {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Build query for competitor filings - FINAL CORRECTED VERSION
+     * Based on working Swagger UI format
+     */
+    public String buildCompetitorFilingQuery(
+            List<String> assigneeOrganizations,
+            LocalDate fromDate,
+            Integer pageSize
+    ) {
+        if (assigneeOrganizations == null || assigneeOrganizations.isEmpty()) {
+            throw new IllegalArgumentException("At least one assignee organization is required");
+        }
+
+        ObjectNode root = mapper.createObjectNode();
+        ObjectNode queryRoot = mapper.createObjectNode();
+        ArrayNode andArray = mapper.createArrayNode();
+
+
+        if (assigneeOrganizations.size() == 1) {
+            ObjectNode textAny = mapper.createObjectNode();
+            ObjectNode field = mapper.createObjectNode();
+            field.put("assignees.assignee_organization", assigneeOrganizations.get(0));
+            textAny.set("_text_any", field);
+            andArray.add(textAny);
+        } else {
+            ArrayNode orArray = mapper.createArrayNode();
+            for (String assignee : assigneeOrganizations) {
+                ObjectNode textAny = mapper.createObjectNode();
+                ObjectNode field = mapper.createObjectNode();
+                field.put("assignees.assignee_organization", assignee);
+                textAny.set("_text_any", field);
+                orArray.add(textAny);
+            }
+
+            ObjectNode orNode = mapper.createObjectNode();
+            orNode.set("_or", orArray);
+            andArray.add(orNode);
+        }
+
+        // Date filter
+        if (fromDate != null) {
+            ObjectNode gteNode = mapper.createObjectNode();
+            ObjectNode dateField = mapper.createObjectNode();
+            dateField.put("patent_date", fromDate.toString());
+            gteNode.set("_gte", dateField);
+            andArray.add(gteNode);
+        }
+
+        queryRoot.set("_and", andArray);
+        root.set("q", queryRoot);
+
+        // Fields
+        root.putArray("f")
+                .add("patent_id")
+                .add("patent_title")
+                .add("patent_abstract")
+                .add("patent_date")
+                .add("patent_earliest_application_date")
+                .add("assignees.assignee_organization")
+                .add("assignees.assignee_country")
+                .add("inventors.inventor_name_first")
+                .add("inventors.inventor_name_last")
+                .add("cpc_current.cpc_class")
+                .add("cpc_current.cpc_subclass")
+                .add("cpc_current.cpc_group")
+                .add("ipcr.ipc_class")
+                .add("wipo_kind")
+                .add("patent_num_times_cited_by_us_patents")
+                .add("patent_num_total_documents_cited");
+
+
+        ObjectNode options = root.putObject("o");
+        options.put("size", pageSize != null ? pageSize : 100);
+        options.put("page", 1);
+
+
+        ArrayNode sort = root.putArray("s");
+        ObjectNode sortNode = mapper.createObjectNode();
+        sortNode.put("patent_date", "desc");
+        sort.add(sortNode);
+
+        return root.toString();
+    }
+
+    /**
+     * Build query for specific patent by ID
+     */
+    public String buildPatentDetailQuery(String publicationNumber) {
+        String patentId = normalizeToPatentId(publicationNumber);
+
+        ObjectNode root = mapper.createObjectNode();
+        ObjectNode queryRoot = mapper.createObjectNode();
+        ArrayNode andArray = mapper.createArrayNode();
+
+        ObjectNode textPhrase = mapper.createObjectNode();
+        ObjectNode field = mapper.createObjectNode();
+        field.put("patent_id", patentId);
+        textPhrase.set("_text_phrase", field);
+        andArray.add(textPhrase);
+
+        queryRoot.set("_and", andArray);
+        root.set("q", queryRoot);
+
+        ArrayNode fields = root.putArray("f");
+        fields.add("patent_id");
+        fields.add("patent_title");
+        fields.add("patent_abstract");
+        fields.add("patent_date");
+        fields.add("patent_earliest_application_date");
+        fields.add("assignees.assignee_organization");
+        fields.add("assignees.assignee_country");
+        fields.add("inventors.inventor_name_first");
+        fields.add("inventors.inventor_name_last");
+        fields.add("cpc_current.cpc_class");
+        fields.add("cpc_current.cpc_subclass");
+        fields.add("cpc_current.cpc_group");
+        fields.add("ipcr.ipc_class");
+        fields.add("wipo_kind");
+        fields.add("patent_num_times_cited_by_us_patents");
+        fields.add("patent_num_total_documents_cited");
+
+        ObjectNode options = root.putObject("o");
+        options.put("size", 1);
+
+        ArrayNode sort = root.putArray("s");
+        ObjectNode sortNode = mapper.createObjectNode();
+        sortNode.put("patent_date", "desc");
+        sort.add(sortNode);
+        return root.toString();
+    }
+
+    /**
+     * Original advanced search query
+     */
     public String buildAdvancedQuery(
             String keyword,
             String fromDate,
@@ -20,14 +155,23 @@ public class PatentsViewQueryBuilder {
             String inventor
     ) {
         ObjectNode root = mapper.createObjectNode();
+        ObjectNode queryRoot = mapper.createObjectNode();
         ArrayNode andArray = mapper.createArrayNode();
 
-
         if (keyword != null && !keyword.isBlank()) {
-
             ArrayNode orArray = mapper.createArrayNode();
-            orArray.add(textAny("patent_title", keyword));
-            orArray.add(textAny("patent_abstract", keyword));
+
+            ObjectNode titleSearch = mapper.createObjectNode();
+            ObjectNode titleField = mapper.createObjectNode();
+            titleField.put("patent_title", keyword);
+            titleSearch.set("_text_any", titleField);
+            orArray.add(titleSearch);
+
+            ObjectNode abstractSearch = mapper.createObjectNode();
+            ObjectNode abstractField = mapper.createObjectNode();
+            abstractField.put("patent_abstract", keyword);
+            abstractSearch.set("_text_any", abstractField);
+            orArray.add(abstractSearch);
 
             ObjectNode orNode = mapper.createObjectNode();
             orNode.set("_or", orArray);
@@ -35,154 +179,84 @@ public class PatentsViewQueryBuilder {
         }
 
         if (fromDate != null && !fromDate.isBlank()) {
-            andArray.add(gte("patent_earliest_application_date", fromDate));
+            ObjectNode gteNode = mapper.createObjectNode();
+            ObjectNode dateField = mapper.createObjectNode();
+            dateField.put("patent_earliest_application_date", fromDate);
+            gteNode.set("_gte", dateField);
+            andArray.add(gteNode);
         }
 
         if (toDate != null && !toDate.isBlank()) {
-            andArray.add(lte("patent_earliest_application_date", toDate));
+            ObjectNode lteNode = mapper.createObjectNode();
+            ObjectNode dateField = mapper.createObjectNode();
+            dateField.put("patent_earliest_application_date", toDate);
+            lteNode.set("_lte", dateField);
+            andArray.add(lteNode);
         }
 
         if (assignee != null && !assignee.isBlank()) {
-            // Use correct field name for v1 API
-            andArray.add(textAny("assignees.assignee_organization", assignee));
+            ObjectNode textAny = mapper.createObjectNode();
+            ObjectNode field = mapper.createObjectNode();
+            field.put("assignees.assignee_organization", assignee);
+            textAny.set("_text_any", field);
+            andArray.add(textAny);
         }
 
         if (inventor != null && !inventor.isBlank()) {
-            // Search in inventor last name - correct field name for v1 API
-            andArray.add(textAny("inventors.inventor_name_last", inventor));
+            ObjectNode textAny = mapper.createObjectNode();
+            ObjectNode field = mapper.createObjectNode();
+            field.put("inventors.inventor_name_last", inventor);
+            textAny.set("_text_any", field);
+            andArray.add(textAny);
         }
 
         if (andArray.isEmpty()) {
             throw new IllegalArgumentException("PatentsView query must contain at least one condition");
         }
 
-        ObjectNode query = mapper.createObjectNode();
-        query.set("_and", andArray);
-        root.set("q", query);
+        queryRoot.set("_and", andArray);
+        root.set("q", queryRoot);
+
+        ArrayNode fields = root.putArray("f");
+        fields.add("patent_id");
+        fields.add("patent_title");
+        fields.add("patent_abstract");
+        fields.add("patent_date");
+        fields.add("patent_earliest_application_date");
+        fields.add("assignees.assignee_organization");
+        fields.add("inventors.inventor_name_first");
+        fields.add("inventors.inventor_name_last");
+        fields.add("cpc_current.cpc_class");
+        fields.add("cpc_current.cpc_subclass");
+        fields.add("cpc_current.cpc_group");
+        fields.add("wipo_kind");
+        fields.add("patent_num_times_cited_by_us_patents");
+        fields.add("patent_num_total_documents_cited");
+
+        ObjectNode options = root.putObject("o");
+        options.put("size", 1000);
 
 
-        root.putArray("f")
-
-                .add("patent_id")
-
-
-                .add("patent_title")
-                .add("patent_abstract")
-
-
-                .add("patent_date") // grant date
-                .add("patent_earliest_application_date") // filing date
-
-
-                .add("assignees.assignee_organization")
-                .add("inventors.inventor_name_first")
-                .add("inventors.inventor_name_last")
-
-                // Classification
-                .add("cpc_current.cpc_class")
-                .add("cpc_current.cpc_subclass")
-                .add("cpc_current.cpc_group")
-
-                // Analytics (cheap, useful)
-                .add("wipo_kind")
-                .add("patent_num_times_cited_by_us_patents")
-                .add("patent_num_total_documents_cited");
-        root.putObject("o").put("size", 1000);
+        ArrayNode sort = root.putArray("s");
+        ObjectNode sortNode = mapper.createObjectNode();
+        sortNode.put("patent_date", "desc");
+        sort.add(sortNode);
 
         return root.toString();
-    }
-
-    /**
-     * Use _text_any for full-text searchByKeyword on text fields
-     * This searches for any of the words in the value
-     */
-    private ObjectNode textAny(String field, String value) {
-        return mapper.createObjectNode()
-                .set("_text_any",
-                        mapper.createObjectNode().put(field, value));
-    }
-
-    private ObjectNode gte(String field, String value) {
-        return mapper.createObjectNode()
-                .set("_gte",
-                        mapper.createObjectNode().put(field, value));
-    }
-
-    private ObjectNode lte(String field, String value) {
-        return mapper.createObjectNode()
-                .set("_lte",
-                        mapper.createObjectNode().put(field, value));
-    }
-    public String buildPatentDetailQuery(String publicationNumber) {
-
-        String patentId = normalizeToPatentId(publicationNumber);
-
-        ObjectNode root = mapper.createObjectNode();
-        ObjectNode q = root.putObject("q");
-
-        ObjectNode eq = mapper.createObjectNode();
-        eq.put("patent_id", patentId);
-
-        ObjectNode andItem = mapper.createObjectNode();
-        andItem.set("_eq", eq);
-
-        q.putArray("_and").add(andItem);
-
-        root.putArray("f").addAll(List.of(
-                // Identity
-                text("patent_id"),
-
-                // Core
-                text("patent_title"),
-                text("patent_abstract"),
-
-                // Dates
-                text("patent_date"), // grant date
-                text("patent_earliest_application_date"), // filing date
-
-                // Parties
-                text("assignees.assignee_organization"),
-                text("inventors.inventor_name_first"),
-                text("inventors.inventor_name_last"),
-
-                // Classification
-                text("cpc_current.cpc_class"),
-                text("cpc_current.cpc_subclass"),
-                text("cpc_current.cpc_group"),
-
-
-                text("wipo_kind"),
-                text("patent_num_times_cited_by_us_patents"),
-                text("patent_num_total_documents_cited")
-        ));
-
-
-        root.put("o", 0);
-        root.put("s", 1);
-
-        return root.toString();
-    }
-
-    private JsonNode text(String v) {
-        return mapper.getNodeFactory().textNode(v);
     }
 
     private String normalizeToPatentId(String input) {
         String n = input.trim().toUpperCase();
 
-
         if (n.startsWith("US")) {
             n = n.substring(2);
         }
 
-
         n = n.replaceAll("[-\\s]", "");
-
 
         if (n.matches("^\\d{7,8}$")) {
             return n;
         }
-
 
         if (n.matches("^\\d{7,8}[A-Z]\\d?$")) {
             return n;
@@ -193,6 +267,4 @@ public class PatentsViewQueryBuilder {
                         ". Expected format: 10123456 or 10123456B2 (without US prefix)"
         );
     }
-
-
 }

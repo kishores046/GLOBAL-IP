@@ -1,5 +1,6 @@
 package com.teamb.globalipbackend1.external.patentsview.dto;
 
+import com.teamb.globalipbackend1.dto.lifecycle.ApplicationLifecycleDto;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
@@ -20,5 +21,7 @@ public class PatentDetailDto {
     private List<PatentsViewCpcCurrent> cpcClasses;
 
     private Integer timesCited;
+    private ApplicationLifecycleDto lifecycle;
+
     private Integer totalCitations;
 }

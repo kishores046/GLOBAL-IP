@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, FileText, Bookmark, Bell, Settings, LogOut, BarChart3, Network, Users, FolderOpen, Download, User } from "lucide-react";
+import { LayoutDashboard, Search, FileText, Bookmark, Bell, Settings, LogOut, BarChart3, Network, Users, FolderOpen, Download, User, Radio } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../../routes/routeConfig";
@@ -28,9 +28,15 @@ export function Sidebar() {
   const getActiveItem = () => {
     if (location.pathname.includes("/analyst/advanced-search")) return "advanced-search";
     if (location.pathname.includes("/analyst/visualization")) return "visualization";
-    if (location.pathname.includes("/analyst/competitor-analytics")) return "competitor";
+    if (location.pathname.includes("/analyst/competitor-analytics")) return "competitor-analytics";
+    if (location.pathname.includes("/analyst/competitor-management")) return "competitor-management";
     if (location.pathname.includes("/user/portfolio-tracker")) return "portfolio";
     if (location.pathname.includes("/analyst/export-tools")) return "export";
+    if (location.pathname.includes("/analyst/trends/patents")) return "patent-trends";
+    if (location.pathname.includes("/analyst/trends/trademarks")) return "trademark-trends";
+    if (location.pathname.includes("/analyst/lifecycle/patents")) return "patent-lifecycle";
+    if (location.pathname.includes("/analyst/lifecycle/trademarks")) return "trademark-lifecycle";
+    if (location.pathname.includes("/monitoring")) return "monitoring";
     if (location.pathname.includes("/search")) return "search";
     if (location.pathname.includes("/user/filing-tracker")) return "tracker";
     if (location.pathname.includes("/user/subscriptions")) return "subscriptions";
@@ -73,14 +79,35 @@ export function Sidebar() {
       case "visualization":
         navigate(ROUTES.VISUALIZATION_ENGINE);
         break;
-      case "competitor":
+      case "competitor-analytics":
         navigate(ROUTES.COMPETITOR_ANALYTICS);
+        break;
+      case "competitor-management":
+        navigate(ROUTES.COMPETITOR_MANAGEMENT);
         break;
       case "portfolio":
         navigate(ROUTES.PORTFOLIO_TRACKER);
         break;
       case "export":
         navigate(ROUTES.EXPORT_TOOLS);
+        break;
+      case "patent-trends":
+        navigate(ROUTES.PATENT_TRENDS);
+        break;
+      case "trademark-trends":
+        navigate(ROUTES.TRADEMARK_TRENDS);
+        break;
+      case "patent-lifecycle":
+        navigate(ROUTES.PATENT_LIFECYCLE);
+        break;
+      case "trademark-lifecycle":
+        navigate(ROUTES.TRADEMARK_LIFECYCLE);
+        break;
+      case "tracked-patents":
+        navigate(ROUTES.TRACKED_PATENTS);
+        break;
+      case "monitoring":
+        navigate(ROUTES.MONITORING);
         break;
       case "search":
         navigate(ROUTES.IP_SEARCH);
@@ -122,7 +149,14 @@ export function Sidebar() {
     { id: "dashboard", label: "Analyst Dashboard", icon: LayoutDashboard },
     { id: "advanced-search", label: "Advanced Search", icon: Search },
     { id: "visualization", label: "Visualization Engine", icon: Network },
-    { id: "competitor", label: "Competitor Analytics", icon: Users },
+    { id: "competitor-analytics", label: "Competitor Analytics", icon: Users },
+    { id: "competitor-management", label: "Competitor Management", icon: Users },
+    { id: "patent-trends", label: "Patent Trends", icon: BarChart3 },
+    { id: "trademark-trends", label: "Trademark Trends", icon: BarChart3 },
+    { id: "patent-lifecycle", label: "Patent Lifecycle", icon: FileText },
+    { id: "trademark-lifecycle", label: "Trademark Lifecycle", icon: FileText },
+    { id: "tracked-patents", label: "Tracked Patents", icon: Radio },
+    { id: "monitoring", label: "Monitoring", icon: Radio },
     { id: "portfolio", label: "Portfolio Tracker", icon: FolderOpen },
     { id: "export", label: "Export Tools", icon: Download },
     { id: "profile", label: "Profile", icon: User },

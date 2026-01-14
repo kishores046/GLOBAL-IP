@@ -125,6 +125,48 @@ springdoc:
       paths-to-match: /api/analyst/**
       display-name: Analyst API
 
+competitor:
+  filing:
+    scheduler:
+      enabled: true
+      timezone: UTC
+
+      # Weekly sync - Every Monday at 3 AM
+      weekly:
+        cron: "0 0 3 * * MON"
+
+      # Daily sync (disabled by default)
+      daily:
+        enabled: false
+        cron: "0 0 2 * * *"
+
+      # Monthly full sync (disabled by default)
+      monthly:
+        enabled: false
+        cron: "0 0 1 1 * *"
+rest:
+  template:
+    connection-timeout: 30000
+    read-timeout: 30000
+
+  websocket:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:8080
+      - https://your-production-domain.com
+    message-size-limit: 65536
+    send-buffer-size-limit: 524288
+    send-time-limit: 20000
+  task:
+    scheduling:
+      enabled: true
+      pool:
+        size: 5
+      thread-name-prefix: patent-tracking-
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
 
 # ---------------------------------- TEST PROFILE ----------------------------------
 ---

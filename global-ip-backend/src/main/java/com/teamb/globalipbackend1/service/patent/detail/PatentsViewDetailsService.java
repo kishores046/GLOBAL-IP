@@ -3,13 +3,17 @@ package com.teamb.globalipbackend1.service.patent.detail;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teamb.globalipbackend1.dto.lifecycle.ApplicationLifecycleDto;
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.external.patentsview.PatentsViewHttpClient;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentDetailDto;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewCpcCurrent;
 import com.teamb.globalipbackend1.external.patentsview.querybuilder.PatentsViewQueryBuilder;
-import lombok.RequiredArgsConstructor;
+import com.teamb.globalipbackend1.security.SecurityUtil;
+import com.teamb.globalipbackend1.service.lifecycle.PatentLifecycleCalculator;
+import com.teamb.globalipbackend1.service.patent.lifecycle.PatentLifecyclePersistenceService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,43 +23,47 @@ import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PatentsViewDetailsService {
 
     private final PatentsViewHttpClient httpClient;
     private final PatentsViewQueryBuilder queryBuilder;
     private final ObjectMapper objectMapper;
+    private final PatentLifecyclePersistenceService lifecyclePersistenceService;
+    private final SecurityUtil securityUtil;
 
-    /* ===================== MAIN FETCH ===================== */
+    public PatentsViewDetailsService(
+            PatentsViewHttpClient httpClient,
+            PatentsViewQueryBuilder queryBuilder,
+            @Qualifier("jsonObjectMapper") ObjectMapper objectMapper,
+            PatentLifecyclePersistenceService lifecyclePersistenceService,
+            SecurityUtil securityUtil
+    ) {
+        this.httpClient = httpClient;
+        this.queryBuilder = queryBuilder;
+        this.objectMapper = objectMapper;
+        this.lifecyclePersistenceService = lifecyclePersistenceService;
+        this.securityUtil = securityUtil;
+    }
+
+    /* ===================== RAW FETCH ===================== */
 
     public PatentDetailDto fetchPatentDetail(String publicationNumber) {
 
-        log.info("=== PATENTSVIEW DETAIL FETCH ===");
-        log.info("Input publicationNumber: {}", publicationNumber);
-
         try {
-
             String query = queryBuilder.buildPatentDetailQuery(publicationNumber);
-            log.debug("PatentsView query: {}", query);
-
             String response = httpClient.post(query);
+
             JsonNode root = objectMapper.readTree(response);
-
-            if (root.has("error")) {
-                log.error("PatentsView API error: {}", root.get("error"));
-                return null;
-            }
-
             JsonNode patents = root.path("patents");
+
             if (!patents.isArray() || patents.isEmpty()) {
-                log.warn("No patents returned for {}", publicationNumber);
                 return tryAlternativeFormats(publicationNumber);
             }
 
             return parsePatentNode(patents.get(0));
 
         } catch (Exception e) {
-            log.error("Failed to fetch PatentsView detail for {}", publicationNumber, e);
+            log.error("PatentsView detail fetch failed: {}", publicationNumber, e);
             return null;
         }
     }
@@ -66,94 +74,68 @@ public class PatentsViewDetailsService {
 
         PatentDetailDto dto = new PatentDetailDto();
 
-        dto.setPatentId(p.path("patent_id").asText(null));
+        String patentId = p.path("patent_id").asText(null);
+        LocalDate filingDate = parseDate(p, "patent_earliest_application_date");
+        LocalDate grantDate = parseDate(p, "patent_date");
+        LocalDate expirationDate = parseDate(p, "patent_expiration_date");
+        boolean withdrawn = p.path("withdrawn").asBoolean(false);
+
+        dto.setPatentId(patentId);
         dto.setTitle(p.path("patent_title").asText(null));
         dto.setAbstractText(p.path("patent_abstract").asText(null));
-
-        // Grant date
-        parseDate(p, "patent_date", dto::setGrantDate);
-
-
-        parseDate(p, "patent_earliest_application_date", dto::setFillingDate);
-
+        dto.setFillingDate(filingDate);
+        dto.setGrantDate(grantDate);
         dto.setWipoKind(p.path("wipo_kind").asText(null));
 
-        // Analytics
-        dto.setTimesCited(
-                p.has("patent_num_times_cited_by_us_patents")
-                        ? p.path("patent_num_times_cited_by_us_patents").asInt()
-                        : null
-        );
-
-        dto.setTotalCitations(
-                p.has("patent_num_total_documents_cited")
-                        ? p.path("patent_num_total_documents_cited").asInt()
-                        : null
-        );
+        dto.setTimesCited(p.path("patent_num_times_cited_by_us_patents").asInt(0));
+        dto.setTotalCitations(p.path("patent_num_total_documents_cited").asInt(0));
 
         dto.setAssignees(extractAssignees(p));
         dto.setInventors(extractInventors(p));
 
-        JsonNode cpcNode = p.path("cpc_current");
-        if (cpcNode.isArray()) {
-            dto.setCpcClasses(
-                    objectMapper.convertValue(
-                            cpcNode,
-                            new TypeReference<List<PatentsViewCpcCurrent>>() {}
-                    )
-            );
-        } else {
-            dto.setCpcClasses(List.of());
-        }
+        dto.setCpcClasses(
+                objectMapper.convertValue(
+                        p.path("cpc_current"),
+                        new TypeReference<List<PatentsViewCpcCurrent>>() {}
+                )
+        );
 
-        log.info("Parsed PatentsView detail: {}", dto.getPatentId());
+
+        ApplicationLifecycleDto lifecycle =
+                PatentLifecycleCalculator.compute(
+                        patentId,
+                        filingDate,
+                        grantDate,
+                        expirationDate,
+                        withdrawn
+                );
+
+        dto.setLifecycle(lifecycle);
+
+        log.info("Parsed patent={} lifecycle={}", patentId, lifecycle.status());
         return dto;
     }
 
-    /* ===================== FALLBACK ===================== */
-
-    private PatentDetailDto tryAlternativeFormats(String originalId) {
-
-        log.info("Trying alternative formats for {}", originalId);
-
-        String digits = originalId.replaceAll("[^0-9]", "");
-
-        String[] formats = {
-                originalId,
-                digits,
-                "US" + digits + "B2",
-                "US" + digits + "A1"
-        };
-
-        for (String f : formats) {
-            try {
-                String query = queryBuilder.buildPatentDetailQuery(f);
-                JsonNode root = objectMapper.readTree(httpClient.post(query));
-                JsonNode patents = root.path("patents");
-
-                if (patents.isArray() && !patents.isEmpty()) {
-                    log.info("SUCCESS with format {}", f);
-                    return parsePatentNode(patents.get(0));
-                }
-            } catch (Exception e) {
-                log.debug("Format {} failed", f);
-            }
-        }
-
-        log.error("All PatentsView formats failed for {}", originalId);
-        return null;
-    }
-
-    /* ===================== GLOBAL DTO ===================== */
+    /* ===================== GLOBAL DETAIL (USER CONTEXT) ===================== */
 
     public GlobalPatentDetailDto fetchGlobalDetail(String publicationNumber) {
 
         PatentDetailDto pv = fetchPatentDetail(publicationNumber);
         if (pv == null) return null;
 
+        String userId = securityUtil.getUserId();
+
+        ApplicationLifecycleDto lifecycle = pv.getLifecycle();
+
+        lifecyclePersistenceService.saveLifecycle(
+                userId,
+                pv.getLifecycle()
+        );
+
         GlobalPatentDetailDto dto = new GlobalPatentDetailDto();
         dto.setPublicationNumber(pv.getPatentId());
         dto.setJurisdiction("US");
+        dto.setSource("PatentsView");
         dto.setTitle(pv.getTitle());
         dto.setAbstractText(pv.getAbstractText());
         dto.setFilingDate(pv.getFillingDate());
@@ -164,36 +146,29 @@ public class PatentsViewDetailsService {
         dto.setTimesCited(pv.getTimesCited());
         dto.setTotalCitations(pv.getTotalCitations());
 
-        if (pv.getCpcClasses() != null) {
-            dto.setCpcClasses(
-                    pv.getCpcClasses().stream()
-                            .map(cpc -> {
-                                if (cpc.getCpcSubclass() != null && cpc.getCpcGroup() != null) {
-                                    return cpc.getCpcSubclass() + cpc.getCpcGroup();
-                                }
-                                return cpc.getCpcClass();
-                            })
-                            .filter(Objects::nonNull)
-                            .distinct()
-                            .toList()
-            );
-        } else {
-            dto.setCpcClasses(List.of());
-        }
+        dto.setCpcClasses(
+                pv.getCpcClasses().stream()
+                        .map(c -> c.getCpcSubclass() != null
+                                ? c.getCpcSubclass() + c.getCpcGroup()
+                                : c.getCpcClass())
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .toList()
+        );
+
+        dto.setApplicationLifecycleDto(lifecycle);
 
         return dto;
     }
 
     /* ===================== HELPERS ===================== */
 
-    private void parseDate(JsonNode p, String field, java.util.function.Consumer<LocalDate> setter) {
+    private LocalDate parseDate(JsonNode p, String field) {
         String v = p.path(field).asText(null);
-        if (v != null && !v.isBlank()) {
-            try {
-                setter.accept(LocalDate.parse(v));
-            } catch (Exception e) {
-                log.warn("Failed to parse {} = {}", field, v);
-            }
+        try {
+            return v != null ? LocalDate.parse(v) : null;
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -201,18 +176,29 @@ public class PatentsViewDetailsService {
         return StreamSupport.stream(p.path("assignees").spliterator(), false)
                 .map(a -> a.path("assignee_organization").asText(null))
                 .filter(Objects::nonNull)
-                .filter(s -> !s.isBlank())
                 .distinct()
                 .toList();
     }
 
     private List<String> extractInventors(JsonNode p) {
         return StreamSupport.stream(p.path("inventors").spliterator(), false)
-                .map(i -> (i.path("inventor_name_first").asText("") +
-                        " " +
+                .map(i -> (i.path("inventor_name_first").asText("") + " " +
                         i.path("inventor_name_last").asText("")).trim())
                 .filter(s -> !s.isBlank())
                 .distinct()
                 .toList();
+    }
+
+    private PatentDetailDto tryAlternativeFormats(String originalId) {
+        String digits = originalId.replaceAll("[^0-9]", "");
+        for (String f : List.of(originalId, digits, "US" + digits + "A1", "US" + digits + "B2")) {
+            try {
+                String q = queryBuilder.buildPatentDetailQuery(f);
+                JsonNode r = objectMapper.readTree(httpClient.post(q));
+                JsonNode p = r.path("patents");
+                if (p.isArray() && !p.isEmpty()) return parsePatentNode(p.get(0));
+            } catch (Exception ignored) {}
+        }
+        return null;
     }
 }

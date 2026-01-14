@@ -21,93 +21,89 @@ public class CaffeineCacheConfig {
     @Bean
     public CacheManager cacheManager() {
 
-        // 🔍 Patent search results (short-lived)
+
         CaffeineCache patentSearch =
-                new CaffeineCache(
-                        CacheNames.PATENT_SEARCH,
-                        Caffeine.newBuilder()
-                                .maximumSize(5_000)
-                                .expireAfterWrite(Duration.ofMinutes(15))
-                                .recordStats()
-                                .build()
-                );
+                build(CacheNames.PATENT_SEARCH, 5_000, Duration.ofMinutes(15));
 
-        // 📄 Patent snapshot (detail page data)
         CaffeineCache patentSnapshot =
-                new CaffeineCache(
-                        CacheNames.PATENT_SNAPSHOT,
-                        Caffeine.newBuilder()
-                                .maximumSize(10_000)
-                                .expireAfterWrite(Duration.ofHours(6))
-                                .recordStats()
-                                .removalListener((key, value, cause) ->
-                                        log.info("Patent snapshot {} evicted due to {}", key, cause))
-                                .build()
-                );
+                build(CacheNames.PATENT_SNAPSHOT, 10_000, Duration.ofHours(6));
 
-        // 🔖 Trademark search
         CaffeineCache trademarkSearch =
-                new CaffeineCache(
-                        CacheNames.TRADEMARK_SEARCH,
-                        Caffeine.newBuilder()
-                                .maximumSize(5_000)
-                                .expireAfterWrite(Duration.ofMinutes(15))
-                                .recordStats()
-                                .build()
-                );
+                build(CacheNames.TRADEMARK_SEARCH, 5_000, Duration.ofMinutes(15));
 
-        // 📄 Trademark snapshot
         CaffeineCache trademarkSnapshot =
-                new CaffeineCache(
-                        CacheNames.TRADEMARK_SNAPSHOT,
-                        Caffeine.newBuilder()
-                                .maximumSize(10_000)
-                                .expireAfterWrite(Duration.ofHours(6))
-                                .recordStats()
-                                .build()
-                );
+                build(CacheNames.TRADEMARK_SNAPSHOT, 10_000, Duration.ofHours(6));
 
-        // 🧠 Citation network (expensive, long-lived)
+
         CaffeineCache citationNetwork =
-                new CaffeineCache(
-                        "citationNetwork",
-                        Caffeine.newBuilder()
-                                .maximumSize(500)
-                                .expireAfterWrite(24, TimeUnit.HOURS)
-                                .recordStats()
-                                .build()
-                );
+                build("citationNetwork", 500, Duration.ofHours(24));
 
-        // 📚 Citation building blocks
         CaffeineCache patentBasicInfo =
-                new CaffeineCache(
-                        "patentBasicInfo",
-                        Caffeine.newBuilder()
-                                .maximumSize(2_000)
-                                .expireAfterWrite(24, TimeUnit.HOURS)
-                                .recordStats()
-                                .build()
-                );
+                build("patentBasicInfo", 2_000, Duration.ofHours(24));
 
         CaffeineCache backwardCitations =
-                new CaffeineCache(
-                        "backwardCitations",
-                        Caffeine.newBuilder()
-                                .maximumSize(5_000)
-                                .expireAfterWrite(24, TimeUnit.HOURS)
-                                .recordStats()
-                                .build()
-                );
+                build("backwardCitations", 5_000, Duration.ofHours(24));
 
         CaffeineCache forwardCitations =
-                new CaffeineCache(
-                        "forwardCitations",
-                        Caffeine.newBuilder()
-                                .maximumSize(5_000)
-                                .expireAfterWrite(24, TimeUnit.HOURS)
-                                .recordStats()
-                                .build()
-                );
+                build("forwardCitations", 5_000, Duration.ofHours(24));
+
+
+        CaffeineCache filingTrends =
+                build(CacheNames.FILING_TRENDS, 1_000, Duration.ofMinutes(30));
+
+        CaffeineCache grantTrends =
+                build(CacheNames.GRANT_TRENDS, 1_000, Duration.ofMinutes(30));
+
+        CaffeineCache topTechnologies =
+                build(CacheNames.TOP_TECHNOLOGIES, 500, Duration.ofMinutes(30));
+
+        CaffeineCache topAssignees =
+                build(CacheNames.TOP_ASSIGNEES, 500, Duration.ofMinutes(30));
+
+        CaffeineCache technologyEvolution =
+                build(CacheNames.TECHNOLOGY_EVOLUTION, 1_000, Duration.ofHours(1));
+
+        CaffeineCache topCitedPatents =
+                build(CacheNames.TOP_CITED_PATENTS, 500, Duration.ofMinutes(30));
+
+        CaffeineCache topCitingPatents =
+                build(CacheNames.TOP_CITING_PATENTS, 500, Duration.ofMinutes(30));
+
+        CaffeineCache patentTypeDistribution =
+                build(CacheNames.PATENT_TYPE_DISTRIBUTION, 100, Duration.ofHours(1));
+
+        CaffeineCache claimComplexityTrend =
+                build(CacheNames.CLAIM_COMPLEXITY_TREND, 500, Duration.ofHours(1));
+
+        CaffeineCache timeToGrantTrend =
+                build(CacheNames.TIME_TO_GRANT_TREND, 500, Duration.ofHours(1));
+
+        CaffeineCache geoCountryDistribution =
+                build(CacheNames.GEO_COUNTRY_DISTRIBUTION, 300, Duration.ofHours(2));
+
+
+        CaffeineCache unifiedFilingTrend =
+                build(CacheNames.UNIFIED_FILING_TREND, 1_000, Duration.ofMinutes(45));
+
+        CaffeineCache unifiedCountryTrend =
+                build(CacheNames.UNIFIED_COUNTRY_TREND, 300, Duration.ofHours(2));
+
+
+        CaffeineCache epoFilingTrend =
+                build(CacheNames.EPO_FILING_TREND, 1_000, Duration.ofMinutes(45));
+
+        CaffeineCache epoCountryTrend =
+                build(CacheNames.EPO_COUNTRY_TREND, 300, Duration.ofHours(2));
+
+        CaffeineCache epoTopTechnologies =
+                build(CacheNames.EPO_TOP_TECHNOLOGIES, 300, Duration.ofMinutes(45));
+
+        CaffeineCache epoTopAssignees =
+                build(CacheNames.EPO_TOP_ASSIGNEES, 300, Duration.ofMinutes(45));
+
+        CaffeineCache epoFamilyTrend =
+                build(CacheNames.EPO_FAMILY_TREND, 300, Duration.ofHours(2));
+
 
         SimpleCacheManager manager = new SimpleCacheManager();
         manager.setCaches(List.of(
@@ -118,9 +114,41 @@ public class CaffeineCacheConfig {
                 citationNetwork,
                 patentBasicInfo,
                 backwardCitations,
-                forwardCitations
+                forwardCitations,
+
+                filingTrends,
+                grantTrends,
+                topTechnologies,
+                topAssignees,
+                technologyEvolution,
+                topCitedPatents,
+                topCitingPatents,
+                patentTypeDistribution,
+                claimComplexityTrend,
+                timeToGrantTrend,
+                geoCountryDistribution,
+
+                unifiedFilingTrend,
+                unifiedCountryTrend,
+
+                epoFilingTrend,
+                epoCountryTrend,
+                epoTopTechnologies,
+                epoTopAssignees,
+                epoFamilyTrend
         ));
 
         return manager;
+    }
+
+    private CaffeineCache build(String name, long maxSize, Duration ttl) {
+        return new CaffeineCache(
+                name,
+                Caffeine.newBuilder()
+                        .maximumSize(maxSize)
+                        .expireAfterWrite(ttl)
+                        .recordStats()
+                        .build()
+        );
     }
 }

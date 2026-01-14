@@ -1,4 +1,4 @@
-package com.teamb.globalipbackend1.external.tmview;
+package com.teamb.globalipbackend1.external.usptotm;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,8 +7,8 @@ import com.teamb.globalipbackend1.dto.search.PageResponse;
 import com.teamb.globalipbackend1.dto.search.TrademarkResultDto;
 import com.teamb.globalipbackend1.dto.search.TrademarkSearchFilter;
 import com.teamb.globalipbackend1.dto.trademark.GlobalTrademarkDetailDto;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -20,15 +20,20 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
+
 @Slf4j
-public class TmViewClient {
+public class UsptoTmClient {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    @Qualifier("jsonObjectMapper")
     private final ObjectMapper objectMapper;
 
     @Value("${services.trademark.base-url}")
     private String trademarkBaseUrl;
+
+    public UsptoTmClient(@Qualifier("jsonObjectMapper") ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Cacheable(
             cacheNames = CacheNames.TRADEMARK_SEARCH,

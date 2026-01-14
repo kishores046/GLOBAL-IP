@@ -14,10 +14,12 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Radio,
 } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { patentDetailAPI, GlobalPatentDetailDto } from "../services/api";
 import { CitationSummary } from "../components/CitationSummary";
+import { trackingApi } from "../services/trackingAPI";
 
 export function PatentDetailPage() {
   const { publicationNumber } = useParams<{ publicationNumber: string }>();
@@ -29,10 +31,25 @@ export function PatentDetailPage() {
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [copied, setCopied] = useState(false);
   const [abstractExpanded, setAbstractExpanded] = useState(false);
+  const [isTracking, setIsTracking] = useState(false);
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
   useEffect(() => {
     loadPatentDetails();
+    checkTrackingStatus();
   }, [publicationNumber]);
+
+  const checkTrackingStatus = async () => {
+    if (!publicationNumber) return;
+
+    try {
+      const tracking = await trackingApi.isTracking(publicationNumber);
+      setIsTracking(tracking);
+    } catch (err) {
+      console.error('Error checking tracking status:', err);
+      setIsTracking(false);
+    }
+  };
 
   const handleLoadError = (err: any) => {
     console.error("Error loading patent details:", err);
@@ -91,6 +108,36 @@ export function PatentDetailPage() {
       navigator.clipboard.writeText(patent.publicationNumber);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleTrackingClick = async () => {
+    if (!patent) return;
+
+    if (isTracking) {
+      // Already tracking - navigate to config page
+      navigate(`/patents/${patent.publicationNumber}/track`);
+    } else {
+      // Not tracking - enable with defaults then navigate
+      setTrackingLoading(true);
+      try {
+        await trackingApi.savePreferences({
+          patentId: patent.publicationNumber,
+          trackLifecycleEvents: true,
+          trackStatusChanges: true,
+          trackRenewalsExpiry: true,
+          enableDashboardAlerts: true,
+          enableEmailNotifications: false
+        });
+        setIsTracking(true);
+        navigate(`/patents/${patent.publicationNumber}/track`);
+      } catch (err: any) {
+        console.error('Error enabling tracking:', err);
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to enable tracking';
+        alert(`Failed to enable tracking: ${errorMessage}`);
+      } finally {
+        setTrackingLoading(false);
+      }
     }
   };
 
@@ -204,6 +251,12 @@ export function PatentDetailPage() {
 
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2">
+                    {isTracking && (
+                      <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold flex items-center gap-2">
+                        <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                        Tracking Active
+                      </span>
+                    )}
                     <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                       {patent.jurisdiction}
                     </span>
@@ -215,25 +268,47 @@ export function PatentDetailPage() {
                   </div>
                 </div>
 
-                {/* Bookmark Button */}
-                <button
-                  onClick={handleBookmarkToggle}
-                  disabled={isBookmarking}
-                  className={`p-4 rounded-xl transition-all shadow-md hover:shadow-lg ${
-                    patent.bookmarked
-                      ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                      : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                  } disabled:opacity-50`}
-                  title={patent.bookmarked ? "Remove bookmark" : "Add bookmark"}
-                >
-                  {isBookmarking ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <Star
-                      className={`w-6 h-6 ${patent.bookmarked ? "fill-current" : ""}`}
-                    />
-                  )}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  {/* Track Patent Button */}
+                  <button
+                    onClick={handleTrackingClick}
+                    disabled={trackingLoading}
+                    className={`px-4 py-3 rounded-xl transition-all shadow-md hover:shadow-lg font-medium text-sm flex items-center gap-2 ${
+                      isTracking
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    } disabled:opacity-50`}
+                    title={isTracking ? "Configure tracking preferences" : "Enable tracking for this patent"}
+                  >
+                    {trackingLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Radio className="w-4 h-4" />
+                    )}
+                    {isTracking ? 'Configure Tracking' : 'Enable Tracking'}
+                  </button>
+
+                  {/* Bookmark Button */}
+                  <button
+                    onClick={handleBookmarkToggle}
+                    disabled={isBookmarking}
+                    className={`p-4 rounded-xl transition-all shadow-md hover:shadow-lg ${
+                      patent.bookmarked
+                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                        : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                    } disabled:opacity-50`}
+                    title={patent.bookmarked ? "Remove bookmark" : "Add bookmark"}
+                  >
+                    {isBookmarking ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Star
+                        className={`w-6 h-6 ${patent.bookmarked ? "fill-current" : ""}`}
+                      />
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
 

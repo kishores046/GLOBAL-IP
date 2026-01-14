@@ -1,6 +1,8 @@
 package com.teamb.globalipbackend1.exception;
 
+import com.teamb.globalipbackend1.external.trendAnalysisClient.exception.PatentServiceException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -8,9 +10,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -46,5 +49,43 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(PatentServiceException.class)
+    public ResponseEntity<@NonNull Map<String, Object>> handlePatentServiceException(
+            PatentServiceException ex) {
+        log.error("Patent service error: {}", ex.getMessage(), ex);
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("message", ex.getMessage());
+        error.put("error", "Patent Service Unavailable");
+
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<@NonNull Map<String, Object>> handleGenericException(Exception ex) {
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("message", "An unexpected error occurred");
+        error.put("error", ex.getClass().getSimpleName());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error);
+    }
+
+    @ExceptionHandler(SubscriptionException.class)
+    public ResponseEntity<@NonNull String> handleSubscriptionException(
+            SubscriptionException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(ex.getMessage());
     }
 }

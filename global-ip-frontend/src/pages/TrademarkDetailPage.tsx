@@ -11,10 +11,12 @@ import {
   Loader2,
   Copy,
   Check,
+  Radio,
 } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { trademarkDetailAPI, GlobalTrademarkDetailDto } from "../services/api";
 import { mapTrademarkStatus } from "../utils/trademarkUtils";
+import { TrackingModal } from "../components/tracking/TrackingModal";
 
 export function TrademarkDetailPage() {
   const { trademarkId } = useParams<{ trademarkId: string }>();
@@ -25,6 +27,8 @@ export function TrademarkDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [isTracking, setIsTracking] = useState(false);
 
   useEffect(() => {
     loadTrademarkDetails();
@@ -113,6 +117,11 @@ export function TrademarkDetailPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleTrackingSuccess = () => {
+    setIsTracking(true);
+    // Could add a toast notification here
   };
 
   const formatDate = (date?: string) => {
@@ -237,25 +246,43 @@ export function TrademarkDetailPage() {
                   </div>
                 </div>
 
-                {/* Bookmark Button */}
-                <button
-                  onClick={handleBookmarkToggle}
-                  disabled={isBookmarking}
-                  className={`p-4 rounded-xl transition-all shadow-md hover:shadow-lg ${
-                    trademark.bookmarked
-                      ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                      : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                  } disabled:opacity-50`}
-                  title={trademark.bookmarked ? "Remove bookmark" : "Add bookmark"}
-                >
-                  {isBookmarking ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <Star
-                      className={`w-6 h-6 ${trademark.bookmarked ? "fill-current" : ""}`}
-                    />
-                  )}
-                </button>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  {/* Track Trademark Button */}
+                  <button
+                    onClick={() => setShowTrackingModal(true)}
+                    disabled={isTracking}
+                    className={`px-4 py-3 rounded-xl transition-all shadow-md hover:shadow-lg font-medium text-sm flex items-center gap-2 ${
+                      isTracking
+                        ? "bg-green-100 text-green-700"
+                        : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                    } disabled:opacity-50`}
+                    title="Track this trademark's lifecycle"
+                  >
+                    <Radio className="w-4 h-4" />
+                    {isTracking ? "Tracking Enabled" : "Track Trademark"}
+                  </button>
+
+                  {/* Bookmark Button */}
+                  <button
+                    onClick={handleBookmarkToggle}
+                    disabled={isBookmarking}
+                    className={`p-4 rounded-xl transition-all shadow-md hover:shadow-lg ${
+                      trademark.bookmarked
+                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                        : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                    } disabled:opacity-50`}
+                    title={trademark.bookmarked ? "Remove bookmark" : "Add bookmark"}
+                  >
+                    {isBookmarking ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Star
+                        className={`w-6 h-6 ${trademark.bookmarked ? "fill-current" : ""}`}
+                      />
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
 
@@ -364,6 +391,20 @@ export function TrademarkDetailPage() {
                 </p>
               </motion.div>
             )}
+
+            {/* Tracking Modal */}
+            <TrackingModal
+              isOpen={showTrackingModal}
+              onClose={() => setShowTrackingModal(false)}
+              type="TRADEMARK"
+              externalId={trademark.trademarkId || trademark.id || ''}
+              title={trademark.mark}
+              jurisdiction={trademark.jurisdiction}
+              filingDate={trademark.filingDate}
+              currentStatus={mapTrademarkStatus(trademark.status)}
+              source={trademark.source}
+              onTrackingSuccess={handleTrackingSuccess}
+            />
           </div>
         </main>
       </div>

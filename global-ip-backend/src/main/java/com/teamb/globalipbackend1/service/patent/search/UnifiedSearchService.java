@@ -3,7 +3,7 @@ package com.teamb.globalipbackend1.service.patent.search;
 
 
 import com.teamb.globalipbackend1.dto.search.*;
-import com.teamb.globalipbackend1.external.tmview.TmViewClient;
+import com.teamb.globalipbackend1.external.usptotm.UsptoTmClient;
 import com.teamb.globalipbackend1.model.patents.PatentDocument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import java.util.concurrent.Executor;
 public class UnifiedSearchService {
 
     private final UnifiedPatentSearchService patentSearchService;
-    private final TmViewClient tmViewClient;
+    private final UsptoTmClient usptoTmClient;
     private final Executor patentSearchExecutor;
 
     public UnifiedSearchResponse searchByKeyword(GlobalSearchRequest request) {
@@ -43,7 +43,7 @@ public class UnifiedSearchService {
 
         CompletableFuture<PageResponse<TrademarkResultDto>> trademarkFuture =
                 CompletableFuture.supplyAsync(
-                        () -> tmViewClient.search(trademarkFilter, 0, 15),
+                        () -> usptoTmClient.search(trademarkFilter, 0, 15),
                         patentSearchExecutor
                 ).exceptionally(ex -> {
                     log.error("Trademark searchByKeyword failed", ex);
@@ -79,7 +79,7 @@ public class UnifiedSearchService {
 
         CompletableFuture<PageResponse<TrademarkResultDto>> trademarkFuture =
                 CompletableFuture.supplyAsync(
-                        () -> tmViewClient.search(trademarkFilter, 0, 20),
+                        () -> usptoTmClient.search(trademarkFilter, 0, 20),
                         patentSearchExecutor
                 ).exceptionally(ex -> {
                     log.error("Trademark searchByKeyword failed", ex);

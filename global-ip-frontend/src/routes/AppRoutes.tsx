@@ -26,9 +26,18 @@ const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ defau
 // Analyst Pages
 const AnalystDashboard = lazy(() => import('../pages/AnalystDashboard').then(m => ({ default: m.AnalystDashboard })));
 const CompetitorAnalyticsPage = lazy(() => import('../pages/CompetitorAnalyticsPage').then(m => ({ default: m.CompetitorAnalyticsPage })));
+const CompetitorManagementPage = lazy(() => import('../pages/CompetitorManagementPage').then(m => ({ default: m.CompetitorManagementPage })));
+const CompetitorFilingDashboard = lazy(() => import('../components/competitor-filings/CompetitorFilingDashboard').then(m => ({ default: m.CompetitorFilingDashboard })));
 const AdvancedSearchPage = lazy(() => import('../pages/AdvancedSearchPage').then(m => ({ default: m.AdvancedSearchPage })));
 const VisualizationEnginePage = lazy(() => import('../pages/VisualizationEnginePage').then(m => ({ default: m.VisualizationEnginePage })));
 const ExportToolsPage = lazy(() => import('../pages/ExportToolsPage').then(m => ({ default: m.ExportToolsPage })));
+const PatentTrendAnalysisPage = lazy(() => import('../pages/PatentTrendAnalysisPage').then(m => ({ default: m.default })));
+const TrademarkTrendAnalysisPage = lazy(() => import('../pages/TrademarkTrendAnalysisPage').then(m => ({ default: m.default })));
+const PatentLifecyclePage = lazy(() => import('../pages/PatentLifecyclePage').then(m => ({ default: m.PatentLifecyclePage })));
+const TrademarkLifecyclePage = lazy(() => import('../pages/TrademarkLifecyclePage').then(m => ({ default: m.TrademarkLifecyclePage })));
+const PatentTrackingPage = lazy(() => import('../pages/PatentTrackingPage').then(m => ({ default: m.PatentTrackingPage })));
+const TrackedPatentsPage = lazy(() => import('../pages/TrackedPatentsPage').then(m => ({ default: m.TrackedPatentsPage })));
+const MonitoringPage = lazy(() => import('../pages/MonitoringPage').then(m => ({ default: m.MonitoringPage })));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -113,6 +122,14 @@ export function AppRoutes() {
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
         />
         <Route 
+          path={ROUTES.COMPETITOR_MANAGEMENT} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorManagementPage />} />} 
+        />
+        <Route 
+          path={ROUTES.COMPETITOR_FILINGS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingDashboard />} />} 
+        />
+        <Route 
           path={ROUTES.ADVANCED_SEARCH} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AdvancedSearchPage />} />} 
         />
@@ -124,6 +141,30 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.EXPORT_TOOLS} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<ExportToolsPage />} />} 
+        />
+        <Route 
+          path={ROUTES.PATENT_TRENDS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<PatentTrendAnalysisPage />} />} 
+        />
+        <Route 
+          path={ROUTES.TRADEMARK_TRENDS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrademarkTrendAnalysisPage />} />} 
+        />
+        <Route 
+          path={ROUTES.PATENT_LIFECYCLE} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<PatentLifecyclePage />} />} 
+        />
+        <Route 
+          path={ROUTES.TRADEMARK_LIFECYCLE} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrademarkLifecyclePage />} />} 
+        />
+        <Route 
+          path={ROUTES.TRACKED_PATENTS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrackedPatentsPage />} />} 
+        />
+        <Route 
+          path={ROUTES.MONITORING} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<MonitoringPage />} />} 
         />
 
         {/* ==================== USER ROUTES (ALL authenticated users) ==================== */}
@@ -168,6 +209,10 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.PATENT_DETAIL} 
           element={<PrivateRoute><PatentDetailPage /></PrivateRoute>} 
+        />
+        <Route 
+          path={ROUTES.PATENT_TRACKING} 
+          element={<PrivateRoute><PatentTrackingPage /></PrivateRoute>} 
         />
         <Route 
           path={ROUTES.TRADEMARK_DETAIL} 

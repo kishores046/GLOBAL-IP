@@ -3,20 +3,21 @@ package com.teamb.globalipbackend1.external.patentsview;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamb.globalipbackend1.external.patentsview.dto.*;
 import com.teamb.globalipbackend1.external.patentsview.querybuilder.PatentsViewCitationQueryBuilder;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
+
 @Slf4j
 public class PatentsViewCitationClient {
 
     private final PatentsViewHttpClient httpClient;
     private final PatentsViewCitationQueryBuilder queryBuilder;
+    @Qualifier("jsonObjectMapper")
     private final ObjectMapper objectMapper;
 
     private static final String US_PATENT_CITATION_ENDPOINT =
@@ -25,6 +26,12 @@ public class PatentsViewCitationClient {
             "https://search.patentsview.org/api/v1/patent/us_application_citation";
     private static final String FOREIGN_CITATION_ENDPOINT =
             "https://search.patentsview.org/api/v1/patent/foreign_citation";
+
+    public PatentsViewCitationClient(PatentsViewHttpClient httpClient, PatentsViewCitationQueryBuilder queryBuilder,@Qualifier("jsonObjectMapper") ObjectMapper objectMapper) {
+        this.httpClient = httpClient;
+        this.queryBuilder = queryBuilder;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Get backward citations (what THIS patent cites)

@@ -20,9 +20,17 @@ export const ROUTES = {
   // Analyst routes
   ANALYST_DASHBOARD: '/dashboard/analyst',
   COMPETITOR_ANALYTICS: '/analyst/competitor-analytics',
+  COMPETITOR_MANAGEMENT: '/analyst/competitor-management',
+  COMPETITOR_FILINGS: '/analyst/competitor-filings',
   ADVANCED_SEARCH: '/analyst/advanced-search',
   VISUALIZATION_ENGINE: '/analyst/visualization',
   EXPORT_TOOLS: '/analyst/export-tools',
+  PATENT_TRENDS: '/analyst/trends/patents',
+  TRADEMARK_TRENDS: '/analyst/trends/trademarks',
+  PATENT_LIFECYCLE: '/analyst/lifecycle/patents',
+  TRADEMARK_LIFECYCLE: '/analyst/lifecycle/trademarks',
+  TRACKED_PATENTS: '/analyst/tracked-patents',
+  MONITORING: '/monitoring',
   
   // Admin routes
   ADMIN_DASHBOARD: '/dashboard/admin',
@@ -38,6 +46,7 @@ export const ROUTES = {
   IP_SEARCH: '/search',
   SEARCH_RESULTS: '/search/results',
   PATENT_DETAIL: '/patents/:publicationNumber',
+  PATENT_TRACKING: '/patents/:publicationNumber/track',
   TRADEMARK_DETAIL: '/trademarks/:trademarkId',
   SETTINGS: '/settings',
 } as const;

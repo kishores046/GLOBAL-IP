@@ -2,6 +2,7 @@ package com.teamb.globalipbackend1.dto.patent;
 
 
 import com.teamb.globalipbackend1.dto.citation.CitationNetworkDTO;
+import com.teamb.globalipbackend1.dto.lifecycle.ApplicationLifecycleDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,4 +67,6 @@ public class GlobalPatentDetailDto {
 
 
     private CitationNetworkDTO citationNetwork;
+
+    private ApplicationLifecycleDto applicationLifecycleDto;
 }

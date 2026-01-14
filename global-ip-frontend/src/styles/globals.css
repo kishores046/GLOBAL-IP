@@ -1,3 +1,19 @@
+/* CSS Compatibility Layer - Support for all modern and legacy browsers */
+@layer base {
+  html,
+  :host {
+    /* Text size adjustment - standard + webkit prefix for Safari and older browsers */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    /* User select - webkit prefix for Safari, standard for modern browsers */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
