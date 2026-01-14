@@ -1,6 +1,6 @@
 package com.teamb.globalipbackend1.exception;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.exception.PatentServiceException;
+import com.teamb.globalipbackend1.external.trendsApi.exception.PatentServiceException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

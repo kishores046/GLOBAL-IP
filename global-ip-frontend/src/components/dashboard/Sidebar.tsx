@@ -30,8 +30,6 @@ export function Sidebar() {
     if (location.pathname.includes("/analyst/visualization")) return "visualization";
     if (location.pathname.includes("/analyst/competitor-analytics")) return "competitor-analytics";
     if (location.pathname.includes("/analyst/competitor-management")) return "competitor-management";
-    if (location.pathname.includes("/user/portfolio-tracker")) return "portfolio";
-    if (location.pathname.includes("/analyst/export-tools")) return "export";
     if (location.pathname.includes("/analyst/trends/patents")) return "patent-trends";
     if (location.pathname.includes("/analyst/trends/trademarks")) return "trademark-trends";
     if (location.pathname.includes("/analyst/lifecycle/patents")) return "patent-lifecycle";
@@ -84,12 +82,6 @@ export function Sidebar() {
         break;
       case "competitor-management":
         navigate(ROUTES.COMPETITOR_MANAGEMENT);
-        break;
-      case "portfolio":
-        navigate(ROUTES.PORTFOLIO_TRACKER);
-        break;
-      case "export":
-        navigate(ROUTES.EXPORT_TOOLS);
         break;
       case "patent-trends":
         navigate(ROUTES.PATENT_TRENDS);
@@ -157,8 +149,6 @@ export function Sidebar() {
     { id: "trademark-lifecycle", label: "Trademark Lifecycle", icon: FileText },
     { id: "tracked-patents", label: "Tracked Patents", icon: Radio },
     { id: "monitoring", label: "Monitoring", icon: Radio },
-    { id: "portfolio", label: "Portfolio Tracker", icon: FolderOpen },
-    { id: "export", label: "Export Tools", icon: Download },
     { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
   ];

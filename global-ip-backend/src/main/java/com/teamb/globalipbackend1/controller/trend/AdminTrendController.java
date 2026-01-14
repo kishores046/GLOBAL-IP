@@ -1,9 +1,9 @@
 package com.teamb.globalipbackend1.controller.trend;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.request.InnovationVelocityRequest;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.request.TechnologyCrossoverRequest;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.patentsview.AssigneeActivityDto;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.patentsview.TechnologyCrossoverDto;
+import com.teamb.globalipbackend1.external.trendsApi.dto.request.InnovationVelocityRequest;
+import com.teamb.globalipbackend1.external.trendsApi.dto.request.TechnologyCrossoverRequest;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.AssigneeActivityDto;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.TechnologyCrossoverDto;
 import com.teamb.globalipbackend1.service.trend.PatentAnalyticsService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

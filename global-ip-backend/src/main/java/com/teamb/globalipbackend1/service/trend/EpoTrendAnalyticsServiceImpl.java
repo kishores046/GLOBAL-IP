@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.service.trend;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.client.EpoTrendClient;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.epo.*;
+import com.teamb.globalipbackend1.external.trendsApi.client.EpoTrendClient;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.epo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

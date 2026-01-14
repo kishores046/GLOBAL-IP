@@ -3,6 +3,7 @@ package com.teamb.globalipbackend1.controller.lifecycle;
 import com.teamb.globalipbackend1.dto.lifecycle.ApplicationLifecycleDto;
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.security.SecurityUtil;
+import com.teamb.globalipbackend1.service.patent.detail.GlobalPatentDetailsService;
 import com.teamb.globalipbackend1.service.patent.detail.PatentsViewDetailsService;
 import com.teamb.globalipbackend1.service.patent.lifecycle.PatentLifecyclePersistenceService;
 import lombok.NonNull;
@@ -24,17 +25,17 @@ public class PatentLifecycleController {
     private final PatentsViewDetailsService patentsViewDetailsService;
     private final PatentLifecyclePersistenceService lifecycleService;
     private final SecurityUtil securityUtil;
-
+    private final GlobalPatentDetailsService globalPatentDetailsService;
     /* ===================== COMPUTE + SAVE ===================== */
+
 
     @GetMapping("/{publicationNumber}/lifecycle")
     public ResponseEntity<@NonNull ApplicationLifecycleDto> getPatentLifecycle(
             @PathVariable String publicationNumber
     ) {
-        log.info("Fetching lifecycle for patent={}", publicationNumber);
 
         GlobalPatentDetailDto detail =
-                patentsViewDetailsService.fetchGlobalDetail(publicationNumber);
+                globalPatentDetailsService.fetchGlobalDetail(publicationNumber);
 
         if (detail == null) {
             return ResponseEntity.notFound().build();

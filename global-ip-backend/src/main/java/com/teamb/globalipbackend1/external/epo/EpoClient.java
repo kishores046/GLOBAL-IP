@@ -3,10 +3,12 @@ package com.teamb.globalipbackend1.external.epo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.dto.patent.GlobalPatentDetailDto;
 import com.teamb.globalipbackend1.dto.search.PatentSearchFilter;
 import com.teamb.globalipbackend1.external.epo.config.EpoProperties;
 import com.teamb.globalipbackend1.external.epo.dto.*;
+import com.teamb.globalipbackend1.service.patent.lifecycle.PatentExpiryCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -69,7 +71,7 @@ public class EpoClient {
             throw new RuntimeException("OPS token failure", e);
         }
     }
-
+    @TrackApiUsage(service = "EPO", action = "PATENT_DETAIL")
     public GlobalPatentDetailDto fetchGlobalDetail(String publicationNumber) {
         log.info("Fetching global detail for: {}", publicationNumber);
 
@@ -172,6 +174,13 @@ public class EpoClient {
         LocalDate grantDate = extractPublicationDate(b);
         dto.setGrantDate(grantDate);
         log.debug("Grant/Publication date: {}", grantDate);
+
+        LocalDate expirationDate =
+                PatentExpiryCalculator.computeExpiry(filingDate);
+
+        dto.setExpiryDate(expirationDate);
+
+        log.debug("Computed expiration date (EPC standard): {}", expirationDate);
 
         log.info("Successfully fetched global detail for: {}", publicationNumber);
         return dto;
@@ -355,7 +364,7 @@ public class EpoClient {
 
         return fn.apply(firstItem);
     }
-
+    @TrackApiUsage(service = "EPO", action = "SEARCH_TITLE")
     public List<EpoDocumentId> searchByTitle(String titleKeyword) {
         try {
             String query = "ti=" + URLEncoder.encode(titleKeyword, StandardCharsets.UTF_8);
@@ -409,6 +418,7 @@ public class EpoClient {
         }
     }
 
+
     public List<EpoAbstract> fetchAbstract(EpoDocumentId id) {
         try {
             String url = buildUrl(id, "abstract");
@@ -458,6 +468,7 @@ public class EpoClient {
         }
     }
 
+    @TrackApiUsage(service = "EPO", action = "BIBLIO_FETCH")
     public List<EpoExchangeDocument> fetchBiblio(EpoDocumentId id) {
         try {
             String url = buildUrl(id, "biblio");
@@ -546,7 +557,7 @@ public class EpoClient {
         log.info("Built CQL query: {}", query);
         return query;
     }
-
+    @TrackApiUsage(service = "EPO", action = "ADVANCED_SEARCH")
     public List<EpoDocumentId> advancedSearch(PatentSearchFilter filter) {
         try {
             // Build CQL query

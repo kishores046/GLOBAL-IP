@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.controller.trend;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.unified.UnifiedCountryTrendDto;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.unified.UnifiedYearTrendDto;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedCountryTrendDto;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedYearTrendDto;
 import com.teamb.globalipbackend1.service.trend.UnifiedTrendService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

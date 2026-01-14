@@ -3,15 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { PatentLifecyclePanel } from '../trends/patent-lifecycle/PatentLifecyclePanel';
-import { Search, AlertCircle } from 'lucide-react';
+import { Search, AlertCircle, Loader2, X } from 'lucide-react';
 
 export function PatentLifecyclePage() {
   const [searchParams] = useSearchParams();
-  const [patentId, setPatentId] = useState<string>('');
-  const [searchedPatentId, setSearchedPatentId] = useState<string>('');
+  const [patentId, setPatentId] = useState('');
+  const [searchedPatentId, setSearchedPatentId] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Check for publicationNumber in query params (from tracking modal)
   useEffect(() => {
     const publicationNumber = searchParams.get('publicationNumber');
     if (publicationNumber) {
@@ -27,13 +27,18 @@ export function PatentLifecyclePage() {
       return;
     }
     setError(null);
-    setSearchedPatentId(patentId.trim());
+    setIsLoading(true);
+    setTimeout(() => {
+      setSearchedPatentId(patentId.trim());
+      setIsLoading(false);
+    }, 500);
   };
 
   const handleReset = () => {
     setPatentId('');
     setSearchedPatentId('');
     setError(null);
+    setIsLoading(false);
   };
 
   return (
@@ -44,62 +49,106 @@ export function PatentLifecyclePage() {
         <Sidebar />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-6xl mx-auto space-y-8">
-            {/* Page Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-blue-900 mb-2">Patent Lifecycle</h1>
-              <p className="text-slate-600">
+          <div className="max-w-6xl mx-auto space-y-10">
+
+            {/* Header */}
+            <div>
+              <h1 className="text-4xl font-bold text-blue-900">Patent Lifecycle</h1>
+              <p className="text-slate-600 mt-1">
                 Track the journey of a patent from filing to expiration
               </p>
             </div>
 
-            {/* Search Section */}
-            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-200">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+            {/* Search Card */}
+            <div className="bg-white rounded-2xl p-8 shadow-xl border border-slate-200/70">
+              <form onSubmit={handleSearch}>
+                <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-end">
+
+                  {/* Input */}
+                  <div className="flex-1 w-full">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Patent Publication Number
                     </label>
-                    <input
-                      type="text"
-                      value={patentId}
-                      onChange={(e) => setPatentId(e.target.value)}
-                      placeholder="e.g., US10123456B2"
-                      className="w-full px-6 py-3 text-lg border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    />
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={patentId}
+                        onChange={(e) => setPatentId(e.target.value)}
+                        placeholder="e.g. US10123456B2"
+                        disabled={isLoading}
+                        className="
+                          w-full h-12 pl-12 pr-4
+                          bg-slate-50 border-2 border-slate-200
+                          rounded-xl text-slate-900
+                          placeholder:text-slate-400
+                          focus:bg-white focus:border-blue-500
+                          focus:ring-4 focus:ring-blue-500/10
+                          transition-all duration-200
+                          disabled:opacity-50
+                        "
+                      />
+                    </div>
+
                     {error && (
-                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                      <div className="flex items-center gap-2 mt-3 text-red-600 text-sm font-medium">
                         <AlertCircle className="w-4 h-4" />
                         {error}
                       </div>
                     )}
                   </div>
-                  <div className="flex items-end gap-1">
-                   <button
-  type="submit"
-  className="
-    flex items-center gap-2
-    px-5 py-3
-    bg-blue-600 text-white
-    rounded-lg
-    hover:bg-blue-700
-    transition-colors
-    font-semibold
-    text-sm
-    shadow-sm
-  "
->
-  <Search className="w-4 h-4" />
-  Search
-</button>
 
-                    {searchedPatentId && (
+                  {/* Buttons */}
+                  <div className="flex gap-3">
+
+                    {/* Search */}
+                    <button
+                      type="submit"
+                      disabled={!patentId.trim() || isLoading}
+                      className="
+                        h-12 min-w-[160px]
+                        px-8
+                        flex items-center justify-center gap-2
+                        rounded-xl
+                        bg-gradient-to-r from-blue-600 to-blue-700
+                        text-white font-semibold
+                        shadow-md
+                        hover:shadow-lg hover:from-blue-700 hover:to-blue-800
+                        active:scale-[0.98]
+                        transition-all duration-200
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                      "
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Searching
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4" />
+                          Search
+                        </>
+                      )}
+                    </button>
+
+                    {/* Clear */}
+                    {searchedPatentId && !isLoading && (
                       <button
                         type="button"
                         onClick={handleReset}
-                        className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors text-xs"
+                        className="
+                          h-12 px-6
+                          flex items-center gap-2
+                          rounded-xl
+                          border border-slate-300
+                          bg-white
+                          text-slate-700 font-medium
+                          hover:bg-slate-100
+                          transition-all duration-200
+                        "
                       >
+                        <X className="w-4 h-4" />
                         Clear
                       </button>
                     )}
@@ -108,12 +157,10 @@ export function PatentLifecyclePage() {
               </form>
             </div>
 
-            {/* Lifecycle Panel */}
-            {searchedPatentId && (
+            {/* Results */}
+            {searchedPatentId ? (
               <PatentLifecyclePanel publicationNumber={searchedPatentId} />
-            )}
-
-            {!searchedPatentId && (
+            ) : (
               <div className="bg-white rounded-xl p-12 shadow-md border border-slate-200 text-center">
                 <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-slate-700 mb-2">
@@ -125,16 +172,19 @@ export function PatentLifecyclePage() {
               </div>
             )}
 
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-2">About Patent Lifecycle</h3>
-              <ul className="text-blue-800 space-y-2 text-sm">
-                <li>• <strong>Filing:</strong> When the patent application is submitted</li>
-                <li>• <strong>Grant:</strong> When the patent is officially granted</li>
-                <li>• <strong>Expiration:</strong> When the patent protection ends</li>
-                <li>• <strong>Status:</strong> Current state of the patent (Pending, Granted, Expired, etc.)</li>
+            {/* Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h3 className="font-semibold text-blue-900 mb-2">
+                About Patent Lifecycle
+              </h3>
+              <ul className="text-blue-800 text-sm space-y-2">
+                <li>• <strong>Filing:</strong> Application submission</li>
+                <li>• <strong>Grant:</strong> Patent approval</li>
+                <li>• <strong>Expiration:</strong> Protection ends</li>
+                <li>• <strong>Status:</strong> Current legal state</li>
               </ul>
             </div>
+
           </div>
         </main>
       </div>

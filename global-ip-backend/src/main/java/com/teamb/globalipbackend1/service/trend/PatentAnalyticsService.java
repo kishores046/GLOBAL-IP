@@ -1,7 +1,7 @@
 package com.teamb.globalipbackend1.service.trend;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.request.*;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.patentsview.*;
+import com.teamb.globalipbackend1.external.trendsApi.dto.request.*;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.*;
 import com.teamb.globalipbackend1.model.trend.AnalyticsReport;
 
 import java.time.LocalDate;

@@ -2,6 +2,7 @@ package com.teamb.globalipbackend1.external.usptotm;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.trademark.trend.CodeDistributionDto;
 import com.teamb.globalipbackend1.dto.trademark.trend.SimpleCountDto;
@@ -34,22 +35,40 @@ public class TrademarkTrendClient {
         this.objectMapper = objectMapper;
     }
 
+
+    @TrackApiUsage(
+            service = "TRADEMARK_TRENDS",
+            action = "SUMMARY"
+    )
     @Cacheable(cacheNames = CacheNames.TRADEMARK_SEARCH)
     public Map<String, Object> getSummary() {
         return get("/api/trends/trademarks/summary",
                 new TypeReference<>() {});
     }
 
+    @TrackApiUsage(
+            service = "TRADEMARK_TRENDS",
+            action = "TOP_CLASSES"
+    )
     public List<CodeDistributionDto> topClasses() {
         return get("/api/trends/trademarks/classes/top",
                 new TypeReference<>() {});
     }
 
+
+    @TrackApiUsage(
+            service = "TRADEMARK_TRENDS",
+            action = "TOP_COUNTRIES"
+    )
     public List<SimpleCountDto> topCountries() {
         return get("/api/trends/trademarks/countries/top",
                 new TypeReference<>() {});
     }
 
+    @TrackApiUsage(
+            service = "TRADEMARK_TRENDS",
+            action = "STATUS_DISTRIBUTION"
+    )
     public List<SimpleCountDto> statusDistribution() {
         return get("/api/trends/trademarks/status",
                 new TypeReference<>() {});

@@ -1,6 +1,6 @@
 package com.teamb.globalipbackend1.service.trend;
 
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.epo.*;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.epo.*;
 
 import java.util.List;
 

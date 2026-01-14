@@ -1,5 +1,6 @@
 package com.teamb.globalipbackend1.external.patentsview;
 
+import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.external.patentsview.config.PatentsViewProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ public class PatentsViewHttpClient {
     }
 
 
+    @TrackApiUsage(service = "USPTO", action = "POST")
     public String post(String endpoint, String jsonBody) {
         try {
             log.info("POST to: {}", endpoint);
@@ -63,6 +65,7 @@ public class PatentsViewHttpClient {
     }
 
     // Keep your existing post() method for backward compatibility
+    @TrackApiUsage(service = "USPTO", action = "POST")
     public String post(String jsonBody) {
         return post(API_URL, jsonBody);
     }

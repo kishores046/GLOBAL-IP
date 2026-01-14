@@ -44,6 +44,8 @@ public class GlobalPatentDetailDto {
      */
     private LocalDate grantDate;
 
+    private LocalDate expiryDate;
+
     /* ---------------- Parties ---------------- */
 
     private List<String> inventors;
@@ -68,5 +70,8 @@ public class GlobalPatentDetailDto {
 
     private CitationNetworkDTO citationNetwork;
 
+
     private ApplicationLifecycleDto applicationLifecycleDto;
+
+
 }

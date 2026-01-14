@@ -2,6 +2,8 @@ package com.teamb.globalipbackend1.security;
 
 import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.model.user.User;
+import lombok.Getter;
+import lombok.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
 public class MyUserDetails implements UserDetails {
     private final User user;
 
@@ -18,12 +21,8 @@ public class MyUserDetails implements UserDetails {
     }
 
 
-    public User getUser() {
-        return user;
-    }
-
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
         Set<Role> roles = user.getRoles();
         return roles.stream()
                 .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getRoleType()))
@@ -36,13 +35,13 @@ public class MyUserDetails implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return user.getEmail(); // or user.getUsername() depending on your login field
+    public @NonNull String getUsername() {
+        return user.getEmail();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // or map from user if you have flags
+        return true;
     }
 
     @Override
@@ -57,6 +56,6 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true; // or user.isEnabled()
+        return true;
     }
 }

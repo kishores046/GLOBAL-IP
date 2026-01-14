@@ -1,9 +1,9 @@
 package com.teamb.globalipbackend1.service.trend;
 
 import com.teamb.globalipbackend1.cache.CacheNames;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.client.PatentTrendClient;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.request.TechnologyCrossoverRequest;
-import com.teamb.globalipbackend1.external.trendAnalysisClient.dto.response.patentsview.*;
+import com.teamb.globalipbackend1.external.trendsApi.client.PatentTrendClient;
+import com.teamb.globalipbackend1.external.trendsApi.dto.request.TechnologyCrossoverRequest;
+import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.*;
 import com.teamb.globalipbackend1.model.trend.AnalyticsReport;
 import com.teamb.globalipbackend1.repository.trend.AnalyticsReportRepository;
 import lombok.RequiredArgsConstructor;

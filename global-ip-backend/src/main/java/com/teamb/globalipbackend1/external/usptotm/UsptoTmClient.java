@@ -2,6 +2,7 @@ package com.teamb.globalipbackend1.external.usptotm;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.search.PageResponse;
 import com.teamb.globalipbackend1.dto.search.TrademarkResultDto;
@@ -35,6 +36,10 @@ public class UsptoTmClient {
         this.objectMapper = objectMapper;
     }
 
+    @TrackApiUsage(
+            service = "TRADEMARK",
+            action = "SEARCH"
+    )
     @Cacheable(
             cacheNames = CacheNames.TRADEMARK_SEARCH,
             key = "T(java.util.Objects).hash("
@@ -84,6 +89,11 @@ public class UsptoTmClient {
             return emptyPage(page, size);
         }
     }
+
+    @TrackApiUsage(
+            service = "TRADEMARK",
+            action = "DETAIL"
+    )
 
     public GlobalTrademarkDetailDto fetchTrademarkDetail(String trademarkId) {
         try {
