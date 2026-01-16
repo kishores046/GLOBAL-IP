@@ -91,12 +91,6 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   const getRoleColor = (color: string) => {
@@ -119,19 +113,14 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
 
   return (
     <div 
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="role-modal-title"
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={-1}
     >
       <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 id="role-modal-title" className="text-2xl font-bold text-blue-900">Manage User Roles</h2>
+            <h2 className="text-2xl font-bold text-blue-900">Manage User Roles</h2>
             <p className="text-slate-600 mt-1">Updating roles for <span className="font-semibold">{username}</span></p>
           </div>
           <button
@@ -150,7 +139,6 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
             return (
               <label 
                 key={role.value}
-                htmlFor={`role-${role.value}`}
                 className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   isSelected 
                     ? 'border-blue-500 bg-blue-50' 
@@ -158,12 +146,10 @@ export const RoleManagementModal: React.FC<RoleManagementModalProps> = ({
                 }`}
               >
                 <input
-                  id={`role-${role.value}`}
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleRole(role.value)}
                   className="w-5 h-5 mt-0.5 text-blue-600 rounded focus:ring-2 focus:ring-blue-400"
-                  aria-label={`${role.label} role`}
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
