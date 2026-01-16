@@ -68,6 +68,10 @@ public class User {
     @Column(nullable = false,name = "updated_at")
     private LocalDateTime updatedAt;
 
+
+    @Column(name = "password_change_required", nullable = false)
+    private boolean passwordChangeRequired = false;
+
     public User(String username, String email, String password, Set<Role> roles) {
         this.username = username;
         this.email = email;

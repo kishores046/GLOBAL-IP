@@ -6,6 +6,7 @@ import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.cache.CacheNames;
 import com.teamb.globalipbackend1.dto.trademark.trend.CodeDistributionDto;
 import com.teamb.globalipbackend1.dto.trademark.trend.SimpleCountDto;
+import com.teamb.globalipbackend1.external.usptotm.config.TrademarkServiceConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,17 +22,17 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class TrademarkTrendClient {
 
+public class TrademarkTrendClient {
+    private  final TrademarkServiceConfig config;
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper;
 
-    @Value("${services.trademark.base-url}")
-    private String baseUrl;
 
     public TrademarkTrendClient(
-            @Qualifier("jsonObjectMapper") ObjectMapper objectMapper
+            TrademarkServiceConfig config, @Qualifier("jsonObjectMapper") ObjectMapper objectMapper
     ) {
+        this.config = config;
         this.objectMapper = objectMapper;
     }
 
@@ -76,10 +77,11 @@ public class TrademarkTrendClient {
 
     private <T> T get(String path, TypeReference<T> type) {
         try {
-            URI uri = URI.create(baseUrl + path);
+            URI uri = URI.create(config.getBaseUrl() + path);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
+                    .header("X-SERVICE-KEY", config.getServiceApiKey())
                     .GET()
                     .build();
 

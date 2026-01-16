@@ -60,6 +60,9 @@ management:
       exposure:
         include: health,info,metrics
 
+service:
+  auth:
+    api-key: ${TREND_SERVICE_API_KEY}
 
 ---
 spring:

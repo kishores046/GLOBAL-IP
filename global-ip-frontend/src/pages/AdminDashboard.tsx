@@ -3,27 +3,27 @@ import { AdminSidebar } from "../components/dashboard/AdminSidebar";
 import { Users, Activity, Database, Clock, Shield, Key, RefreshCw, Edit, Trash2, Plus, AlertCircle, CheckCircle, XCircle, Filter, UserCog, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAdminOverview, useHealthSummary, useUsageLogs } from "../hooks/useAdminQueries";
+import { useSearchUsers } from "../hooks/useUsers";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
+  const { data: overview, isLoading } = useAdminOverview();
+  const { data: healthSummary } = useHealthSummary();
+  const { data: logsData } = useUsageLogs({ page: 0, size: 5, sortBy: 'timestamp', sortDir: 'desc' });
+  const { data: usersData, isLoading: isLoadingUsers } = useSearchUsers({ page: 0, size: 4 });
   const [selectedLogLevel, setSelectedLogLevel] = useState("all");
   const [showUserModal, setShowUserModal] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
-  const users = [
-    { id: 1, name: "John Smith", email: "john.smith@company.com", role: "Admin", status: "Active" },
-    { id: 2, name: "Sarah Johnson", email: "sarah.j@company.com", role: "Analyst", status: "Active" },
-    { id: 3, name: "Mike Chen", email: "mike.c@company.com", role: "User", status: "Active" },
-    { id: 4, name: "Emma Davis", email: "emma.d@company.com", role: "Analyst", status: "Inactive" },
-  ];
+  // Get users from API
+  const users = usersData?.content || [];
 
-  const systemLogs = [
-    { id: 1, timestamp: "2024-12-10 14:32:15", level: "INFO", message: "User login successful: john.smith@company.com" },
-    { id: 2, timestamp: "2024-12-10 14:28:42", level: "WARN", message: "API rate limit approaching for key: prod-key-***345" },
-    { id: 3, timestamp: "2024-12-10 14:15:08", level: "ERROR", message: "Database connection timeout on replica-2" },
-    { id: 4, timestamp: "2024-12-10 14:10:33", level: "INFO", message: "Data sync completed successfully" },
-    { id: 5, timestamp: "2024-12-10 14:05:17", level: "INFO", message: "New user registered: emma.d@company.com" },
-  ];
+  // Get recent logs (first 5) and filter by level
+  const recentLogs = logsData?.content || [];
+  const filteredLogs = selectedLogLevel === "all" 
+    ? recentLogs 
+    : recentLogs.filter(log => log.status === selectedLogLevel);
 
   const apiKeys = [
     { id: 1, name: "Production API Key", key: "pk_live_****************************abc123", created: "2024-01-15", lastUsed: "2 mins ago" },
@@ -31,15 +31,10 @@ export function AdminDashboard() {
     { id: 3, name: "Analytics Service", key: "pk_live_****************************ghi789", created: "2024-06-10", lastUsed: "5 mins ago" },
   ];
 
-  const filteredLogs = selectedLogLevel === "all" 
-    ? systemLogs 
-    : systemLogs.filter(log => log.level === selectedLogLevel);
-
-  const getLogLevelColor = (level: string) => {
-    switch (level) {
+  const getLogLevelColor = (status: string) => {
+    switch (status) {
       case "ERROR": return "text-red-700 bg-red-100";
-      case "WARN": return "text-yellow-700 bg-yellow-100";
-      case "INFO": return "text-blue-700 bg-blue-100";
+      case "SUCCESS": return "text-green-700 bg-green-100";
       default: return "text-slate-700 bg-slate-100";
     }
   };
@@ -69,19 +64,23 @@ export function AdminDashboard() {
                     <Users className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">247</div>
+                <div className="text-4xl text-blue-900 mb-2">
+                  {isLoading ? '...' : overview?.totalUsers || 0}
+                </div>
                 <div className="text-slate-600">Total Users</div>
               </div>
 
-              {/* Active Roles */}
+              {/* Active Users */}
               <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
-                    <Shield className="w-6 h-6 text-white" />
+                  <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
+                    <Activity className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">3</div>
-                <div className="text-slate-600">Active Roles</div>
+                <div className="text-4xl text-blue-900 mb-2">
+                  {isLoading ? '...' : overview?.activeUsers || 0}
+                </div>
+                <div className="text-slate-600">Active Users</div>
               </div>
 
               {/* Errors Today */}
@@ -91,19 +90,23 @@ export function AdminDashboard() {
                     <AlertCircle className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">12</div>
+                <div className="text-4xl text-blue-900 mb-2">
+                  {isLoading ? '...' : overview?.errorsToday || 0}
+                </div>
                 <div className="text-slate-600">Errors Today</div>
               </div>
 
-              {/* Last System Sync */}
+              {/* Requests Today */}
               <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
-                    <Clock className="w-6 h-6 text-white" />
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
+                    <Database className="w-6 h-6 text-white" />
                   </div>
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">2m</div>
-                <div className="text-slate-600">Last System Sync</div>
+                <div className="text-4xl text-blue-900 mb-2">
+                  {isLoading ? '...' : overview?.requestsToday?.toLocaleString() || 0}
+                </div>
+                <div className="text-slate-600">Requests Today</div>
               </div>
             </div>
 
@@ -177,41 +180,75 @@ export function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {users.map((user) => (
-                          <tr
-                            key={user.id}
-                            className="border-b border-blue-100 hover:bg-blue-50/50 transition-all"
-                          >
-                            <td className="py-3 px-4 text-slate-900">{user.name}</td>
-                            <td className="py-3 px-4 text-slate-700">{user.email}</td>
-                            <td className="py-3 px-4">
-                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <span className={`px-3 py-1 rounded-full text-xs ${
-                                user.status === "Active" 
-                                  ? "bg-green-100 text-green-700" 
-                                  : "bg-slate-100 text-slate-700"
-                              }`}>
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-2">
-                                <button className="p-1.5 hover:bg-blue-100 rounded transition-all">
-                                  <Edit className="w-4 h-4 text-blue-600" />
-                                </button>
-                                <button className="p-1.5 hover:bg-red-100 rounded transition-all">
-                                  <Trash2 className="w-4 h-4 text-red-600" />
-                                </button>
-                              </div>
+                        {isLoadingUsers ? (
+                          <tr>
+                            <td colSpan={5} className="py-8 text-center text-slate-600">
+                              Loading users...
                             </td>
                           </tr>
-                        ))}
+                        ) : users.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="py-8 text-center text-slate-600">
+                              No users found
+                            </td>
+                          </tr>
+                        ) : (
+                          users.map((user) => (
+                            <tr
+                              key={user.id}
+                              className="border-b border-blue-100 hover:bg-blue-50/50 transition-all"
+                            >
+                              <td className="py-3 px-4 text-slate-900">{user.username}</td>
+                              <td className="py-3 px-4 text-slate-700">{user.email}</td>
+                              <td className="py-3 px-4">
+                                <div className="flex gap-1 flex-wrap">
+                                  {user.roles.map((role) => (
+                                    <span key={role} className={`px-3 py-1 rounded-full text-xs ${
+                                      role === 'ADMIN' 
+                                        ? 'bg-purple-100 text-purple-700'
+                                        : role === 'ANALYST'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-slate-100 text-slate-700'
+                                    }`}>
+                                      {role}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                  Active
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <button 
+                                    onClick={() => navigate('/admin/users')}
+                                    className="p-1.5 hover:bg-blue-100 rounded transition-all"
+                                  >
+                                    <Edit className="w-4 h-4 text-blue-600" />
+                                  </button>
+                                  <button className="p-1.5 hover:bg-red-100 rounded transition-all">
+                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* View All Link */}
+                  <div className="mt-4 text-center">
+                    <button
+                      onClick={() => navigate('/admin/users')}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-2 mx-auto"
+                    >
+                      View All Users
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
@@ -226,18 +263,18 @@ export function AdminDashboard() {
                     <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
                       <div className="flex items-center gap-3 mb-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-slate-900">API Uptime</span>
+                        <span className="text-slate-900">Overall Health</span>
                       </div>
-                      <div className="text-3xl text-green-700">99.9%</div>
-                      <div className="text-sm text-slate-600 mt-1">Last 30 days</div>
+                      <div className="text-2xl text-green-700">{healthSummary?.overallHealth || 'Loading...'}</div>
+                      <div className="text-sm text-slate-600 mt-1">{healthSummary?.healthyServices || 0} services healthy</div>
                     </div>
 
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                       <div className="flex items-center gap-3 mb-2">
                         <Activity className="w-5 h-5 text-blue-600" />
-                        <span className="text-slate-900">Avg Latency</span>
+                        <span className="text-slate-900">Avg Response</span>
                       </div>
-                      <div className="text-3xl text-blue-700">142ms</div>
+                      <div className="text-2xl text-blue-700">{healthSummary?.avgResponseTime ? `${healthSummary.avgResponseTime}ms` : 'N/A'}</div>
                       <div className="text-sm text-slate-600 mt-1">Response time</div>
                     </div>
 
@@ -246,8 +283,8 @@ export function AdminDashboard() {
                         <Database className="w-5 h-5 text-purple-600" />
                         <span className="text-slate-900">Requests</span>
                       </div>
-                      <div className="text-3xl text-purple-700">1.2M</div>
-                      <div className="text-sm text-slate-600 mt-1">Last 24 hours</div>
+                      <div className="text-2xl text-purple-700">{overview?.requestsToday?.toLocaleString() || 0}</div>
+                      <div className="text-sm text-slate-600 mt-1">Today</div>
                     </div>
                   </div>
                 </div>
@@ -273,24 +310,14 @@ export function AdminDashboard() {
                       All Logs
                     </button>
                     <button 
-                      onClick={() => setSelectedLogLevel("INFO")}
+                      onClick={() => setSelectedLogLevel("SUCCESS")}
                       className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                        selectedLogLevel === "INFO" 
-                          ? "bg-blue-100 text-blue-700" 
+                        selectedLogLevel === "SUCCESS" 
+                          ? "bg-green-100 text-green-700" 
                           : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                       }`}
                     >
-                      INFO
-                    </button>
-                    <button 
-                      onClick={() => setSelectedLogLevel("WARN")}
-                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
-                        selectedLogLevel === "WARN" 
-                          ? "bg-yellow-100 text-yellow-700" 
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      WARN
+                      SUCCESS
                     </button>
                     <button 
                       onClick={() => setSelectedLogLevel("ERROR")}
@@ -314,20 +341,30 @@ export function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredLogs.map((log) => (
+                        {filteredLogs.length > 0 ? filteredLogs.map((log) => (
                           <tr
                             key={log.id}
                             className="border-b border-blue-100 hover:bg-blue-50/50 transition-all"
                           >
-                            <td className="py-3 px-4 text-slate-700 text-sm font-mono">{log.timestamp}</td>
+                            <td className="py-3 px-4 text-slate-700 text-sm font-mono">
+                              {new Date(log.timestamp).toLocaleString()}
+                            </td>
                             <td className="py-3 px-4">
-                              <span className={`px-3 py-1 rounded-full text-xs ${getLogLevelColor(log.level)}`}>
-                                {log.level}
+                              <span className={`px-3 py-1 rounded-full text-xs ${getLogLevelColor(log.status)}`}>
+                                {log.status}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-slate-900 text-sm">{log.message}</td>
+                            <td className="py-3 px-4 text-slate-900 text-sm">
+                              {log.service} - {log.action} by {log.username}
+                            </td>
                           </tr>
-                        ))}
+                        )) : (
+                          <tr>
+                            <td colSpan={3} className="py-6 text-center text-slate-500">
+                              No logs available
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -429,59 +466,6 @@ export function AdminDashboard() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* Backend Data Sync */}
-                <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
-                  <div className="flex items-center gap-2 mb-4">
-                    <RefreshCw className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-xl text-slate-900">Backend Data Sync</h3>
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 mb-4">
-                    Triggers the Spring Boot synchronization job to update patent and trademark data from external sources.
-                  </p>
-                  
-                  <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
-                    <RefreshCw className="w-5 h-5" />
-                    Run Data Sync Now
-                  </button>
-                  
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-sm text-green-800">Last sync: 2 minutes ago</div>
-                    <div className="text-xs text-green-600 mt-1">Status: Successful</div>
-                  </div>
-                </div>
-
-                {/* Recent System Events */}
-                <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
-                  <h3 className="text-xl text-slate-900 mb-4">Recent System Events</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5"></div>
-                      <div className="flex-1">
-                        <div className="text-sm text-slate-900">API sync completed</div>
-                        <div className="text-xs text-slate-500">5 minutes ago</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
-                      <div className="flex-1">
-                        <div className="text-sm text-slate-900">New user registered</div>
-                        <div className="text-xs text-slate-500">15 minutes ago</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full mt-1.5"></div>
-                      <div className="flex-1">
-                        <div className="text-sm text-slate-900">Rate limit warning</div>
-                        <div className="text-xs text-slate-500">1 hour ago</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>

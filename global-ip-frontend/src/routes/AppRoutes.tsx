@@ -41,12 +41,13 @@ const MonitoringPage = lazy(() => import('../pages/MonitoringPage').then(m => ({
 
 // Admin Pages
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminDashboardOverview = lazy(() => import('../pages/admin/AdminDashboardOverview').then(m => ({ default: m.AdminDashboardOverview })));
+const AdminAPIHealthMonitor = lazy(() => import('../pages/admin/AdminAPIHealthMonitor').then(m => ({ default: m.AdminAPIHealthMonitor })));
+const AdminSystemLogs = lazy(() => import('../pages/admin/AdminSystemLogs').then(m => ({ default: m.AdminSystemLogs })));
+const AdminErrorSummary = lazy(() => import('../pages/admin/AdminErrorSummary').then(m => ({ default: m.AdminErrorSummary })));
 const AdminUserManagementPage = lazy(() => import('../pages/AdminUserManagementPage').then(m => ({ default: m.AdminUserManagementPage })));
 const AdminRoleRequestsPage = lazy(() => import('../pages/AdminRoleRequestsPage').then(m => ({ default: m.AdminRoleRequestsPage })));
-const AdminAPIHealthPage = lazy(() => import('../pages/AdminAPIHealthPage').then(m => ({ default: m.AdminAPIHealthPage })));
 const AdminAPIKeySettingsPage = lazy(() => import('../pages/AdminAPIKeySettingsPage').then(m => ({ default: m.AdminAPIKeySettingsPage })));
-const AdminUsageLogsPage = lazy(() => import('../pages/AdminUsageLogsPage').then(m => ({ default: m.AdminUsageLogsPage })));
-const AdminDataSyncPage = lazy(() => import('../pages/AdminDataSyncPage').then(m => ({ default: m.AdminDataSyncPage })));
 const AdminSettingsPage = lazy(() => import('../pages/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
 
 // Shared Pages
@@ -83,6 +84,24 @@ export function AppRoutes() {
           path={ROUTES.ADMIN_DASHBOARD} 
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminDashboard />} />} 
         />
+        {/* New Admin Monitoring Dashboard Routes */}
+        <Route 
+          path={ROUTES.ADMIN_OVERVIEW} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminDashboardOverview />} />} 
+        />
+        <Route 
+          path={ROUTES.ADMIN_API_HEALTH} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminAPIHealthMonitor />} />} 
+        />
+        <Route 
+          path={ROUTES.ADMIN_SYSTEM_LOGS} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminSystemLogs />} />} 
+        />
+        <Route 
+          path={ROUTES.ADMIN_ERROR_SUMMARY} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminErrorSummary />} />} 
+        />
+        {/* Existing Admin Routes */}
         <Route 
           path={ROUTES.USER_MANAGEMENT} 
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminUserManagementPage />} />} 
@@ -92,20 +111,8 @@ export function AppRoutes() {
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminRoleRequestsPage />} />} 
         />
         <Route 
-          path={ROUTES.API_HEALTH} 
-          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminAPIHealthPage />} />} 
-        />
-        <Route 
           path={ROUTES.API_KEYS} 
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminAPIKeySettingsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.USAGE_LOGS} 
-          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminUsageLogsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.DATA_SYNC} 
-          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminDataSyncPage />} />} 
         />
         <Route 
           path={ROUTES.ADMIN_SETTINGS} 

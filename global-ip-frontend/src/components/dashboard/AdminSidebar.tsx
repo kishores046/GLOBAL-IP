@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Shield, Activity, Key, FileText, Database, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Shield, Activity, Key, Settings, LogOut, LineChart, AlertTriangle, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../../routes/routeConfig";
@@ -6,16 +6,18 @@ import { ROUTES } from "../../routes/routeConfig";
 export function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['monitoring']); // Monitoring Hub expanded by default
   
   // Determine active item based on current route
   const getActiveItem = () => {
     if (location.pathname === ROUTES.ADMIN_DASHBOARD) return "dashboard";
+    if (location.pathname === ROUTES.ADMIN_OVERVIEW) return "overview";
+    if (location.pathname === ROUTES.ADMIN_API_HEALTH) return "monitoring-health";
+    if (location.pathname === ROUTES.ADMIN_SYSTEM_LOGS) return "monitoring-logs";
+    if (location.pathname === ROUTES.ADMIN_ERROR_SUMMARY) return "monitoring-errors";
     if (location.pathname === ROUTES.USER_MANAGEMENT) return "users";
     if (location.pathname === ROUTES.ROLE_REQUESTS) return "rbac";
-    if (location.pathname === ROUTES.API_HEALTH) return "api-health";
-    if (location.pathname === ROUTES.USAGE_LOGS) return "logs";
     if (location.pathname === ROUTES.API_KEYS) return "api-keys";
-    if (location.pathname === ROUTES.DATA_SYNC) return "sync";
     if (location.pathname === ROUTES.ADMIN_SETTINGS) return "settings";
     return "dashboard";
   };
@@ -43,23 +45,26 @@ export function AdminSidebar() {
       case "dashboard":
         navigate(ROUTES.ADMIN_DASHBOARD);
         break;
+      case "overview":
+        navigate(ROUTES.ADMIN_OVERVIEW);
+        break;
+      case "monitoring-health":
+        navigate(ROUTES.ADMIN_API_HEALTH);
+        break;
+      case "monitoring-logs":
+        navigate(ROUTES.ADMIN_SYSTEM_LOGS);
+        break;
+      case "monitoring-errors":
+        navigate(ROUTES.ADMIN_ERROR_SUMMARY);
+        break;
       case "users":
         navigate(ROUTES.USER_MANAGEMENT);
         break;
       case "rbac":
         navigate(ROUTES.ROLE_REQUESTS);
         break;
-      case "api-health":
-        navigate(ROUTES.API_HEALTH);
-        break;
-      case "logs":
-        navigate(ROUTES.USAGE_LOGS);
-        break;
       case "api-keys":
         navigate(ROUTES.API_KEYS);
-        break;
-      case "sync":
-        navigate(ROUTES.DATA_SYNC);
         break;
       case "settings":
         navigate(ROUTES.ADMIN_SETTINGS);
@@ -72,12 +77,20 @@ export function AdminSidebar() {
   // Admin menu items
   const adminMenuItems = [
     { id: "dashboard", label: "Dashboard Overview", icon: LayoutDashboard },
+    { 
+      id: "monitoring", 
+      label: "Monitoring Hub", 
+      icon: LineChart,
+      submenu: [
+        { id: "overview", label: "System Overview", icon: LayoutDashboard },
+        { id: "monitoring-health", label: "API Health Status", icon: Activity },
+        { id: "monitoring-logs", label: "Usage Logs", icon: FileText },
+        { id: "monitoring-errors", label: "Error Analytics", icon: AlertTriangle },
+      ]
+    },
     { id: "users", label: "User Management", icon: Users },
     { id: "rbac", label: "Role-Based Access Control", icon: Shield },
-    { id: "api-health", label: "API Health Monitor", icon: Activity },
-    { id: "logs", label: "System Logs", icon: FileText },
     { id: "api-keys", label: "API Key Settings", icon: Key },
-    { id: "sync", label: "Trigger Data Sync", icon: Database },
     { id: "settings", label: "Admin Settings", icon: Settings },
   ];
 
@@ -102,6 +115,63 @@ export function AdminSidebar() {
           const Icon = item.icon;
           const isActive = activeItem === item.id;
           
+          // Check if this is a menu item with submenu
+          if ('submenu' in item) {
+            const hasActiveSubmenu = item.submenu?.some(sub => activeItem === sub.id);
+            const isExpanded = expandedMenus.includes(item.id);
+            
+            return (
+              <div key={item.id} className="space-y-1">
+                <button
+                  onClick={() => {
+                    setExpandedMenus(prev => 
+                      prev.includes(item.id) 
+                        ? prev.filter(id => id !== item.id)
+                        : [...prev, item.id]
+                    );
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-left ${
+                    hasActiveSubmenu
+                      ? "bg-purple-900/50 text-white"
+                      : "text-blue-100 hover:bg-[#2d4a6f] hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm font-semibold">{item.label}</span>
+                  </div>
+                  <span className={`text-xs transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
+                </button>
+                
+                {/* Submenu Items */}
+                {isExpanded && (
+                  <div className="ml-4 space-y-1 border-l-2 border-purple-500/30 pl-2">
+                    {item.submenu?.map((subItem) => {
+                      const SubIcon = subItem.icon;
+                      const isSubActive = activeItem === subItem.id;
+                      
+                      return (
+                        <button
+                          key={subItem.id}
+                          onClick={() => handleNavigation(subItem.id)}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left ${
+                            isSubActive
+                              ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg"
+                              : "text-blue-100 hover:bg-[#2d4a6f] hover:text-white"
+                          }`}
+                        >
+                          <SubIcon className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm">{subItem.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          
+          // Regular menu item without submenu
           return (
             <button
               key={item.id}

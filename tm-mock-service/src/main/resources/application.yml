@@ -54,4 +54,6 @@ logging:
         transaction: INFO
 
 
-
+service:
+  auth:
+    api-key: ${TRADEMARK_SERVICE_API_KEY}

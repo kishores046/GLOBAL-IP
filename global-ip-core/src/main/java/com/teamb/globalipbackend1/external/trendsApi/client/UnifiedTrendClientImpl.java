@@ -3,6 +3,7 @@ package com.teamb.globalipbackend1.external.trendsApi.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.teamb.globalipbackend1.admin.audit.TrackApiUsage;
 import com.teamb.globalipbackend1.external.trendsApi.config.PatentAnalyticsServiceConfig;
 import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedCountryTrendDto;
 import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedYearTrendDto;
@@ -28,14 +29,18 @@ public class UnifiedTrendClientImpl implements UnifiedTrendClient {
             .registerModule(new JavaTimeModule());
 
     @Override
+    @TrackApiUsage(service = "TRENDS", action = "TREND_UNIFIED_FILING")
     public List<UnifiedYearTrendDto> getUnifiedFilingTrend() {
         return get("/unified/trends/filings", new TypeReference<>() {});
     }
 
     @Override
+    @TrackApiUsage(service = "TRENDS", action = "TREND_UNIFIED_COUNTRY")
     public List<UnifiedCountryTrendDto> getUnifiedCountryTrend() {
         return get("/unified/trends/countries", new TypeReference<>() {});
     }
+
+
 
     private <T> T get(String path, TypeReference<T> typeRef) {
         try {
@@ -44,8 +49,10 @@ public class UnifiedTrendClientImpl implements UnifiedTrendClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .timeout(Duration.ofSeconds(config.getTimeout()))
+                    .header("X-SERVICE-KEY", config.getServiceApiKey())
                     .GET()
                     .build();
+
 
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());

@@ -40,16 +40,19 @@ public class ApiUsageTrackingAspect {
         } finally {
             long duration = System.currentTimeMillis() - start;
 
-            ApiUsageLog log = new ApiUsageLog();
-            log.setService(trackApiUsage.service());
-            log.setAction(resolveAction(trackApiUsage, pjp));
-            log.setStatus(status);
-            log.setResponseTimeMs(duration);
-            log.setUserId(resolveUser());
-            log.setTimestamp(
+            ApiUsageLog apiUsageLoglog = new ApiUsageLog();
+            apiUsageLoglog.setService(trackApiUsage.service());
+            apiUsageLoglog.setAction(resolveAction(trackApiUsage, pjp));
+            apiUsageLoglog.setStatus(status);
+            apiUsageLoglog.setResponseTimeMs(duration);
+            apiUsageLoglog.setUserId(resolveUser());
+            apiUsageLoglog.setTimestamp(
                     LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
             );
-          writeLog(log);
+          writeLog(apiUsageLoglog);
+            // ADD THIS LOG STATEMENT
+            log.info("Saving API usage: service='{}', action='{}', status='{}',userId='{}'",
+                    apiUsageLoglog.getService(), apiUsageLoglog.getAction(), apiUsageLoglog.getStatus(),apiUsageLoglog.getUserId());
 
         }
     }
@@ -165,7 +168,7 @@ public class ApiUsageTrackingAspect {
         return "TREND_OTHER";
     }
 
-    @Async
+
     public void writeLog(ApiUsageLog log){
         repository.save(log);
     }

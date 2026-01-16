@@ -8,6 +8,7 @@ import com.teamb.globalipbackend1.dto.search.PageResponse;
 import com.teamb.globalipbackend1.dto.search.TrademarkResultDto;
 import com.teamb.globalipbackend1.dto.search.TrademarkSearchFilter;
 import com.teamb.globalipbackend1.dto.trademark.GlobalTrademarkDetailDto;
+import com.teamb.globalipbackend1.external.usptotm.config.TrademarkServiceConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,13 +27,15 @@ import java.util.List;
 public class UsptoTmClient {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final TrademarkServiceConfig config;
     @Qualifier("jsonObjectMapper")
     private final ObjectMapper objectMapper;
 
     @Value("${services.trademark.base-url}")
     private String trademarkBaseUrl;
 
-    public UsptoTmClient(@Qualifier("jsonObjectMapper") ObjectMapper objectMapper) {
+    public UsptoTmClient(TrademarkServiceConfig config, @Qualifier("jsonObjectMapper") ObjectMapper objectMapper) {
+        this.config = config;
         this.objectMapper = objectMapper;
     }
 
@@ -66,11 +69,11 @@ public class UsptoTmClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .header("Content-Type", "application/json")
+                    .header("X-SERVICE-KEY", config.getServiceApiKey())
                     .POST(HttpRequest.BodyPublishers.ofString(
                             objectMapper.writeValueAsString(filter)
                     ))
                     .build();
-
             HttpResponse<String> response =
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -103,6 +106,7 @@ public class UsptoTmClient {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
+                    .header("X-SERVICE-KEY", config.getServiceApiKey())
                     .GET()
                     .build();
 

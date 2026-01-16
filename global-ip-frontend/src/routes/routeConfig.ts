@@ -34,12 +34,13 @@ export const ROUTES = {
   
   // Admin routes
   ADMIN_DASHBOARD: '/dashboard/admin',
+  ADMIN_OVERVIEW: '/admin/overview', // New monitoring dashboard overview
+  ADMIN_API_HEALTH: '/admin/monitoring/api-health', // New API health monitor
+  ADMIN_SYSTEM_LOGS: '/admin/monitoring/logs', // New system logs
+  ADMIN_ERROR_SUMMARY: '/admin/monitoring/errors', // New error summary
   USER_MANAGEMENT: '/admin/user-management',
   ROLE_REQUESTS: '/admin/role-requests',
-  API_HEALTH: '/admin/api-health',
   API_KEYS: '/admin/api-keys',
-  USAGE_LOGS: '/admin/usage-logs',
-  DATA_SYNC: '/admin/data-sync',
   ADMIN_SETTINGS: '/admin/settings',
   
   // Shared routes (all authenticated users)

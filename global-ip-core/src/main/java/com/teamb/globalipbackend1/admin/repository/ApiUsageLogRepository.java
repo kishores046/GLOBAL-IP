@@ -3,12 +3,15 @@ package com.teamb.globalipbackend1.admin.repository;
 import com.teamb.globalipbackend1.admin.audit.ApiUsageLog;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface ApiUsageLogRepository extends JpaRepository<@NonNull ApiUsageLog,@NonNull Long> {
+public interface ApiUsageLogRepository extends JpaRepository<@NonNull ApiUsageLog,@NonNull Long>, JpaSpecificationExecutor<@NonNull ApiUsageLog> {
 
     /* ---------- HEALTH ---------- */
 
@@ -87,4 +90,29 @@ public interface ApiUsageLogRepository extends JpaRepository<@NonNull ApiUsageLo
         group by l.service
     """)
     List<Object[]> errorSummary(LocalDateTime since);
+
+
+
+    /**
+     * Count requests made by a specific user after a given timestamp
+     */
+    long countByUserIdAndTimestampAfter(String userId, LocalDateTime timestamp);
+
+    /**
+     * Get the most recent API usage log for a specific user
+     */
+    Optional<ApiUsageLog> findTopByUserIdOrderByTimestampDesc(String userId);
+
+    /**
+     * Get the most frequently used service by a specific user
+     */
+    @Query("""
+        SELECT l.service
+        FROM ApiUsageLog l
+        WHERE l.userId = :userId
+        GROUP BY l.service
+        ORDER BY COUNT(l) DESC
+        LIMIT 1
+    """)
+    String findTopServiceByUserId(@Param("userId") String userId);
 }
