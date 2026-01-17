@@ -16,7 +16,8 @@ export interface RegisterData {
 }
 
 export interface AuthResponse {
-  token: string;
+  token?: string;
+  passwordChangeRequired?: boolean;
   user?: any;
 }
 
@@ -40,14 +41,24 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await api.post('/auth/login', credentials);
-      const token = response.data.token || response.data;
+      const data = response.data;
       
-      // Store token in localStorage
+      // Check if password change is required
+      if (data.passwordChangeRequired === true) {
+        // DO NOT store token when password change is required
+        return {
+          passwordChangeRequired: true,
+          token: undefined
+        };
+      }
+      
+      // Normal login - store token
+      const token = data.token || data;
       if (token) {
         this.setToken(token);
       }
       
-      return response.data;
+      return data;
     } catch (error: any) {
       throw new Error(
         error.response?.data?.message || 
@@ -214,6 +225,25 @@ class AuthService {
         error.response?.data?.message || 
         error.response?.data?.error || 
         'Failed to update profile.'
+      );
+    }
+  }
+
+  // Change password (for first-login users)
+  async changePassword(email: string, oldPassword: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const response = await api.post('/auth/change-password', {
+        email,
+        oldPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('authService: changePassword error:', error);
+      throw new Error(
+        error.response?.data?.message ??
+        error.response?.data?.error ??
+        'Failed to change password.'
       );
     }
   }

@@ -88,4 +88,9 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(ex.getMessage());
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<@NonNull String> handleUserAlreadyExistsCase(UserAlreadyExistsException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
 }

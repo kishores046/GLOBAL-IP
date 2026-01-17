@@ -8,6 +8,7 @@ import com.teamb.globalipbackend1.admin.dto.UserAdminDto;
 import com.teamb.globalipbackend1.admin.repository.ApiUsageLogRepository;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
 import com.teamb.globalipbackend1.exception.ResourceNotFoundException;
+import com.teamb.globalipbackend1.exception.UserAlreadyExistsException;
 import com.teamb.globalipbackend1.model.user.Role;
 import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.user.RoleRepository;
@@ -221,12 +222,9 @@ public class AdminService {
 
     @Transactional
     public UserAdminDto createUser(CreateUserRequest request) {
-        // Validate
+
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-        if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new UserAlreadyExistsException("User already exists by this email id");
         }
 
         User user = new User();
@@ -237,13 +235,12 @@ public class AdminService {
         user.setCompany(request.company());
         user.setLocation(request.location());
         user.setPosition(request.position());
-        user.setPasswordChangeRequired(true);  // ← Force password change on first login
-
+        user.setPasswordChangeRequired(true);
 
         Set<Role> roles = request.roles().stream()
-                .map(roleName -> roleRepository.findByRoleType(roleName)
-                        .orElseThrow(() -> new ResourceNotFoundException("Role not found")))
+                .map(this::getOrCreateRole)
                 .collect(Collectors.toSet());
+
         user.setRoles(roles);
 
         user.setCreatedAt(LocalDateTime.now());
@@ -251,4 +248,14 @@ public class AdminService {
 
         return toAdminDto(userRepository.save(user));
     }
+
+    private Role getOrCreateRole(String roleName) {
+        return roleRepository.findByRoleType(roleName)
+                .orElseGet(() -> {
+                    Role role = new Role(roleName);
+                    return roleRepository.save(role);
+                });
+    }
+
+
 }

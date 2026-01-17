@@ -1,6 +1,5 @@
 package com.teamb.globalipbackend1.service.auth;
 
-import com.teamb.globalipbackend1.dto.security.JwtResponse;
 import com.teamb.globalipbackend1.dto.authentication.*;
 import com.teamb.globalipbackend1.exception.DuplicateResourceException;
 import com.teamb.globalipbackend1.model.user.Role;
@@ -10,30 +9,87 @@ import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
+
 public class AuthService {
 
-
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
     private final RoleRepository roleRepository;
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private  final PasswordEncoder passwordEncoder;
+    /**
+     * Authenticate user
+     */
+    public LoginResponse authenticate(LoginRequest request) {
 
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-    private final UserRepository userRepository;
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        // 🚨 FIRST LOGIN / TEMP PASSWORD CHECK
+        if (user.isPasswordChangeRequired()) {
+            return new LoginResponse(true, null);
+        }
+
+        UserDetails userDetails = buildUserDetails(user);
+
+        String token = jwtUtil.generateToken(userDetails);
+
+        return new LoginResponse(false, token);
+    }
+
+    /**
+     * Change password (used after first login)
+     */
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangeRequired(false);
+
+        userRepository.save(user);
+    }
+
+    /**
+     * Convert User → UserDetails (kept private & clean)
+     */
+    private UserDetails buildUserDetails(User user) {
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .authorities(
+                        user.getRoles()
+                                .stream()
+                                .map(r -> r.getRoleType())
+                                .toArray(String[]::new)
+                )
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
 
     public RegisterResponse registerUser(RegisterRequest registerRequest){
         log.info("REGISTER REQUEST RECEIVED: {}",registerRequest.email());
@@ -60,18 +116,26 @@ public class AuthService {
 
         return new RegisterResponse("Registered Successfully");
     }
-    public JwtResponse authenticate(LoginRequest request) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
-        );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = jwtUtil.generateToken(userDetails);
-        return new JwtResponse(token);
+    @Transactional
+    public void changePasswordFirstLogin(ChangePasswordRequest req) {
+
+        User user = userRepository.findByEmail(req.email())
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+
+        if (!user.isPasswordChangeRequired()) {
+            throw new IllegalStateException("Password change not required");
+        }
+
+        if (!passwordEncoder.matches(req.oldPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid temporary password");
+        }
+
+        user.setPassword(passwordEncoder.encode(req.newPassword()));
+        user.setPasswordChangeRequired(false);
+
+        userRepository.save(user);
     }
 
-    }
+}

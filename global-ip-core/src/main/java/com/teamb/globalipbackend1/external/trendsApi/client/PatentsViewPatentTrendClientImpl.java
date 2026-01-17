@@ -235,9 +235,6 @@ public class PatentsViewPatentTrendClientImpl implements PatentTrendClient {
     }
 
     private <T> T handleResponse(HttpResponse<String> response, TypeReference<T> typeRef) {
-        log.error("Trend API status = {}", response.statusCode());
-        log.error("Trend API headers = {}", response.headers());
-        log.error("Trend API body = '{}'", response.body());
 
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
             try {

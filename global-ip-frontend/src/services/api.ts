@@ -61,9 +61,11 @@ api.interceptors.response.use(
       // Handle 401 Unauthorized - token expired or invalid
       if (error.response.status === 401) {
         console.error('401 Unauthorized - Token may be expired or invalid');
-        localStorage.removeItem('jwt_token');
-        localStorage.removeItem('user');
-        if (window.location.pathname !== '/login') {
+        
+        // Don't redirect if already on login or change-password pages
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/change-password') {
+          clearAuthData();
           window.location.href = '/login';
         }
       }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/monitoring")
+@RequestMapping("/api/monitoring")
 @PreAuthorize("hasAnyRole('ANALSYT','ADMIN')")
 @RequiredArgsConstructor
 public class MonitoringController {

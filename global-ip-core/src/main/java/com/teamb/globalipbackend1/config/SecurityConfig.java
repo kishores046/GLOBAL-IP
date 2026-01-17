@@ -100,10 +100,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/role-requests/admin").hasAnyRole("USER","ANALYST","ADMIN")
                         .requestMatchers("/api/role-requests/pending").hasAnyRole("ADMIN")
                         .requestMatchers("/api/role-requests/adminOnly/**").hasAnyRole("ADMIN")
-                        .requestMatchers("/api/competitors/**").hasAnyRole("USER","ANALYST","ADMIN")
+                        .requestMatchers("/api/competitors/**").hasAnyRole("ANALYST","ADMIN")
                         .requestMatchers("/api/analyst/trend/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/admin/trend/**").hasAnyRole("ADMIN")
                         .requestMatchers("/api/trends/trademarks/**").hasAnyRole("ANALYST", "ADMIN")
+                        .requestMatchers("/api/monitoring/**").hasAnyRole("ANALYST", "ADMIN")
+                        .requestMatchers("/api/subscription/**").hasAnyRole("ANALYST", "ADMIN")
                         .anyRequest().authenticated()
                 )
 

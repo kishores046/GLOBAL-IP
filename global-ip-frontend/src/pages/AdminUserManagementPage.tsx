@@ -6,6 +6,7 @@ import { useSearchUsers, useDashboardCounts, useDeleteUser } from "../hooks/useU
 import { useDebounce } from "../hooks/useDebounce";
 import { UserActivityModal } from "../components/admin/UserActivityModal";
 import { RoleManagementModal } from "../components/admin/RoleManagementModal";
+import { CreateUserModal } from "../components/admin/CreateUserModal";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -343,56 +344,11 @@ export function AdminUserManagementPage() {
       </div>
 
       {/* Create User Modal */}
-      {showUserModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <h3 className="text-2xl text-blue-900 mb-6">Create New User</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="fullname" className="text-slate-700 mb-2 block">Full Name</label>
-                <input
-                  id="fullname"
-                  type="text"
-                  placeholder="Enter full name"
-                  className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="text-slate-700 mb-2 block">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="role" className="text-slate-700 mb-2 block">Role</label>
-                <select id="role" className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
-                  <option value="User">User</option>
-                  <option value="Analyst">Analyst</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
-              
-              <div className="flex gap-3 pt-4">
-                <button className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all shadow-lg">
-                  Create User
-                </button>
-                <button 
-                  onClick={() => setShowUserModal(false)}
-                  className="px-4 py-2 bg-white border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateUserModal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        onSuccess={() => refetch()}
+      />
 
       {/* User Activity Modal */}
       <UserActivityModal

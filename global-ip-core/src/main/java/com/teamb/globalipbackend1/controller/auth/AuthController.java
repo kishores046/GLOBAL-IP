@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -49,35 +50,27 @@ public class AuthController {
     }
 
 
-    @Operation(
-            summary = "Authenticate user and generate JWT",
-            description = "Authenticates user credentials and returns a JWT token on success.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Authentication successful",
-                            content = @Content(schema = @Schema(implementation = JwtResponse.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Invalid credentials",
-                            content = @Content(
-                                    schema = @Schema(
-                                            example = "{ \"error\": \"Invalid credentials\" }"
-                                    )
-                            )
-                    )
-            }
-    )
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            JwtResponse response = authService.authenticate(request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            System.err.println("Login failed: " + e.getMessage());
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
-        }
+    public ResponseEntity<@NonNull LoginResponse> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        return ResponseEntity.ok(authService.authenticate(request));
     }
+
+    /**
+     * Change password (first login or normal change)
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+           @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        authService.changePasswordFirstLogin(request);
+        return ResponseEntity.ok(
+                Map.of("message", "Password changed successfully")
+        );
+    }
+
+
+
 
 }

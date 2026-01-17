@@ -3,6 +3,7 @@ package com.teamb.globalipbackend1.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     private final JwtConfig jwtConfig;
@@ -41,7 +43,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("roles", roles)
-                .issuer("global-ip-backend")
+                .issuer("global-ip-core")
                 .issuedAt(new Date(now))
                 .expiration(new Date(exp))
                 .id(UUID.randomUUID().toString())
@@ -73,7 +75,7 @@ public class JwtUtil {
                     && username.equals(userDetails.getUsername())
                     && !isTokenExpired(token);
         } catch (Exception e) {
-            System.err.println("Token validation failed: " + e.getMessage());
+            log.info("Token validation failed: {}", e.getMessage());
             return false;
         }
     }

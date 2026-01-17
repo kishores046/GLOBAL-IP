@@ -216,6 +216,25 @@ export const adminApi = {
   },
 
   /**
+   * Create new user with temporary password
+   * @param userData - User creation request data
+   * @returns Promise<UserAdminDto>
+   */
+  createUser: async (userData: {
+    username: string;
+    email: string;
+    temporaryPassword: string;
+    roles: string[];
+    phoneNumber?: string;
+    company?: string;
+    location?: string;
+    position?: string;
+  }) => {
+    const { data } = await adminApiClient.post('/users', userData);
+    return data;
+  },
+
+  /**
    * Get inactive users (no activity in 24h)
    * @returns Promise<UserProfileResponse[]>
    */

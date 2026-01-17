@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import authService from '../services/authService';
+import { isTokenExpired, clearAuthData } from '../utils/authUtils';
 
 interface Role {
   roleId: string;
@@ -56,6 +57,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const storedToken = authService.getToken();
       
       if (storedToken) {
+        // Check if token is expired
+        if (isTokenExpired()) {
+          console.log('🔐 Token expired during initialization, clearing auth data');
+          clearAuthData();
+          setToken(null);
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
+        
         setToken(storedToken);
         try {
           // Fetch user profile

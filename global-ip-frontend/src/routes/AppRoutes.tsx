@@ -11,6 +11,7 @@ const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.
 const LoginPage = lazy(() => import('../pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegistrationPage = lazy(() => import('../pages/RegistrationPage').then(m => ({ default: m.RegistrationPage })));
 const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ChangePasswordPage = lazy(() => import('../pages/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })));
 const OAuthSuccessPage = lazy(() => import('../pages/OAuthSuccessPage').then(m => ({ default: m.OAuthSuccessPage })));
 const UnauthorizedPage = lazy(() => import('../pages/UnauthorizedPage').then(m => ({ default: m.UnauthorizedPage })));
 
@@ -76,6 +77,7 @@ export function AppRoutes() {
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegistrationPage />} />
         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePasswordPage />} />
         <Route path={ROUTES.OAUTH_SUCCESS} element={<OAuthSuccessPage />} />
         <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
 

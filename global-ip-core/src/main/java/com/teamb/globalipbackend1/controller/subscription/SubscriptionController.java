@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/subscription")
+@RequestMapping("api/subscription")
 @PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 @RequiredArgsConstructor
 public class SubscriptionController {

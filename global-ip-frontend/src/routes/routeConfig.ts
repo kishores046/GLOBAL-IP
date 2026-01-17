@@ -5,6 +5,7 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  CHANGE_PASSWORD: '/change-password',
   OAUTH_SUCCESS: '/oauth/success',
   UNAUTHORIZED: '/unauthorized',
   

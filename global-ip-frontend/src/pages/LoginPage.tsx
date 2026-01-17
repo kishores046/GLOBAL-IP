@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
 import authService from "../services/authService";
 import { useAuth } from "../context/AuthContext";
@@ -7,12 +7,23 @@ import { toast } from "sonner";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
+  const { refreshUser } = useAuth();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Show success message if redirected from password change
+  useEffect(() => {
+    const message = location.state?.message;
+    if (message) {
+      toast.success(message);
+      // Clear the state to prevent showing message on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,14 +31,29 @@ export function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Login and update AuthContext
-      await authLogin(email, password);
+      // Call login API directly to check for password change requirement
+      const response = await authService.login({ email, password });
+      
+      // Case 1: Password change required - DO NOT store JWT, redirect to change password
+      if (response.passwordChangeRequired === true) {
+        toast.info("Password change required. Please create a new password.");
+        
+        // Navigate to change password page with email in state
+        navigate("/change-password", { 
+          replace: true,
+          state: { email } 
+        });
+        return;
+      }
+      
+      // Case 2: Normal login - get user profile and update AuthContext
+      const user = await authService.getUserProfile();
+      
+      // Update AuthContext state with refreshUser
+      await refreshUser();
       
       // Show success message
       toast.success("Login successful!");
-      
-      // Get user profile to determine role
-      const user = await authService.getUserProfile();
       
       // Get primary role (first role in array)
       const firstRole = user?.roles?.[0];
@@ -35,11 +61,11 @@ export function LoginPage() {
       
       // Navigate to appropriate dashboard based on role
       if (primaryRole === "admin") {
-        navigate("/dashboard/admin");
+        navigate("/dashboard/admin", { replace: true });
       } else if (primaryRole === "analyst") {
-        navigate("/dashboard/analyst");
+        navigate("/dashboard/analyst", { replace: true });
       } else {
-        navigate("/dashboard/user");
+        navigate("/dashboard/user", { replace: true });
       }
     } catch (err: any) {
       const errorMessage = err.message ?? "Login failed. Please try again.";

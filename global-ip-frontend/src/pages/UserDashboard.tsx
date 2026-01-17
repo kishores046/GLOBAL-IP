@@ -2,10 +2,7 @@ import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { StatCard } from "../components/dashboard/StatCard";
 import { TrendChart } from "../components/dashboard/TrendChart";
-import { GlobalHeatmap } from "../components/dashboard/GlobalHeatmap";
-import { RecentAlerts } from "../components/dashboard/RecentAlerts";
-import { RecommendedAssets } from "../components/dashboard/RecommendedAssets";
-import { FileText, Award, TrendingUp, Bell, Eye, Plus, X, Shield, ArrowRight, Star, Trash2, Calendar } from "lucide-react";
+import { FileText, Award, TrendingUp, Bell, Eye, X, Shield, ArrowRight, Star, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -455,35 +452,6 @@ export function UserDashboard() {
                 </div>
               </div>
 
-              {/* Quick Actions Card */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
-                <div className="mb-6">
-                  <h3 className="text-2xl text-slate-900 mb-1">Quick Actions</h3>
-                  <p className="text-slate-600">Frequently used tools and features</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <button className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl flex flex-col items-center gap-2 group" onClick={() => setShowAddAssetModal(true)}>
-                    <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm">Add Asset</span>
-                  </button>
-                  
-                  <button className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl flex flex-col items-center gap-2 group" onClick={() => setShowSetAlertModal(true)}>
-                    <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm">Set Alert</span>
-                  </button>
-                  
-                  <button className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl flex flex-col items-center gap-2 group" onClick={() => setShowViewReportsModal(true)}>
-                    <FileText className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm">View Reports</span>
-                  </button>
-                  
-                  <button className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl flex flex-col items-center gap-2 group" onClick={() => setShowAnalyticsModal(true)}>
-                    <TrendingUp className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm">Analytics</span>
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Bookmarked Patents Section */}
@@ -650,15 +618,6 @@ export function UserDashboard() {
 
             {/* Trend Graph */}
             <TrendChart />
-
-            {/* Global Heatmap */}
-            <GlobalHeatmap />
-
-            {/* Bottom Section */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              <RecentAlerts />
-              <RecommendedAssets />
-            </div>
           </div>
         </main>
       </div>
