@@ -35,11 +35,11 @@ public class TrackingPreferencesService {
                         .createdAt(LocalDateTime.now())
                         .build());
 
-        entity.setTrackLifecycleEvents(dto.trackLifecycleEvents());
-        entity.setTrackStatusChanges(dto.trackStatusChanges());
-        entity.setTrackRenewalsExpiry(dto.trackRenewalsExpiry());
-        entity.setEnableDashboardAlerts(dto.enableDashboardAlerts());
-        entity.setEnableEmailNotifications(dto.enableEmailNotifications());
+        entity.setTrackLifecycleEvents(Boolean.TRUE.equals(dto.trackLifecycleEvents()));
+        entity.setTrackStatusChanges(Boolean.TRUE.equals(dto.trackStatusChanges()));
+        entity.setTrackRenewalsExpiry(Boolean.TRUE.equals(dto.trackRenewalsExpiry()));
+        entity.setEnableDashboardAlerts(Boolean.TRUE.equals(dto.enableDashboardAlerts()));
+        entity.setEnableEmailNotifications(Boolean.TRUE.equals(dto.enableEmailNotifications()));
         entity.setUpdatedAt(LocalDateTime.now());
 
         UserTrackingPreferences saved = repository.save(entity);

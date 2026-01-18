@@ -5,9 +5,11 @@ import com.teamb.globalipbackend1.oauth.OAuth2SuccessHandler;
 import com.teamb.globalipbackend1.security.CustomUserDetailsService;
 import com.teamb.globalipbackend1.security.JwtAuthFilter;
 import com.teamb.globalipbackend1.security.RestAuthenticationEntryPoint;
+import com.teamb.globalipbackend1.util.validUtils.valid.Password;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,6 +34,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Profile("!test")
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -39,17 +42,14 @@ public class SecurityConfig {
     private final CustomerOAuth2UserService oAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final PasswordEncoder passwordEncoder;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
 
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
     @Bean

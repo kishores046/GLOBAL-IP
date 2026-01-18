@@ -647,4 +647,82 @@ public class EpoClient {
             return List.of();
         }
     }
+
+    @TrackApiUsage(service = "EPO", action = "COMPETITOR_FETCH")
+    public List<EpoCompetitorFilingDto> fetchCompetitorFilings(
+            List<String> assignees,
+            LocalDate fromDate
+    ) {
+        List<EpoCompetitorFilingDto> results = new ArrayList<>();
+
+        for (String assignee : assignees) {
+            try {
+                // Build CQL
+                String cql = "pa=\"" + assignee + "\" and pd>=" +
+                        fromDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+
+                String encoded = URLEncoder.encode(cql, StandardCharsets.UTF_8);
+
+                String base = properties.baseUrl();
+                if (base.endsWith("/rest-services")) {
+                    base = base.substring(0, base.length() - 14);
+                }
+
+                String url = base + "/rest-services/published-data/search?q=" + encoded;
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .header("Authorization", "Bearer " + token())
+                        .header("Accept", "application/xml")
+                        .header("X-OPS-Range", "1-50")
+                        .header("User-Agent", "global-ip/1.0")
+                        .timeout(Duration.ofSeconds(30))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response =
+                        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    log.warn("EPO competitor search failed for {} [{}]",
+                            assignee, response.statusCode());
+                    continue;
+                }
+
+                EpoSearchResponse searchResponse =
+                        xmlMapper.readValue(response.body(), EpoSearchResponse.class);
+
+                if (searchResponse == null ||
+                        searchResponse.getBiblioSearch() == null ||
+                        searchResponse.getBiblioSearch().getSearchResult() == null ||
+                        searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
+                    continue;
+                }
+
+                for (EpoPublicationReferenceSearch pub :
+                        searchResponse.getBiblioSearch().getSearchResult().getPublications()) {
+
+                    EpoDocumentId id = pub.getDocumentId();
+                    if (id == null) continue;
+
+                    results.add(EpoCompetitorFilingDto.builder()
+                            .publicationNumber(
+                                    id.getCountry() + id.getDocNumber() + id.getKind()
+                            )
+                            .kind(id.getKind())
+                            .applicant(assignee)
+                            .title(null) // fetched lazily if needed later
+                            .publicationDate(null) // optional, see note below
+                            .build());
+                }
+
+            } catch (Exception e) {
+                log.error("Failed competitor fetch for assignee={}", assignee, e);
+            }
+        }
+
+        log.info("Fetched {} EPO competitor filings", results.size());
+        return results;
+    }
+
 }

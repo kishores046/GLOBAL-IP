@@ -23,5 +23,6 @@ public class CompetitorDTO {
     private String industry;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Long totalFilings;          // Populated on demand
+    private Long totalFilings;
+    private String jurisdiction;
 }

@@ -2,7 +2,10 @@ package com.teamb.globalipbackend1.service.patent.competitor;
 
 
 import com.teamb.globalipbackend1.dto.competitor.*;
+import com.teamb.globalipbackend1.external.epo.EpoClient;
+import com.teamb.globalipbackend1.external.epo.dto.EpoCompetitorFilingDto;
 import com.teamb.globalipbackend1.external.patentsview.PatentsViewClient;
+import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewAssignee;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewResponseDocument;
 import com.teamb.globalipbackend1.external.patentsview.mapper.PatentsViewMapStructMapper;
 import com.teamb.globalipbackend1.model.patents.Competitor;
@@ -34,6 +37,8 @@ public class CompetitorFilingService {
     private final CompetitorFilingRepository filingRepository;
     private final CompetitorRepository competitorRepository;
     private final PatentsViewMapStructMapper mapper;
+    private final EpoClient epoClient;
+
 
     /**
      * Fetch latest filings for all active competitors
@@ -45,7 +50,6 @@ public class CompetitorFilingService {
         List<Competitor> activeCompetitors = competitorRepository.findByActiveTrue();
 
         if (activeCompetitors.isEmpty()) {
-            log.warn("No active competitors found for filing sync");
             return buildEmptySyncResult(syncStarted);
         }
 
@@ -54,21 +58,40 @@ public class CompetitorFilingService {
         List<CompetitorSyncResult> details = new ArrayList<>();
 
         for (Competitor competitor : activeCompetitors) {
-            CompetitorSyncResult result = syncCompetitorFilings(competitor, fromDate);
-            details.add(result);
 
-            totalNewFilings += result.getNewFilings();
-            totalDuplicates += result.getDuplicates();
+            String jurisdiction = competitor.getJurisdiction();
+
+            if ("US".equalsIgnoreCase(jurisdiction)) {
+                CompetitorSyncResult r =
+                        syncUsCompetitorFilings(competitor, fromDate);
+                details.add(r);
+                totalNewFilings += r.getNewFilings();
+                totalDuplicates += r.getDuplicates();
+
+            } else if ("EP".equalsIgnoreCase(jurisdiction)) {
+                CompetitorSyncResult r =
+                        syncEpoCompetitor(competitor, fromDate);
+                details.add(r);
+                totalNewFilings += r.getNewFilings();
+                totalDuplicates += r.getDuplicates();
+
+            } else if ("BOTH".equalsIgnoreCase(jurisdiction)) {
+                CompetitorSyncResult us =
+                        syncUsCompetitorFilings(competitor, fromDate);
+                CompetitorSyncResult ep =
+                        syncEpoCompetitor(competitor, fromDate);
+
+                details.add(us);
+                details.add(ep);
+
+                totalNewFilings += us.getNewFilings() + ep.getNewFilings();
+                totalDuplicates += us.getDuplicates() + ep.getDuplicates();
+            }
         }
-
-        LocalDateTime syncCompleted = LocalDateTime.now();
-
-        log.info("Filing sync completed: {} new filings, {} duplicates skipped",
-                totalNewFilings, totalDuplicates);
 
         return SyncResultDTO.builder()
                 .syncStarted(syncStarted)
-                .syncCompleted(syncCompleted)
+                .syncCompleted(LocalDateTime.now())
                 .competitorsProcessed(activeCompetitors.size())
                 .newFilingsFound(totalNewFilings)
                 .duplicatesSkipped(totalDuplicates)
@@ -76,11 +99,12 @@ public class CompetitorFilingService {
                 .build();
     }
 
+
     /**
      * Sync filings for a specific competitor
      */
     @Transactional
-    public CompetitorSyncResult syncCompetitorFilings(Competitor competitor, LocalDate fromDate) {
+    public CompetitorSyncResult syncUsCompetitorFilings(Competitor competitor, LocalDate fromDate) {
 
         log.info("Syncing filings for competitor: {}", competitor.getCode());
 
@@ -271,44 +295,53 @@ public class CompetitorFilingService {
     @Transactional(readOnly = true)
     public FilingSummaryDTO getFilingSummary() {
 
-        Object[] stats = filingRepository.getFilingSummaryStats();
+        Object raw = filingRepository.getFilingSummaryStats();
 
-        Long totalFilings = ((Number) stats[0]).longValue();
-        LocalDate oldestFiling = (LocalDate) stats[1];
-        LocalDate newestFiling = (LocalDate) stats[2];
+        Object[] stats;
 
+        // 🔒 Defensive unwrapping (THIS fixes your crash)
+        if (raw instanceof Object[]) {
+            stats = (Object[]) raw;
+        } else {
+            throw new IllegalStateException("Unexpected summary result type: " + raw.getClass());
+        }
 
-        List<Object[]> byCompetitor = filingRepository.getFilingStatsByCompetitor();
-        Map<Long, Competitor> competitorMap = loadCompetitorMap(
-                byCompetitor.stream()
-                        .map(r -> (Long) r[0])
-                        .collect(Collectors.toList())
+        long totalFilings = 0L;
+        LocalDate oldestFiling = null;
+        LocalDate latestFiling = null;
+
+        if (stats.length >= 3) {
+            if (stats[0] instanceof Number n) {
+                totalFilings = n.longValue();
+            }
+            if (stats[1] instanceof LocalDate d1) {
+                oldestFiling = d1;
+            }
+            if (stats[2] instanceof LocalDate d2) {
+                latestFiling = d2;
+            }
+        }
+
+        long competitorsTracked =
+                filingRepository.findAll().stream()
+                        .map(CompetitorFiling::getCompetitorId)
+                        .distinct()
+                        .count();
+
+        log.info(
+                "Summary → total={}, competitors={}, oldest={}, latest={}",
+                totalFilings, competitorsTracked, oldestFiling, latestFiling
         );
-
-        List<CompetitorFilingSummary> summaries = byCompetitor.stream()
-                .map(r -> {
-                    Long competitorId = (Long) r[0];
-                    Long count = (Long) r[1];
-                    LocalDate latestFiling = (LocalDate) r[2];
-                    Competitor competitor = competitorMap.get(competitorId);
-
-                    return CompetitorFilingSummary.builder()
-                            .competitorCode(competitor != null ? competitor.getCode() : "UNKNOWN")
-                            .competitorName(competitor != null ? competitor.getDisplayName() : "Unknown")
-                            .filingCount(count)
-                            .latestFiling(latestFiling)
-                            .build();
-                })
-                .collect(Collectors.toList());
 
         return FilingSummaryDTO.builder()
                 .totalFilings(totalFilings)
+                .competitorsTracked(competitorsTracked)
                 .oldestFiling(oldestFiling)
-                .newestFiling(newestFiling)
-                .competitorsTracked((long) competitorMap.size())
-                .byCompetitor(summaries)
+                .newestFiling(latestFiling)
                 .build();
     }
+
+
 
     // ========== Helper Methods ==========
 
@@ -318,24 +351,23 @@ public class CompetitorFilingService {
     private CompetitorFiling buildFilingFromPatent(
             Competitor competitor,
             PatentDocument patentDoc,
-            PatentsViewResponseDocument apiDoc) {
-
+            PatentsViewResponseDocument apiDoc
+    ) {
         return CompetitorFiling.builder()
                 .competitorId(competitor.getId())
-                .patentId(patentDoc.getPublicationNumber())
-                .title(patentDoc.getTitle())
-                .publicationDate(patentDoc.getGrantDate() != null
-                        ? patentDoc.getGrantDate()
-                        : apiDoc.getPatentDate())
-                .jurisdiction("US")  // PatentsView is US-only
-                .assignee(patentDoc.getAssignees() != null && !patentDoc.getAssignees().isEmpty()
-                        ? patentDoc.getAssignees().get(0)
-                        : null)
+                .patentId(apiDoc.getPatentId())
+                .title(apiDoc.getPatentTitle())
+                .publicationDate(apiDoc.getPatentDate())
+                .jurisdiction("US")
+                .filedBy(competitor.getDisplayName())
+                .currentOwner(extractCurrentOwner(apiDoc))
                 .filingType(apiDoc.getWipoKind())
                 .status("ACTIVE")
                 .fetchedAt(LocalDateTime.now())
                 .build();
     }
+
+
 
     /**
      * Convert entity to DTO
@@ -350,12 +382,14 @@ public class CompetitorFilingService {
                 .title(filing.getTitle())
                 .publicationDate(filing.getPublicationDate())
                 .jurisdiction(filing.getJurisdiction())
-                .assignee(filing.getAssignee())
+                .filedBy(filing.getFiledBy())
+                .currentOwner(filing.getCurrentOwner())
                 .filingType(filing.getFilingType())
                 .status(filing.getStatus())
                 .fetchedAt(filing.getFetchedAt())
                 .build();
     }
+
 
     /**
      * Load competitor map for efficient lookup
@@ -378,4 +412,66 @@ public class CompetitorFilingService {
                 .details(Collections.emptyList())
                 .build();
     }
+
+    private CompetitorSyncResult syncEpoCompetitor(
+            Competitor competitor,
+            LocalDate fromDate
+    ) {
+        List<EpoCompetitorFilingDto> epoFilings =
+                epoClient.fetchCompetitorFilings(
+                        competitor.getAssigneeNames(),
+                        fromDate
+                );
+
+        int newFilings = 0;
+        int duplicates = 0;
+
+        for (EpoCompetitorFilingDto dto : epoFilings) {
+            if (filingRepository.existsByPatentId(dto.getPublicationNumber())) {
+                duplicates++;
+                continue;
+            }
+
+            CompetitorFiling filing = CompetitorFiling.builder()
+                    .competitorId(competitor.getId())
+                    .patentId(dto.getPublicationNumber())
+                    .title(dto.getTitle())
+                    .publicationDate(dto.getPublicationDate())
+                    .jurisdiction("EP")
+
+                    .filedBy(competitor.getDisplayName())
+                    .currentOwner(dto.getApplicant())
+
+                    .filingType(dto.getKind())
+                    .status("PUBLISHED")
+                    .fetchedAt(LocalDateTime.now())
+                    .build();
+
+
+            filingRepository.save(filing);
+            newFilings++;
+        }
+
+        return CompetitorSyncResult.builder()
+                .competitorCode(competitor.getCode())
+                .newFilings(newFilings)
+                .duplicates(duplicates)
+                .status("SUCCESS")
+                .build();
+    }
+
+    private String extractCurrentOwner(PatentsViewResponseDocument doc) {
+        if (doc.getPatentsViewAssignees() == null ||
+                doc.getPatentsViewAssignees().isEmpty()) {
+            return "N/A";
+        }
+
+        return doc.getPatentsViewAssignees().stream()
+                .map(PatentsViewAssignee::getAssigneeOrganisation)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("N/A");
+    }
+
+
 }

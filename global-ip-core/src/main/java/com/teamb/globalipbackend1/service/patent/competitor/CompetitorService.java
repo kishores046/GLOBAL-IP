@@ -28,10 +28,18 @@ public class CompetitorService {
     @Transactional
     public CompetitorDTO createCompetitor(CompetitorCreateRequest request) {
 
-        // Validate unique code
         if (competitorRepository.existsByCode(request.getCode())) {
-            throw new IllegalArgumentException("Competitor code already exists: " + request.getCode());
+            throw new IllegalArgumentException(
+                    "Competitor code already exists: " + request.getCode()
+            );
         }
+
+        String jurisdiction =
+                request.getJurisdiction() != null
+                        ? request.getJurisdiction().toUpperCase()
+                        : "US"; // default for safety
+
+        validateJurisdiction(jurisdiction);
 
         Competitor competitor = Competitor.builder()
                 .code(request.getCode().toUpperCase())
@@ -39,16 +47,21 @@ public class CompetitorService {
                 .assigneeNames(request.getAssigneeNames())
                 .description(request.getDescription())
                 .industry(request.getIndustry())
+                .jurisdiction(jurisdiction)
                 .active(true)
                 .build();
 
         competitor = competitorRepository.save(competitor);
 
-        log.info("Created competitor: {} with {} assignees",
-                competitor.getCode(), competitor.getAssigneeNames().size());
+        log.info(
+                "Created competitor {} [{}]",
+                competitor.getCode(),
+                competitor.getJurisdiction()
+        );
 
         return toDTO(competitor);
     }
+
 
     /**
      * Update existing competitor
@@ -57,7 +70,9 @@ public class CompetitorService {
     public CompetitorDTO updateCompetitor(Long id, CompetitorUpdateRequest request) {
 
         Competitor competitor = competitorRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Competitor not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Competitor not found: " + id
+                ));
 
         if (request.getDisplayName() != null) {
             competitor.setDisplayName(request.getDisplayName());
@@ -74,13 +89,16 @@ public class CompetitorService {
         if (request.getIndustry() != null) {
             competitor.setIndustry(request.getIndustry());
         }
+        if (request.getJurisdiction() != null) {
+            String jurisdiction = request.getJurisdiction().toUpperCase();
+            validateJurisdiction(jurisdiction);
+            competitor.setJurisdiction(jurisdiction);
+        }
 
         competitor = competitorRepository.save(competitor);
-
-        log.info("Updated competitor: {}", competitor.getCode());
-
         return toDTO(competitor);
     }
+
 
     /**
      * Get competitor by ID
@@ -166,10 +184,12 @@ public class CompetitorService {
                 .active(competitor.getActive())
                 .description(competitor.getDescription())
                 .industry(competitor.getIndustry())
+                .jurisdiction(competitor.getJurisdiction())
                 .createdAt(competitor.getCreatedAt())
                 .updatedAt(competitor.getUpdatedAt())
                 .build();
     }
+
 
     /**
      * Convert entity to DTO with filing count
@@ -179,4 +199,12 @@ public class CompetitorService {
         dto.setTotalFilings(filingCount);
         return dto;
     }
+    private void validateJurisdiction(String jurisdiction) {
+        if (!List.of("US", "EP", "BOTH").contains(jurisdiction)) {
+            throw new IllegalArgumentException(
+                    "Invalid jurisdiction. Allowed: US, EP, BOTH"
+            );
+        }
+    }
+
 }

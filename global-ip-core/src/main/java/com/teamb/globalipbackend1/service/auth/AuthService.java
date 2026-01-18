@@ -40,7 +40,7 @@ public class AuthService {
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        // 🚨 FIRST LOGIN / TEMP PASSWORD CHECK
+
         if (user.isPasswordChangeRequired()) {
             return new LoginResponse(true, null);
         }

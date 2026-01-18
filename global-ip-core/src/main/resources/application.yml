@@ -182,10 +182,10 @@ spring:
       on-profile: test
 
   datasource:
-    url: ${DB_URL_TEST}
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-    username: ${DB_USER_TEST}
-    password: ${DB_PASSWORD_TEST}
+    username: sa
+    password:
 
   jpa:
     show-sql: false
@@ -204,9 +204,19 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 server:
-  port: ${SERVER_PORT}
+  port: 0
 
 
+patent-analytics:
+  service-api-key: ${TRENDS_SERVICE_API_KEY}
+  base-url: http://localhost:8081
+  api-path: /api/trends
+  timeout: 180
+  max-retries : 3
+services:
+  trademark:
+    base-url: http://localhost:9090
+    service-api-key: ${TRADEMARK_SERVICE_API_KEY}
 
 
 # ---------------------------------- PROD PROFILE ----------------------------------

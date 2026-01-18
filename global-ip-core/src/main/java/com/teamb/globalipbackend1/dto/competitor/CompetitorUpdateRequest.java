@@ -17,4 +17,8 @@ public class CompetitorUpdateRequest {
     private Boolean active;
     private String description;
     private String industry;
+    /**
+     * US, EP, BOTH
+     */
+    private String jurisdiction;
 }

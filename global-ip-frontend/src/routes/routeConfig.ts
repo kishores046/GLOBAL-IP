@@ -20,9 +20,11 @@ export const ROUTES = {
   
   // Analyst routes
   ANALYST_DASHBOARD: '/dashboard/analyst',
-  COMPETITOR_ANALYTICS: '/analyst/competitor-analytics',
-  COMPETITOR_MANAGEMENT: '/analyst/competitor-management',
-  COMPETITOR_FILINGS: '/analyst/competitor-filings',
+  COMPETITORS: '/competitors',
+  COMPETITOR_DETAIL: '/competitors/:id',
+  COMPETITOR_FILINGS: '/competitors/filings',
+  COMPETITOR_SYNC: '/competitors/sync',
+  COMPETITOR_ANALYTICS: '/competitors/analytics',
   ADVANCED_SEARCH: '/analyst/advanced-search',
   VISUALIZATION_ENGINE: '/analyst/visualization',
   EXPORT_TOOLS: '/analyst/export-tools',

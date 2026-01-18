@@ -6,7 +6,6 @@ import com.teamb.globalipbackend1.external.patentsview.config.PatentsViewPropert
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewResponse;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentsViewResponseDocument;
 import com.teamb.globalipbackend1.external.patentsview.querybuilder.PatentsViewQueryBuilder;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -93,7 +92,7 @@ public class PatentsViewClient {
     /**
      * Search patents by single assignee organization
      */
-    public List<PatentsViewResponseDocument> searchByAssignee(
+    public List<PatentsViewResponseDocument> searchByAssignees(
             String assigneeOrganization,
             LocalDate fromDate
     ) {
@@ -199,7 +198,7 @@ public class PatentsViewClient {
             int daysBack
     ) {
         LocalDate fromDate = LocalDate.now().minusDays(daysBack);
-        return searchByAssignee(assigneeOrganization, fromDate);
+        return searchByAssignees(assigneeOrganization, fromDate);
     }
 
     /**

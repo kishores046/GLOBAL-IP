@@ -12,6 +12,7 @@ import com.teamb.globalipbackend1.service.tracking.PatentTrackingNotificationSer
 import com.teamb.globalipbackend1.util.trackingUtil.PatentSourceDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +42,7 @@ public class UnifiedPatentTrackingScheduler {
      * Check for patent updates every hour
      * Handles both USPTO and EPO patents with appropriate rate limiting
      */
+    @Async
     @Scheduled(cron = "0 0 * * * ?") // Every hour
     public void checkAllPatentUpdates() {
         log.info("Starting unified patent tracking check");

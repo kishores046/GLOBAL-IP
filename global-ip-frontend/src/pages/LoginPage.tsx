@@ -55,16 +55,31 @@ export function LoginPage() {
       // Show success message
       toast.success("Login successful!");
       
+      // Debug: Log user data and roles
+      console.log("User data:", user);
+      console.log("User roles:", user?.roles);
+      
       // Get primary role (first role in array)
       const firstRole = user?.roles?.[0];
-      const primaryRole = (typeof firstRole === 'string' ? firstRole : firstRole?.roleType)?.toLowerCase() || "user";
+      console.log("First role:", firstRole);
+      
+      // Handle ROLE_ prefix if it exists
+      let roleString = typeof firstRole === 'string' ? firstRole : firstRole?.roleType;
+      console.log("Role string:", roleString);
+      
+      // Remove ROLE_ prefix if present and convert to lowercase
+      const primaryRole = roleString?.replace(/^ROLE_/, '').toLowerCase() || "user";
+      console.log("Primary role (processed):", primaryRole);
       
       // Navigate to appropriate dashboard based on role
       if (primaryRole === "admin") {
+        console.log("Navigating to admin dashboard");
         navigate("/dashboard/admin", { replace: true });
       } else if (primaryRole === "analyst") {
+        console.log("Navigating to analyst dashboard");
         navigate("/dashboard/analyst", { replace: true });
       } else {
+        console.log("Navigating to user dashboard");
         navigate("/dashboard/user", { replace: true });
       }
     } catch (err: any) {

@@ -17,4 +17,8 @@ public class CompetitorCreateRequest {
     private List<String> assigneeNames;
     private String description;
     private String industry;
+    /**
+     * US, EP, BOTH
+     */
+    private String jurisdiction;
 }

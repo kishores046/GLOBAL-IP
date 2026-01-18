@@ -26,10 +26,15 @@ const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ defau
 
 // Analyst Pages
 const AnalystDashboard = lazy(() => import('../pages/AnalystDashboard').then(m => ({ default: m.AnalystDashboard })));
-const CompetitorAnalyticsPage = lazy(() => import('../pages/CompetitorAnalyticsPage').then(m => ({ default: m.CompetitorAnalyticsPage })));
-const CompetitorManagementPage = lazy(() => import('../pages/CompetitorManagementPage').then(m => ({ default: m.CompetitorManagementPage })));
-const CompetitorFilingDashboard = lazy(() => import('../components/competitor-filings/CompetitorFilingDashboard').then(m => ({ default: m.CompetitorFilingDashboard })));
 const AdvancedSearchPage = lazy(() => import('../pages/AdvancedSearchPage').then(m => ({ default: m.AdvancedSearchPage })));
+
+// Competitor Tracking Pages
+const CompetitorsPage = lazy(() => import('../pages/competitors/CompetitorsPage').then(m => ({ default: m.default })));
+const CompetitorDetailPage = lazy(() => import('../pages/competitors/CompetitorDetailPage').then(m => ({ default: m.default })));
+const CompetitorFilingsPage = lazy(() => import('../pages/competitors/CompetitorFilingsPage').then(m => ({ default: m.default })));
+const CompetitorSyncPage = lazy(() => import('../pages/competitors/CompetitorSyncPage').then(m => ({ default: m.default })));
+const CompetitorAnalyticsPage = lazy(() => import('../pages/competitors/CompetitorAnalyticsPage').then(m => ({ default: m.default })));
+
 const VisualizationEnginePage = lazy(() => import('../pages/VisualizationEnginePage').then(m => ({ default: m.VisualizationEnginePage })));
 const ExportToolsPage = lazy(() => import('../pages/ExportToolsPage').then(m => ({ default: m.ExportToolsPage })));
 const PatentTrendAnalysisPage = lazy(() => import('../pages/PatentTrendAnalysisPage').then(m => ({ default: m.default })));
@@ -126,18 +131,29 @@ export function AppRoutes() {
           path={ROUTES.ANALYST_DASHBOARD} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AnalystDashboard />} />} 
         />
+
+        {/* Competitor Tracking Routes */}
+        <Route 
+          path={ROUTES.COMPETITORS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorsPage />} />} 
+        />
+        <Route 
+          path={ROUTES.COMPETITOR_DETAIL} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorDetailPage />} />} 
+        />
+        <Route 
+          path={ROUTES.COMPETITOR_FILINGS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingsPage />} />} 
+        />
+        <Route 
+          path={ROUTES.COMPETITOR_SYNC} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorSyncPage />} />} 
+        />
         <Route 
           path={ROUTES.COMPETITOR_ANALYTICS} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
         />
-        <Route 
-          path={ROUTES.COMPETITOR_MANAGEMENT} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorManagementPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_FILINGS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingDashboard />} />} 
-        />
+
         <Route 
           path={ROUTES.ADVANCED_SEARCH} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AdvancedSearchPage />} />} 

@@ -14,15 +14,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CompetitorFilingDTO {
+
     private Long id;
+
     private Long competitorId;
     private String competitorCode;
     private String competitorName;
+
     private String patentId;
     private String title;
     private LocalDate publicationDate;
     private String jurisdiction;
-    private String assignee;
+
+    /** Analytics clarity */
+    private String filedBy;       // Apple Inc
+    private String currentOwner;  // Micron / Lenovo / etc.
+
     private String filingType;
     private String status;
     private LocalDateTime fetchedAt;

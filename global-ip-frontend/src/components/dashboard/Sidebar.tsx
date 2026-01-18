@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, FileText, Bookmark, Bell, Settings, LogOut, BarChart3, Network, Users, FolderOpen, Download, User, Radio } from "lucide-react";
+import { LayoutDashboard, Search, FileText, Bookmark, Bell, Settings, LogOut, BarChart3, Network, Users, User, Radio } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../../routes/routeConfig";
@@ -28,8 +28,8 @@ export function Sidebar() {
   const getActiveItem = () => {
     if (location.pathname.includes("/analyst/advanced-search")) return "advanced-search";
     if (location.pathname.includes("/analyst/visualization")) return "visualization";
-    if (location.pathname.includes("/analyst/competitor-analytics")) return "competitor-analytics";
-    if (location.pathname.includes("/analyst/competitor-management")) return "competitor-management";
+    if (location.pathname.includes("/competitors/analytics")) return "competitor-analytics";
+    if (location.pathname.includes("/competitors")) return "competitor-management";
     if (location.pathname.includes("/analyst/trends/patents")) return "patent-trends";
     if (location.pathname.includes("/analyst/trends/trademarks")) return "trademark-trends";
     if (location.pathname.includes("/analyst/lifecycle/patents")) return "patent-lifecycle";
@@ -81,7 +81,7 @@ export function Sidebar() {
         navigate(ROUTES.COMPETITOR_ANALYTICS);
         break;
       case "competitor-management":
-        navigate(ROUTES.COMPETITOR_MANAGEMENT);
+        navigate(ROUTES.COMPETITORS);
         break;
       case "patent-trends":
         navigate(ROUTES.PATENT_TRENDS);

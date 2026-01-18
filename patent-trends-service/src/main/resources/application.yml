@@ -2,7 +2,7 @@ server:
   port: ${SERVER_PORT}
 spring:
   profiles:
-    active: ingest
+    active: prod
 
 ---
 

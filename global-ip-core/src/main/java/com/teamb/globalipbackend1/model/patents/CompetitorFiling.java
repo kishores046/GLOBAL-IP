@@ -12,15 +12,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "competitor_filings",
+@Table(name = "competitor_filings",
         indexes = {
                 @Index(name = "idx_competitor_id", columnList = "competitorId"),
                 @Index(name = "idx_patent_id", columnList = "patentId", unique = true),
-                @Index(name = "idx_pub_date", columnList = "publicationDate"),
-                @Index(name = "idx_competitor_pub_date", columnList = "competitorId,publicationDate")
-        }
-)
+                @Index(name = "idx_pub_date", columnList = "publicationDate")
+        })
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,7 +29,7 @@ public class CompetitorFiling {
     private Long id;
 
     @Column(nullable = false)
-    private Long competitorId;          // Reference to Competitor entity
+    private Long competitorId;
 
     @Column(nullable = false, unique = true, length = 50)
     private String patentId;
@@ -44,17 +41,22 @@ public class CompetitorFiling {
     private LocalDate publicationDate;
 
     @Column(length = 10)
-    private String jurisdiction;         // US, EP, WO, etc.
+    private String jurisdiction; // US / EP
 
+    /** Who we tracked this patent FOR */
     @Column(length = 200)
-    private String assignee;             // Actual assignee from patent data
+    private String filedBy;
+
+    /** Actual legal owner */
+    @Column(length = 200)
+    private String currentOwner;
+
+    @Column(length = 100)
+    private String filingType;
+
+    @Column(length = 20)
+    private String status;
 
     @Column(nullable = false)
     private LocalDateTime fetchedAt;
-
-    @Column(length = 100)
-    private String filingType;           // PATENT, APPLICATION, etc.
-
-    @Column(length = 20)
-    private String status;               // ACTIVE, EXPIRED, PENDING
 }

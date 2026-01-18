@@ -1,12 +1,7 @@
 package com.teamb.globalipbackend1.model.patents;
 
-
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,10 +12,12 @@ import java.util.List;
         name = "competitors",
         indexes = {
                 @Index(name = "idx_competitor_code", columnList = "code", unique = true),
-                @Index(name = "idx_competitor_active", columnList = "active")
+                @Index(name = "idx_competitor_active", columnList = "active"),
+                @Index(name = "idx_competitor_jurisdiction", columnList = "jurisdiction")
         }
 )
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,10 +28,10 @@ public class Competitor {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String code;                 // GOOGLE, SAMSUNG, TESLA
+    private String code;                 // GOOGLE, SAMSUNG
 
     @Column(nullable = false, length = 200)
-    private String displayName;          // Google Inc., Samsung Electronics
+    private String displayName;          // Google Inc.
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
@@ -53,6 +50,12 @@ public class Competitor {
 
     @Column(length = 100)
     private String industry;
+
+    /**
+     * US, EP, BOTH
+     */
+    @Column(nullable = false, length = 10)
+    private String jurisdiction;
 
     @Column
     private LocalDateTime createdAt;

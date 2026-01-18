@@ -1,6 +1,6 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { AdminSidebar } from "../components/dashboard/AdminSidebar";
-import { UserX, UserPlus, Search, RefreshCw, Activity, Shield, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserX, UserPlus, Search, RefreshCw, Activity, Shield, Loader2, ChevronLeft, ChevronRight, BarChart3, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useSearchUsers, useDashboardCounts, useDeleteUser } from "../hooks/useUsers";
 import { useDebounce } from "../hooks/useDebounce";
@@ -61,6 +61,27 @@ export function AdminUserManagementPage() {
       return "bg-blue-100 text-blue-700";
     }
     return "bg-slate-100 text-slate-700";
+  };
+
+  const getRoleAccessBadge = (role: string) => {
+    if (role === "ADMIN") {
+      return {
+        text: "Full Access",
+        description: "Create/change roles, ban users, manage system",
+        color: "bg-purple-500 text-white"
+      };
+    } else if (role === "ANALYST") {
+      return {
+        text: "Advanced Access",
+        description: "Patents, trademarks analysis, reporting",
+        color: "bg-blue-500 text-white"
+      };
+    }
+    return {
+      text: "Limited Access",
+      description: "Search and view basic information",
+      color: "bg-slate-500 text-white"
+    };
   };
 
   const handleOpenActivityModal = (userId: string) => {
@@ -244,6 +265,7 @@ export function AdminUserManagementPage() {
                           <th className="text-left py-3 px-4 text-slate-700">Username</th>
                           <th className="text-left py-3 px-4 text-slate-700">Email</th>
                           <th className="text-left py-3 px-4 text-slate-700">Roles</th>
+                          <th className="text-left py-3 px-4 text-slate-700">Access Level</th>
                           <th className="text-left py-3 px-4 text-slate-700 hidden md:table-cell">Created</th>
                           <th className="text-left py-3 px-4 text-slate-700">Actions</th>
                         </tr>
@@ -275,33 +297,97 @@ export function AdminUserManagementPage() {
                                 ))}
                               </div>
                             </td>
+                            <td className="py-3 px-4">
+                              {(() => {
+                                const primaryRole = user.roles[0] || "USER";
+                                const accessBadge = getRoleAccessBadge(primaryRole);
+                                return (
+                                  <div className="flex flex-col gap-1">
+                                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${accessBadge.color} inline-block w-fit`}>
+                                      {accessBadge.text}
+                                    </span>
+                                    <span className="text-xs text-slate-500" title={accessBadge.description}>
+                                      {accessBadge.description}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                            </td>
                             <td className="py-3 px-4 text-slate-700 text-sm hidden md:table-cell">
                               {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                             </td>
                             <td className="py-3 px-4">
-                              <div className="flex gap-2">
-                                <button 
-                                  onClick={() => handleOpenActivityModal(user.id)}
-                                  className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-all"
-                                  title="View Activity"
-                                >
-                                  <Activity className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={() => handleOpenRoleModal(user.id, user.username, user.roles)}
-                                  className="p-2 hover:bg-green-100 text-green-600 rounded-lg transition-all"
-                                  title="Manage Roles"
-                                >
-                                  <Shield className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteUser(user.id, user.username)}
-                                  className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-all"
-                                  title="Delete User"
-                                  disabled={deleteMutation.isPending}
-                                >
-                                  <UserX className="w-4 h-4" />
-                                </button>
+                              <div className="flex gap-2 flex-wrap">
+                                {(() => {
+                                  const primaryRole = user.roles[0] || "USER";
+                                  
+                                  // ADMIN - Full management controls
+                                  if (primaryRole === "ADMIN") {
+                                    return (
+                                      <>
+                                        <button 
+                                          onClick={() => handleOpenActivityModal(user.id)}
+                                          className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                          title="View user activity and search history"
+                                        >
+                                          <Activity className="w-3.5 h-3.5" />
+                                          Activity
+                                        </button>
+                                        <button 
+                                          onClick={() => handleOpenRoleModal(user.id, user.username, user.roles)}
+                                          className="px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                          title="Change user roles and permissions"
+                                        >
+                                          <Shield className="w-3.5 h-3.5" />
+                                          Roles
+                                        </button>
+                                        <button 
+                                          onClick={() => handleDeleteUser(user.id, user.username)}
+                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Delete user permanently"
+                                          disabled={deleteMutation.isPending}
+                                        >
+                                          <UserX className="w-3.5 h-3.5" />
+                                          Ban
+                                        </button>
+                                      </>
+                                    );
+                                  }
+                                  
+                                  // ANALYST - Analytics and graph access
+                                  if (primaryRole === "ANALYST") {
+                                    return (
+                                      <>
+                                        <button 
+                                          onClick={() => handleOpenActivityModal(user.id)}
+                                          className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                          title="View analytics and trends"
+                                        >
+                                          <BarChart3 className="w-3.5 h-3.5" />
+                                          Analytics
+                                        </button>
+                                        <button 
+                                          className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                          title="Access trend analysis"
+                                        >
+                                          <TrendingUp className="w-3.5 h-3.5" />
+                                          Trends
+                                        </button>
+                                      </>
+                                    );
+                                  }
+                                  
+                                  // USER - Basic search only
+                                  return (
+                                    <button 
+                                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                      title="Basic search access"
+                                    >
+                                      <Search className="w-3.5 h-3.5" />
+                                      Search
+                                    </button>
+                                  );
+                                })()}
                               </div>
                             </td>
                           </tr>
