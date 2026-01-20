@@ -179,10 +179,6 @@ export function AdvancedSearchPage() {
                       <option value="ALL">All Jurisdictions</option>
                       <option value="US">United States (US)</option>
                       <option value="EP">European Patent Office (EP)</option>
-                      <option value="JP">Japan (JP)</option>
-                      <option value="KR">Korea (KR)</option>
-                      <option value="CN">China (CN)</option>
-                      <option value="WO">WIPO (WO)</option>
                     </select>
                   </div>
 

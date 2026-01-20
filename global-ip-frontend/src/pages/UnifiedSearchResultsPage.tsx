@@ -96,6 +96,24 @@ export function UnifiedSearchResultsPage() {
     }
   };
 
+  // Get jurisdiction badge styling
+  const getJurisdictionBadge = (jurisdiction?: string) => {
+    if (!jurisdiction) return { color: 'bg-slate-100', textColor: 'text-slate-700', label: 'Unknown' };
+    
+    const normalized = jurisdiction.toUpperCase().trim();
+    const config: Record<string, { color: string; textColor: string; label: string }> = {
+      'US': { color: 'bg-blue-100', textColor: 'text-blue-700', label: 'US' },
+      'EP': { color: 'bg-green-100', textColor: 'text-green-700', label: 'EP' },
+      'JP': { color: 'bg-orange-100', textColor: 'text-orange-700', label: 'JP' },
+      'CN': { color: 'bg-red-100', textColor: 'text-red-700', label: 'CN' },
+      'GB': { color: 'bg-purple-100', textColor: 'text-purple-700', label: 'GB' },
+      'DE': { color: 'bg-indigo-100', textColor: 'text-indigo-700', label: 'DE' },
+      'WO': { color: 'bg-cyan-100', textColor: 'text-cyan-700', label: 'WO' },
+    };
+    
+    return config[normalized] || { color: 'bg-slate-100', textColor: 'text-slate-700', label: normalized };
+  };
+
   const formatList = (items?: string[], max: number = 2) => {
     if (!items || items.length === 0) {
       return <span className="text-slate-400 italic">Not disclosed</span>;
@@ -200,8 +218,8 @@ export function UnifiedSearchResultsPage() {
                             Patent ID: {patent.publicationNumber}
                           </p>
                         </div>
-                        <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium ml-4">
-                          {patent.jurisdiction}
+                        <span className={`px-4 py-2 ${getJurisdictionBadge(patent.jurisdiction).color} ${getJurisdictionBadge(patent.jurisdiction).textColor} rounded-full text-sm font-medium ml-4`}>
+                          {getJurisdictionBadge(patent.jurisdiction).label}
                         </span>
                       </div>
 

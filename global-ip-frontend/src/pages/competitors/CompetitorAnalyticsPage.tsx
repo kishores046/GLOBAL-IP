@@ -41,9 +41,9 @@ export function CompetitorAnalyticsPage() {
   const { data: hasSubscription, isLoading: checkingSubscription } =
     useHasCompetitorFilingSubscription();
 
-  // Data fetching
+  // Data fetching (only after subscription verified)
   const { data: competitors, isLoading: competitorsLoading, error: competitorsError } =
-    useCompetitors(true);
+    useCompetitors(!!hasSubscription);
   const { data: summary, error: summaryError } =
     useFilingSummary(!!hasSubscription);
 

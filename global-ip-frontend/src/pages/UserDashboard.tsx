@@ -1,7 +1,6 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { StatCard } from "../components/dashboard/StatCard";
-import { TrendChart } from "../components/dashboard/TrendChart";
 import { FileText, Award, TrendingUp, Bell, Eye, X, Shield, ArrowRight, Star, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,13 +8,6 @@ import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../routes/routeConfig";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { bookmarkAPI, patentDetailAPI, trademarkDetailAPI, BookmarkedPatent, BookmarkedTrademark, dashboardAPI } from "../services/api";
-
-const legalMilestones = [
-  { label: "Filed", date: "2023-01-15", completed: true },
-  { label: "Published", date: "2023-07-20", completed: true },
-  { label: "Examination", date: "2024-03-10", completed: true },
-  { label: "Grant", date: "2025-01-05", completed: false },
-];
 
 export function UserDashboard() {
   const navigate = useNavigate();
@@ -230,38 +222,6 @@ export function UserDashboard() {
   };
   
   // Analytics data
-  const filingsByYearData = [
-    { year: '2020', patents: 245, trademarks: 156 },
-    { year: '2021', patents: 312, trademarks: 198 },
-    { year: '2022', patents: 428, trademarks: 234 },
-    { year: '2023', patents: 587, trademarks: 289 },
-    { year: '2024', patents: 734, trademarks: 342 },
-  ];
-
-  const jurisdictionData = [
-    { name: 'USPTO', value: 456, color: '#3b82f6' },
-    { name: 'EPO', value: 342, color: '#06b6d4' },
-    { name: 'WIPO', value: 289, color: '#8b5cf6' },
-    { name: 'JPO', value: 178, color: '#10b981' },
-    { name: 'Other', value: 145, color: '#f59e0b' },
-  ];
-
-  const statusDistributionData = [
-    { status: 'Granted', count: 856 },
-    { status: 'Pending', count: 423 },
-    { status: 'Rejected', count: 142 },
-    { status: 'Abandoned', count: 89 },
-  ];
-
-  const monthlyTrendData = [
-    { month: 'Jan', filings: 45, grants: 32 },
-    { month: 'Feb', filings: 52, grants: 38 },
-    { month: 'Mar', filings: 67, grants: 45 },
-    { month: 'Apr', filings: 78, grants: 52 },
-    { month: 'May', filings: 89, grants: 61 },
-    { month: 'Jun', filings: 95, grants: 67 },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <DashboardHeader userName="User" />
@@ -411,47 +371,6 @@ export function UserDashboard() {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Legal Status Timeline & Trend Chart Row */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Legal Status Timeline */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl">
-                <div className="mb-6">
-                  <h3 className="text-2xl text-slate-900 mb-1">Legal Status Timeline</h3>
-                  <p className="text-slate-600">Track key patent milestones</p>
-                </div>
-                
-                <div className="relative">
-                  {/* Timeline */}
-                  <div className="space-y-6">
-                    {legalMilestones.map((milestone, index) => (
-                      <div key={index} className="flex items-center gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${milestone.completed ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-slate-300"}`}>
-                            {milestone.completed ? (
-                              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <div className="w-3 h-3 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                          {index < legalMilestones.length - 1 && (
-                            <div className={`w-0.5 h-8 ${milestone.completed ? "bg-green-500" : "bg-slate-300"}`}></div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="text-slate-900">{milestone.label}</div>
-                          <div className="text-sm text-slate-500">{milestone.date}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
             </div>
 
             {/* Bookmarked Patents Section */}
@@ -615,9 +534,6 @@ export function UserDashboard() {
                 </div>
               )}
             </div>
-
-            {/* Trend Graph */}
-            <TrendChart />
           </div>
         </main>
       </div>

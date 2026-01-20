@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, Bookmark, Bell, LogOut, BarChart3, Network, Users, User, Radio, Key, Plus, FileText } from "lucide-react";
+import { LayoutDashboard, Search, LogOut, BarChart3, Network, Users, User, Radio, Key, Plus, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -40,9 +40,7 @@ export function Sidebar() {
     'competitor-analytics': ['/competitors/analytics'],
     'competitor-management': ['/competitors'],
     'create-subscription': ['/user/subscriptions/create'],
-    'subscriptions': ['/user/subscriptions'],
     'tracker': ['/user/filing-tracker'],
-    'alerts': ['/user/alerts'],
     'profile': ['/user/profile'],
     'api-keys': ['/settings/api-keys'],
     'settings': ['/settings'],
@@ -120,15 +118,6 @@ export function Sidebar() {
       case "tracker":
         navigate(ROUTES.FILING_TRACKER);
         break;
-      case "subscriptions":
-        navigate(ROUTES.SUBSCRIPTIONS);
-        break;
-      case "create-subscription":
-        navigate(ROUTES.CREATE_SUBSCRIPTION);
-        break;
-      case "alerts":
-        navigate(ROUTES.ALERTS);
-        break;
       case "profile":
         navigate(ROUTES.PROFILE);
         break;
@@ -145,8 +134,6 @@ export function Sidebar() {
   const userMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "search", label: "Global IP Search", icon: Search },
-    { id: "subscriptions", label: "My Subscriptions", icon: Bookmark },
-    { id: "alerts", label: "Alerts", icon: Bell },
     { id: "profile", label: "Profile", icon: User },
     // Show API Keys if user has allowed roles
     ...(hasRole([ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]) 

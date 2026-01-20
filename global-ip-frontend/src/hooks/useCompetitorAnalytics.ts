@@ -37,6 +37,8 @@ export function useCompetitors(activeOnly: boolean = true) {
 
 /**
  * Fetch filings for a specific competitor (drill-down)
+ * IMPORTANT: This endpoint has a backend guard that causes 403 errors.
+ * Always pass enabled={hasSubscription} to prevent unnecessary 403 calls.
  */
 export function useCompetitorFilings(competitorId: number, enabled: boolean = true) {
   return useQuery<CompetitorFilingDTO[], Error>({
@@ -47,11 +49,21 @@ export function useCompetitorFilings(competitorId: number, enabled: boolean = tr
     enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 15 * 60 * 1000, // 15 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry 403 errors - backend guard issue
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
   });
 }
 
 /**
  * Fetch filings for a specific competitor (paginated)
+ * IMPORTANT: This endpoint has a backend guard that causes 403 errors.
+ * Always pass enabled={hasSubscription} to prevent unnecessary 403 calls.
  */
 export function useCompetitorFilingsPaginated(
   competitorId: number,
@@ -71,11 +83,21 @@ export function useCompetitorFilingsPaginated(
     enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      // Don't retry 403 errors - backend guard issue
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
   });
 }
 
 /**
  * Fetch filing summary (KPIs)
+ * IMPORTANT: This endpoint has a backend guard that causes 403 errors.
+ * Always pass enabled={hasSubscription} to prevent unnecessary 403 calls.
  */
 export function useFilingSummary(enabled: boolean = true) {
   return useQuery<FilingSummaryDTO, Error>({
@@ -86,11 +108,21 @@ export function useFilingSummary(enabled: boolean = true) {
     enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      // Don't retry 403 errors - backend guard issue
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
   });
 }
 
 /**
  * Fetch filing trends (simple ranked list)
+ * IMPORTANT: This endpoint has a backend guard that causes 403 errors.
+ * Always pass enabled={hasSubscription} to prevent unnecessary 403 calls.
  */
 export function useFilingTrends(fromDate: string, enabled: boolean = true) {
   return useQuery({
@@ -101,11 +133,21 @@ export function useFilingTrends(fromDate: string, enabled: boolean = true) {
     enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      // Don't retry 403 errors - backend guard issue
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
   });
 }
 
 /**
  * Sync latest filings mutation
+ * IMPORTANT: This endpoint has a backend guard that causes 403 errors.
+ * Make sure subscription is verified before calling.
  */
 export function useSyncLatestFilings() {
   const queryClient = useQueryClient();
@@ -121,6 +163,14 @@ export function useSyncLatestFilings() {
     },
     onError: (error) => {
       console.error('❌ Sync failed:', error);
+    },
+    retry: (failureCount, error: any) => {
+      // Don't retry 403 errors - backend guard issue
+      if (error?.response?.status === 403) {
+        return false;
+      }
+      // Retry other errors up to 1 time
+      return failureCount < 1;
     },
   });
 }
