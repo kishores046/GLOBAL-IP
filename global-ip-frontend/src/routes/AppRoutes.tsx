@@ -21,6 +21,7 @@ const RequestAdminPage = lazy(() => import('../pages/RequestAdminPage').then(m =
 const FilingTrackerPage = lazy(() => import('../pages/FilingTrackerPage').then(m => ({ default: m.FilingTrackerPage })));
 const PortfolioTrackerPage = lazy(() => import('../pages/PortfolioTrackerPage').then(m => ({ default: m.PortfolioTrackerPage })));
 const SubscriptionsPage = lazy(() => import('../pages/SubscriptionsPage').then(m => ({ default: m.SubscriptionsPage })));
+const CreateSubscriptionPage = lazy(() => import('../pages/CreateSubscriptionPage').then(m => ({ default: m.CreateSubscriptionPage })));
 const AlertsPage = lazy(() => import('../pages/AlertsPage').then(m => ({ default: m.AlertsPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
@@ -29,16 +30,16 @@ const AnalystDashboard = lazy(() => import('../pages/AnalystDashboard').then(m =
 const AdvancedSearchPage = lazy(() => import('../pages/AdvancedSearchPage').then(m => ({ default: m.AdvancedSearchPage })));
 
 // Competitor Tracking Pages
-const CompetitorsPage = lazy(() => import('../pages/competitors/CompetitorsPage').then(m => ({ default: m.default })));
-const CompetitorDetailPage = lazy(() => import('../pages/competitors/CompetitorDetailPage').then(m => ({ default: m.default })));
-const CompetitorFilingsPage = lazy(() => import('../pages/competitors/CompetitorFilingsPage').then(m => ({ default: m.default })));
-const CompetitorSyncPage = lazy(() => import('../pages/competitors/CompetitorSyncPage').then(m => ({ default: m.default })));
-const CompetitorAnalyticsPage = lazy(() => import('../pages/competitors/CompetitorAnalyticsPage').then(m => ({ default: m.default })));
+const CompetitorsPage = lazy(() => import('../pages/competitors/CompetitorsPage').then(m => ({ default: m.CompetitorsPage })));
+const CompetitorDetailPage = lazy(() => import('../pages/competitors/CompetitorDetailPage').then(m => ({ default: m.CompetitorDetailPage })));
+const CompetitorFilingsPage = lazy(() => import('../pages/competitors/CompetitorFilingsPage').then(m => ({ default: m.CompetitorFilingsPage })));
+const CompetitorSyncPage = lazy(() => import('../pages/competitors/CompetitorSyncPage').then(m => ({ default: m.CompetitorSyncPage })));
+const CompetitorAnalyticsPage = lazy(() => import('../pages/competitors/CompetitorAnalyticsPage').then(m => ({ default: m.CompetitorAnalyticsPage })));
 
 const VisualizationEnginePage = lazy(() => import('../pages/VisualizationEnginePage').then(m => ({ default: m.VisualizationEnginePage })));
 const ExportToolsPage = lazy(() => import('../pages/ExportToolsPage').then(m => ({ default: m.ExportToolsPage })));
-const PatentTrendAnalysisPage = lazy(() => import('../pages/PatentTrendAnalysisPage').then(m => ({ default: m.default })));
-const TrademarkTrendAnalysisPage = lazy(() => import('../pages/TrademarkTrendAnalysisPage').then(m => ({ default: m.default })));
+const PatentTrendAnalysisPage = lazy(() => import('../pages/PatentTrendAnalysisPage').then(m => ({ default: m.PatentTrendAnalysisDashboard })));
+const TrademarkTrendAnalysisPage = lazy(() => import('../pages/TrademarkTrendAnalysisPage').then(m => ({ default: m.TrademarkTrendAnalysisPage })));
 const PatentLifecyclePage = lazy(() => import('../pages/PatentLifecyclePage').then(m => ({ default: m.PatentLifecyclePage })));
 const TrademarkLifecyclePage = lazy(() => import('../pages/TrademarkLifecyclePage').then(m => ({ default: m.TrademarkLifecyclePage })));
 const PatentTrackingPage = lazy(() => import('../pages/PatentTrackingPage').then(m => ({ default: m.PatentTrackingPage })));
@@ -54,6 +55,7 @@ const AdminErrorSummary = lazy(() => import('../pages/admin/AdminErrorSummary').
 const AdminUserManagementPage = lazy(() => import('../pages/AdminUserManagementPage').then(m => ({ default: m.AdminUserManagementPage })));
 const AdminRoleRequestsPage = lazy(() => import('../pages/AdminRoleRequestsPage').then(m => ({ default: m.AdminRoleRequestsPage })));
 const AdminAPIKeySettingsPage = lazy(() => import('../pages/AdminAPIKeySettingsPage').then(m => ({ default: m.AdminAPIKeySettingsPage })));
+const AdminAPIKeyManagementPage = lazy(() => import('../pages/AdminAPIKeyManagementPage').then(m => ({ default: m.AdminAPIKeyManagementPage })));
 const AdminSettingsPage = lazy(() => import('../pages/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
 
 // Shared Pages
@@ -62,6 +64,7 @@ const UnifiedSearchResultsPage = lazy(() => import('../pages/UnifiedSearchResult
 const PatentDetailPage = lazy(() => import('../pages/PatentDetailPage').then(m => ({ default: m.PatentDetailPage })));
 const TrademarkDetailPage = lazy(() => import('../pages/TrademarkDetailPage').then(m => ({ default: m.TrademarkDetailPage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ApiKeySettingsPage = lazy(() => import('../pages/ApiKeySettingsPage').then(m => ({ default: m.ApiKeySettingsPage })));
 
 // Loading component
 const LoadingFallback = () => (
@@ -119,7 +122,7 @@ export function AppRoutes() {
         />
         <Route 
           path={ROUTES.API_KEYS} 
-          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminAPIKeySettingsPage />} />} 
+          element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminAPIKeyManagementPage />} />} 
         />
         <Route 
           path={ROUTES.ADMIN_SETTINGS} 
@@ -135,7 +138,11 @@ export function AppRoutes() {
         {/* Competitor Tracking Routes */}
         <Route 
           path={ROUTES.COMPETITORS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorsPage />} />} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
+        />
+        <Route 
+          path="/competitors/analytics/:competitorId" 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingsPage />} />} 
         />
         <Route 
           path={ROUTES.COMPETITOR_DETAIL} 
@@ -148,10 +155,6 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.COMPETITOR_SYNC} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorSyncPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_ANALYTICS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
         />
 
         <Route 
@@ -214,6 +217,10 @@ export function AppRoutes() {
           element={<PrivateRoute><SubscriptionsPage /></PrivateRoute>} 
         />
         <Route 
+          path={ROUTES.CREATE_SUBSCRIPTION} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CreateSubscriptionPage />} />} 
+        />
+        <Route 
           path={ROUTES.ALERTS} 
           element={<PrivateRoute><AlertsPage /></PrivateRoute>} 
         />
@@ -246,6 +253,10 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.SETTINGS} 
           element={<PrivateRoute><SettingsPage /></PrivateRoute>} 
+        />
+        <Route 
+          path={ROUTES.API_KEYS_SETTINGS} 
+          element={<RoleRoute roles={[ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]} element={<ApiKeySettingsPage />} />} 
         />
 
         {/* ==================== 404 NOT FOUND ==================== */}

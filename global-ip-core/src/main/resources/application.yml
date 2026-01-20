@@ -138,12 +138,12 @@ competitor:
 
       # Daily sync (disabled by default)
       daily:
-        enabled: false
+        enabled: true
         cron: "0 0 2 * * *"
 
       # Monthly full sync (disabled by default)
       monthly:
-        enabled: false
+        enabled: true
         cron: "0 0 1 1 * *"
 rest:
   template:

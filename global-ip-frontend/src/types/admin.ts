@@ -168,3 +168,34 @@ export interface UserSearchParams {
   page?: number;     // default: 0
   size?: number;     // default: 10
 }
+
+// ==================== Admin API Key Management Types ====================
+
+export type ApiKeyStatus = 'ACTIVE' | 'REVOKED';
+
+export interface AdminApiKeyResponse {
+  id: string;
+  userId: string;
+  name: string;
+  maskedKey: string; // e.g., "abcd••••••••••1234"
+  status: ApiKeyStatus;
+  createdAt: string; // ISO format
+  lastUsedAt?: string | null; // ISO format, optional
+}
+
+export interface AdminApiKeyListResponse {
+  content: AdminApiKeyResponse[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number; // current page (0-indexed)
+}
+
+export interface AdminApiKeyFilters {
+  page?: number; // default: 0
+  size?: number; // default: 20
+}
+
+export interface RevokeApiKeyRequest {
+  id: string;
+}

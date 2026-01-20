@@ -15,6 +15,7 @@ export const ROUTES = {
   FILING_TRACKER: '/user/filing-tracker',
   PORTFOLIO_TRACKER: '/user/portfolio-tracker',
   SUBSCRIPTIONS: '/user/subscriptions',
+  CREATE_SUBSCRIPTION: '/user/subscriptions/create',
   ALERTS: '/user/alerts',
   PROFILE: '/user/profile',
   
@@ -53,6 +54,7 @@ export const ROUTES = {
   PATENT_TRACKING: '/patents/:publicationNumber/track',
   TRADEMARK_DETAIL: '/trademarks/:trademarkId',
   SETTINGS: '/settings',
+  API_KEYS_SETTINGS: '/settings/api-keys',
 } as const;
 
 // Role definitions

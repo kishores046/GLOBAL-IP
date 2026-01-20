@@ -1,7 +1,10 @@
 package com.teamb.globalipbackend1.controller.competitor;
 
 import com.teamb.globalipbackend1.dto.competitor.*;
+import com.teamb.globalipbackend1.model.subscription.MonitoringType;
+import com.teamb.globalipbackend1.security.SecurityUtil;
 import com.teamb.globalipbackend1.service.patent.competitor.CompetitorFilingService;
+import com.teamb.globalipbackend1.service.subscription.MonitoringSubscriptionService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,89 +25,79 @@ import java.util.Map;
 public class CompetitorFilingController {
 
     private final CompetitorFilingService filingService;
+    private final MonitoringSubscriptionService subscriptionService;
+    private final SecurityUtil securityUtil;
 
-    /**
-     * Trigger filing sync for all active competitors
-     */
+    private void guard() {
+        subscriptionService.requireActiveSubscription(
+                securityUtil.getUserId(),
+                MonitoringType.COMPETITOR_FILING
+        );
+    }
+
     @PostMapping("/sync")
     public SyncResultDTO syncLatestFilings(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fromDate
     ) {
-        log.info("Triggering competitor filing sync from {}", fromDate);
+        guard();
         return filingService.fetchLatestFilings(fromDate);
     }
 
-    /**
-     * Get all filings for a competitor (non-paginated)
-     */
     @GetMapping("/competitor/{competitorId}")
     public List<CompetitorFilingDTO> getFilingsForCompetitor(
             @PathVariable Long competitorId
     ) {
+        guard();
         return filingService.getFilingsForCompetitor(competitorId);
     }
 
-    /**
-     * Get paginated filings for a competitor
-     */
     @GetMapping("/competitor/{competitorId}/page")
     public Page<@NonNull CompetitorFilingDTO> getFilingsForCompetitorPaginated(
             @PathVariable Long competitorId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size
     ) {
+        guard();
         return filingService.getFilingsForCompetitorPaginated(
-                competitorId,
-                page,
-                size
+                competitorId, page, size
         );
     }
 
-    /**
-     * Search filings with filters
-     */
     @PostMapping("/search")
     public Page<@NonNull CompetitorFilingDTO> searchFilings(
             @RequestBody FilingSearchRequest request
     ) {
+        guard();
         return filingService.searchFilings(request);
     }
 
-    /**
-     * Filing trends since a given date
-     */
     @GetMapping("/trends")
     public List<FilingTrendDTO> getFilingTrends(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fromDate
     ) {
-        if (fromDate == null) {
-            fromDate = LocalDate.of(2020, 1, 1);
-        }
-        return filingService.getFilingTrends(fromDate);
+        guard();
+        return filingService.getFilingTrends(
+                fromDate != null ? fromDate : LocalDate.of(2020, 1, 1)
+        );
     }
 
-
-    /**
-     * Monthly filing trends per competitor
-     */
     @GetMapping("/trends/monthly")
     public Map<String, Map<String, Long>> getMonthlyFilingTrends(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fromDate
     ) {
+        guard();
         return filingService.getMonthlyFilingTrends(fromDate);
     }
 
-    /**
-     * Filing summary dashboard stats
-     */
     @GetMapping("/summary")
     public FilingSummaryDTO getFilingSummary() {
+        guard();
         return filingService.getFilingSummary();
     }
 }

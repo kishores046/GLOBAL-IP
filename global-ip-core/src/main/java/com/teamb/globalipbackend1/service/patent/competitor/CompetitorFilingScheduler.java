@@ -1,6 +1,10 @@
 package com.teamb.globalipbackend1.service.patent.competitor;
 
 import com.teamb.globalipbackend1.dto.competitor.SyncResultDTO;
+import com.teamb.globalipbackend1.model.subscription.MonitoringType;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionStatus;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionTier;
+import com.teamb.globalipbackend1.repository.subscription.MonitoringSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,13 +24,29 @@ import java.time.LocalDate;
 public class CompetitorFilingScheduler {
 
     private final CompetitorFilingService filingService;
+    private final MonitoringSubscriptionRepository subscriptionRepository;
 
     /**
      * Weekly sync - Every Monday at 3 AM
+     * BASIC tier only
      */
     @Scheduled(cron = "${competitor.filing.scheduler.weekly.cron:0 0 3 * * MON}")
     public void weeklyFilingSync() {
         log.info("=== Starting weekly competitor filing sync ===");
+
+        boolean hasBasicSubscription =
+                subscriptionRepository
+                        .findByTypeAndStatus(
+                                MonitoringType.COMPETITOR_FILING,
+                                SubscriptionStatus.ACTIVE
+                        )
+                        .stream()
+                        .anyMatch(sub -> sub.getTier() == SubscriptionTier.BASIC);
+
+        if (!hasBasicSubscription) {
+            log.info("No BASIC competitor subscriptions found. Skipping weekly sync.");
+            return;
+        }
 
         LocalDate fromDate = LocalDate.now().minusDays(7);
 
@@ -44,7 +64,8 @@ public class CompetitorFilingScheduler {
     }
 
     /**
-     * Daily sync - Every day at 2 AM (optional, disabled by default)
+     * Daily sync - Every day at 2 AM
+     * PRO + ENTERPRISE only
      */
     @Scheduled(
             cron = "${competitor.filing.scheduler.daily.cron:0 0 2 * * *}",
@@ -56,6 +77,23 @@ public class CompetitorFilingScheduler {
     )
     public void dailyFilingSync() {
         log.info("=== Starting daily competitor filing sync ===");
+
+        boolean hasProOrEnterprise =
+                subscriptionRepository
+                        .findByTypeAndStatus(
+                                MonitoringType.COMPETITOR_FILING,
+                                SubscriptionStatus.ACTIVE
+                        )
+                        .stream()
+                        .anyMatch(sub ->
+                                sub.getTier() == SubscriptionTier.PRO ||
+                                        sub.getTier() == SubscriptionTier.ENTERPRISE
+                        );
+
+        if (!hasProOrEnterprise) {
+            log.info("No PRO/ENTERPRISE competitor subscriptions found. Skipping daily sync.");
+            return;
+        }
 
         LocalDate fromDate = LocalDate.now().minusDays(1);
 
@@ -73,7 +111,8 @@ public class CompetitorFilingScheduler {
     }
 
     /**
-     * Monthly full sync - First day of month at 1 AM (optional)
+     * Monthly full sync - First day of month at 1 AM
+     * ENTERPRISE only
      */
     @Scheduled(
             cron = "${competitor.filing.scheduler.monthly.cron:0 0 1 1 * *}",
@@ -85,6 +124,20 @@ public class CompetitorFilingScheduler {
     )
     public void monthlyFullSync() {
         log.info("=== Starting monthly full competitor filing sync ===");
+
+        boolean hasEnterprise =
+                subscriptionRepository
+                        .findByTypeAndStatus(
+                                MonitoringType.COMPETITOR_FILING,
+                                SubscriptionStatus.ACTIVE
+                        )
+                        .stream()
+                        .anyMatch(sub -> sub.getTier() == SubscriptionTier.ENTERPRISE);
+
+        if (!hasEnterprise) {
+            log.info("No ENTERPRISE competitor subscriptions found. Skipping monthly sync.");
+            return;
+        }
 
         LocalDate fromDate = LocalDate.now().minusMonths(3);
 

@@ -1,5 +1,7 @@
 package com.teamb.globalipbackend1.external.patentsview.querybuilder;
 
+
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;

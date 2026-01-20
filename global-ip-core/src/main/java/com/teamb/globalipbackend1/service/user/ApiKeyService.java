@@ -10,7 +10,10 @@ import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.security.MyUserDetails;
 import com.teamb.globalipbackend1.util.apikey.ApiKeyGenerator;
 import com.teamb.globalipbackend1.util.apikey.ApiKeyHasher;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -30,17 +33,17 @@ public class ApiKeyService {
     private final UserRepository userRepository;
 
     /* CREATE */
-    public CreatedApiKey create(Authentication authentication, String name) {
+    public CreatedApiKey create(Authentication authentication) {
 
         String rawKey = generator.generate();
 
 
-        MyUserDetails userDetails=(MyUserDetails)authentication.getPrincipal();
-        if(userDetails!=null){
-            User user=userRepository.findByEmail(userDetails.getUsername()).orElseThrow(()->new UsernameNotFoundException("No user found by this email"));
+        MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+        if (userDetails != null) {
+            User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("No user found by this email"));
             ApiKey key = new ApiKey();
             key.setUserId(user.getUser_id());
-            key.setName(name);
+            key.setName(user.getUsername());
             key.setKeyHash(hasher.hash(rawKey));
             key.setKeyPrefix(rawKey.substring(0, 6));
             key.setStatus(ApiKeyStatus.ACTIVE);
@@ -69,8 +72,8 @@ public class ApiKeyService {
     /* REVOKE */
     public void revoke(Long keyId, Authentication authentication) {
 
-        MyUserDetails userDetails=(MyUserDetails)authentication.getPrincipal();
-        if(userDetails!=null) {
+        MyUserDetails userDetails = (MyUserDetails) authentication.getPrincipal();
+        if (userDetails != null) {
             User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("No user found by this email"));
             ApiKey key = repository.findByIdAndUserId(keyId, user.getUser_id())
                     .orElseThrow(() -> new RuntimeException("KEY_NOT_FOUND"));
@@ -88,5 +91,18 @@ public class ApiKeyService {
                 .filter(k -> hasher.matches(rawKey, k.getKeyHash()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("INVALID_API_KEY"));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<@NonNull ApiKey> listAllForAdmin(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
+    @Transactional
+    public void adminRevoke(Long keyId) {
+        ApiKey key = repository.findById(keyId)
+                .orElseThrow(() -> new RuntimeException("KEY_NOT_FOUND"));
+
+        key.setStatus(ApiKeyStatus.REVOKED);
     }
 }

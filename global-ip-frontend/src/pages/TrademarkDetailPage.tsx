@@ -411,3 +411,5 @@ export function TrademarkDetailPage() {
     </div>
   );
 }
+
+export default TrademarkDetailPage;

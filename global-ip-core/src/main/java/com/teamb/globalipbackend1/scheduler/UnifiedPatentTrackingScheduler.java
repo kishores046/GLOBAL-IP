@@ -3,7 +3,12 @@ package com.teamb.globalipbackend1.scheduler;
 import com.teamb.globalipbackend1.dto.epo.EpoPatentDetailDto;
 import com.teamb.globalipbackend1.dto.lifecycle.ApplicationLifecycleDto;
 import com.teamb.globalipbackend1.external.patentsview.dto.PatentDetailDto;
+import com.teamb.globalipbackend1.model.subscription.MonitoringSubscription;
+import com.teamb.globalipbackend1.model.subscription.MonitoringType;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionStatus;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionTier;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferences;
+import com.teamb.globalipbackend1.repository.subscription.MonitoringSubscriptionRepository;
 import com.teamb.globalipbackend1.repository.tracking.UserTrackingPreferencesRepository;
 import com.teamb.globalipbackend1.service.patent.detail.EpoDetailsService;
 import com.teamb.globalipbackend1.service.patent.detail.PatentsViewDetailsService;
@@ -37,6 +42,7 @@ public class UnifiedPatentTrackingScheduler {
     private final PatentLifecyclePersistenceService lifecyclePersistenceService;
     private final PatentTrackingNotificationService notificationService;
     private final PatentSourceDetector sourceDetector;
+    private final MonitoringSubscriptionRepository subscriptionRepository;
 
     /**
      * Check for patent updates every hour
@@ -48,8 +54,41 @@ public class UnifiedPatentTrackingScheduler {
         log.info("Starting unified patent tracking check");
 
         try {
-            // Get all tracked patents
-            List<UserTrackingPreferences> allTracking = trackingRepository.findAll();
+
+            var activeSubs =
+                    subscriptionRepository.findByTypeAndStatus(
+                            MonitoringType.LEGAL_STATUS,
+                            SubscriptionStatus.ACTIVE
+                    );
+
+            if (activeSubs.isEmpty()) {
+                log.info("No active LEGAL_STATUS subscriptions. Skipping scheduler.");
+                return;
+            }
+
+
+            boolean allowHourly =
+                    activeSubs.stream().anyMatch(s ->
+                            s.getTier() == SubscriptionTier.PRO ||
+                                    s.getTier() == SubscriptionTier.ENTERPRISE
+                    );
+
+            if (!allowHourly) {
+                log.debug("Only BASIC subscriptions present. Skipping hourly execution.");
+                return;
+            }
+
+            List<String> allowedUsers =
+                    activeSubs.stream()
+                            .map(MonitoringSubscription::getUserId)
+                            .distinct()
+                            .toList();
+
+            // Get all tracked patents (FILTERED)
+            List<UserTrackingPreferences> allTracking =
+                    trackingRepository.findAll().stream()
+                            .filter(t -> allowedUsers.contains(t.getId().getUserId()))
+                            .toList();
 
             // Group by patent ID
             Map<String, List<UserTrackingPreferences>> patentGroups = allTracking.stream()
@@ -95,12 +134,28 @@ public class UnifiedPatentTrackingScheduler {
         log.info("Checking renewal reminders for all patents");
 
         try {
-            List<UserTrackingPreferences> trackingWithRenewals = trackingRepository.findAll()
-                    .stream()
-                    .filter(UserTrackingPreferences::getTrackRenewalsExpiry)
-                    .toList();
+            var activeSubs =
+                    subscriptionRepository.findByTypeAndStatus(
+                            MonitoringType.LEGAL_STATUS,
+                            SubscriptionStatus.ACTIVE
+                    );
 
-            log.info("Found {} patents with renewal tracking enabled", trackingWithRenewals.size());
+            if (activeSubs.isEmpty()) {
+                log.info("No active LEGAL_STATUS subscriptions. Skipping renewal reminders.");
+                return;
+            }
+
+            List<String> allowedUsers =
+                    activeSubs.stream()
+                            .map(MonitoringSubscription::getUserId)
+                            .distinct()
+                            .toList();
+
+            List<UserTrackingPreferences> trackingWithRenewals =
+                    trackingRepository.findAll().stream()
+                            .filter(UserTrackingPreferences::getTrackRenewalsExpiry)
+                            .filter(t -> allowedUsers.contains(t.getId().getUserId()))
+                            .toList();
 
             for (UserTrackingPreferences tracking : trackingWithRenewals) {
                 String patentId = tracking.getId().getPatentId();

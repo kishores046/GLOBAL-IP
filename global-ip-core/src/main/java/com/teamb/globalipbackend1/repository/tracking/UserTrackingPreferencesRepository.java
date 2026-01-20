@@ -2,6 +2,7 @@ package com.teamb.globalipbackend1.repository.tracking;
 
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferences;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferencesId;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserTrackingPreferencesRepository extends JpaRepository<UserTrackingPreferences, UserTrackingPreferencesId> {
+public interface UserTrackingPreferencesRepository extends JpaRepository<@NonNull UserTrackingPreferences, @NonNull UserTrackingPreferencesId> {
 
     /**
      * Find all tracking preferences for a specific user

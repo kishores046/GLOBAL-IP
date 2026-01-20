@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_competitor_id", columnList = "competitorId"),
                 @Index(name = "idx_patent_id", columnList = "patentId", unique = true),
-                @Index(name = "idx_pub_date", columnList = "publicationDate")
         })
 @Getter @Setter
 @NoArgsConstructor
@@ -37,7 +36,7 @@ public class CompetitorFiling {
     @Column(nullable = false, length = 500)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate publicationDate;
 
     @Column(length = 10)

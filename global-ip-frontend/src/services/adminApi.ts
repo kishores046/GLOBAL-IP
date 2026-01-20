@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import api from './api';
 import type {
   AdminOverviewDto,
   ApiHealthStatus,
@@ -12,6 +13,8 @@ import type {
   ApiUsageLogDto,
   LogFilters,
   PageResponse,
+  AdminApiKeyListResponse,
+  AdminApiKeyFilters,
 } from '../types/admin';
 
 const BASE_URL = 'http://localhost:8080/api/admin';
@@ -250,6 +253,36 @@ export const adminApi = {
   getDashboardCounts: async () => {
     const { data } = await adminApiClient.get('/dashboard/counts');
     return data;
+  },
+
+  // ==================== API Key Management APIs ====================
+
+  /**
+   * Get all API keys with pagination and filtering
+   * @param filters - Filter options (page, size for pagination)
+   * @returns Promise<AdminApiKeyListResponse>
+   */
+  getAdminApiKeys: async (
+    filters: AdminApiKeyFilters = {}
+  ): Promise<AdminApiKeyListResponse> => {
+    const params: Record<string, number> = {
+      page: filters.page ?? 0,
+      size: filters.size ?? 20,
+    };
+
+    const { data } = await api.get('/settings/api-keys/admin', {
+      params,
+    });
+    return data;
+  },
+
+  /**
+   * Revoke an API key by ID
+   * @param keyId - The API key ID to revoke
+   * @returns Promise<void>
+   */
+  revokeApiKey: async (keyId: string): Promise<void> => {
+    await api.delete(`/settings/api-keys/admin/${keyId}`);
   },
 };
 

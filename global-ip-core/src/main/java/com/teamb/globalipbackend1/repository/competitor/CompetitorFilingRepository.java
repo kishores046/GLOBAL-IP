@@ -20,8 +20,15 @@ public interface CompetitorFilingRepository extends JpaRepository<@NonNull Compe
 
     Optional<CompetitorFiling> findByPatentId(String patentId);
 
-    // Basic queries
-    List<CompetitorFiling> findByCompetitorIdOrderByPublicationDateDesc(Long competitorId);
+    @Query("""
+   SELECT f FROM CompetitorFiling f
+   WHERE f.competitorId = :competitorId
+   ORDER BY f.publicationDate DESC NULLS LAST
+""")
+    List<CompetitorFiling> findByCompetitorIdOrderByPublicationDateDesc(
+            @Param("competitorId") Long competitorId
+    );
+
 
     Page<@NonNull CompetitorFiling> findByCompetitorIdOrderByPublicationDateDesc(
             Long competitorId,

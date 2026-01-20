@@ -1,7 +1,12 @@
-import { useState } from "react";
-import { Bell, AlertTriangle, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, AlertTriangle, Settings, Lock } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { motion } from "motion/react";
+import { useSubscription } from "../context/SubscriptionContext";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { useAuth } from "../context/AuthContext";
+import { SubscriptionUpgradeModal } from "../components/subscription/SubscriptionUpgradeModal";
+import { toast } from "sonner";
 
 interface Alert {
   id: string;
@@ -44,10 +49,89 @@ const mockAlerts: Alert[] = [
 ];
 
 export function AlertsPage() {
-  const [alerts] = useState<Alert[]>(mockAlerts);
+  const { isActive, subscription, tierLimits } = useSubscription();
+  const { user } = useAuth();
+  const { shouldConnect, subscribeToPatentEvents, subscribeToCompetitorEvents, connect, disconnect } =
+    useWebSocket();
+  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [doNotDisturb, setDoNotDisturb] = useState(false);
   const [showManageRulesModal, setShowManageRulesModal] = useState(false);
   const [showNotificationSettingsModal, setShowNotificationSettingsModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Connect WebSocket if subscription allows real-time alerts
+  useEffect(() => {
+    if (shouldConnect && user?.userId) {
+      const token = localStorage.getItem('jwt_token');
+      if (token) {
+        connect(user.userId, token);
+
+        // Subscribe to patent events
+        const unsubscribePatent = subscribeToPatentEvents((event) => {
+          console.log('Patent event received:', event);
+          toast.info(`Patent alert: ${event.type}`, {
+            description: JSON.stringify(event.data),
+          });
+          // Update alerts state with new event
+          // This is a placeholder - implement based on your alert structure
+        });
+
+        // Subscribe to competitor events
+        const unsubscribeCompetitor = subscribeToCompetitorEvents((event) => {
+          console.log('Competitor event received:', event);
+          toast.info(`Competitor alert: ${event.type}`, {
+            description: JSON.stringify(event.data),
+          });
+          // Update alerts state with new event
+        });
+
+        return () => {
+          unsubscribePatent();
+          unsubscribeCompetitor();
+          disconnect();
+        };
+      }
+    } else if (!shouldConnect) {
+      disconnect();
+    }
+  }, [shouldConnect, user?.userId, connect, disconnect, subscribeToPatentEvents, subscribeToCompetitorEvents]);
+
+  // Hide dashboard if no subscription
+  if (!isActive) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 overflow-auto">
+            <div className="p-8">
+              <div className="max-w-2xl mx-auto mt-16">
+                <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-12 border border-blue-200/50 shadow-xl text-center">
+                  <div className="inline-block p-4 bg-slate-100 rounded-full mb-6">
+                    <Lock className="w-12 h-12 text-slate-400" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-3">Alerts Dashboard Unavailable</h2>
+                  <p className="text-slate-600 mb-8">
+                    You need an active subscription to access the alerts dashboard.
+                  </p>
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+                  >
+                    Create Subscription
+                  </button>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+        <SubscriptionUpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          showCreateOption={true}
+        />
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,8 +161,22 @@ export function AlertsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-8"
             >
-              <h1 className="text-4xl text-blue-900 mb-2">Alerts</h1>
-              <p className="text-slate-600">View and manage your subscription alerts</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl text-blue-900 mb-2">Alerts</h1>
+                  <p className="text-slate-600">
+                    {subscription?.tier === 'BASIC'
+                      ? 'Weekly summary only'
+                      : 'Live WebSocket updates and real-time alerts'}
+                  </p>
+                </div>
+                {tierLimits?.realTimeAlerts && (
+                  <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <Bell className="w-4 h-4" />
+                    Real-time Active
+                  </span>
+                )}
+              </div>
             </motion.div>
 
             {/* Stats Cards */}
@@ -338,6 +436,13 @@ export function AlertsPage() {
           </div>
         </div>
       )}
+
+      {/* Subscription Upgrade Modal */}
+      <SubscriptionUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        showCreateOption={!isActive}
+      />
     </div>
   );
 }

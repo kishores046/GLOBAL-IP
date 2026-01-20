@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Shield, Activity, Key, Settings, LogOut, LineChart, AlertTriangle, FileText } from "lucide-react";
+import { LayoutDashboard, Users, Shield, Activity, Key, LogOut, LineChart, AlertTriangle, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ROUTES } from "../../routes/routeConfig";
@@ -18,7 +18,6 @@ export function AdminSidebar() {
     if (location.pathname === ROUTES.USER_MANAGEMENT) return "users";
     if (location.pathname === ROUTES.ROLE_REQUESTS) return "rbac";
     if (location.pathname === ROUTES.API_KEYS) return "api-keys";
-    if (location.pathname === ROUTES.ADMIN_SETTINGS) return "settings";
     return "dashboard";
   };
   
@@ -66,9 +65,6 @@ export function AdminSidebar() {
       case "api-keys":
         navigate(ROUTES.API_KEYS);
         break;
-      case "settings":
-        navigate(ROUTES.ADMIN_SETTINGS);
-        break;
       default:
         break;
     }
@@ -91,7 +87,6 @@ export function AdminSidebar() {
     { id: "users", label: "User Management", icon: Users },
     { id: "rbac", label: "Role-Based Access Control", icon: Shield },
     { id: "api-keys", label: "API Key Settings", icon: Key },
-    { id: "settings", label: "Admin Settings", icon: Settings },
   ];
 
   return (

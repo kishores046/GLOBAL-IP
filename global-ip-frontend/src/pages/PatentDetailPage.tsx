@@ -20,6 +20,10 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { patentDetailAPI, GlobalPatentDetailDto } from "../services/api";
 import { CitationSummary } from "../components/CitationSummary";
 import { trackingApi } from "../services/trackingAPI";
+import subscriptionApi from "../services/subscriptionApi";
+import { useSubscription } from "../context/SubscriptionContext";
+import { SubscriptionUpgradeModal } from "../components/subscription/SubscriptionUpgradeModal";
+import { toast } from "sonner";
 
 export function PatentDetailPage() {
   const { publicationNumber } = useParams<{ publicationNumber: string }>();
@@ -33,6 +37,35 @@ export function PatentDetailPage() {
   const [abstractExpanded, setAbstractExpanded] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [trackingLoading, setTrackingLoading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const { isActive, checkLimit, getLimitDisplay, tierLimits, usage, refreshSubscription } = useSubscription();
+
+  const handleSubscriptionSuccess = async () => {
+    // Refresh subscription state after user creates/upgrades subscription
+    await refreshSubscription();
+    // Try to enable tracking again
+    if (patent) {
+      try {
+        setTrackingLoading(true);
+        await trackingApi.savePreferences({
+          patentId: patent.publicationNumber,
+          trackLifecycleEvents: true,
+          trackStatusChanges: true,
+          trackRenewalsExpiry: true,
+          enableDashboardAlerts: true,
+          enableEmailNotifications: false
+        });
+        setIsTracking(true);
+        toast.success('Patent tracking enabled successfully!');
+      } catch (err: any) {
+        console.error('Error enabling tracking after subscription:', err);
+        toast.error('Failed to enable tracking. Please try again.');
+      } finally {
+        setTrackingLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     loadPatentDetails();
@@ -114,6 +147,31 @@ export function PatentDetailPage() {
   const handleTrackingClick = async () => {
     if (!patent) return;
 
+    // Check subscription by calling the API directly
+    if (!isTracking) {
+      try {
+        const subscription = await subscriptionApi.getActiveSubscription();
+        
+        // If no active subscription, show upgrade modal
+        if (!subscription) {
+          setShowUpgradeModal(true);
+          return;
+        }
+
+        // Check tier limits based on actual subscription
+        if (checkLimit('patents', 1)) {
+          toast.error(`Your plan allows tracking up to ${tierLimits?.maxPatentsTracked || 10} patents`);
+          setShowUpgradeModal(true);
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking subscription:', err);
+        // If error checking subscription, show upgrade modal
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+
     if (isTracking) {
       // Already tracking - navigate to config page
       navigate(`/patents/${patent.publicationNumber}/track`);
@@ -129,12 +187,19 @@ export function PatentDetailPage() {
           enableDashboardAlerts: true,
           enableEmailNotifications: false
         });
+
         setIsTracking(true);
         navigate(`/patents/${patent.publicationNumber}/track`);
       } catch (err: any) {
         console.error('Error enabling tracking:', err);
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to enable tracking';
-        alert(`Failed to enable tracking: ${errorMessage}`);
+        
+        // Check if it's a subscription error
+        if (err.isSubscriptionError || err.response?.status === 403) {
+          setShowUpgradeModal(true);
+        } else {
+          const errorMessage = err.response?.data?.message || err.message || 'Failed to enable tracking';
+          toast.error(`Failed to enable tracking: ${errorMessage}`);
+        }
       } finally {
         setTrackingLoading(false);
       }
@@ -279,7 +344,11 @@ export function PatentDetailPage() {
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                     } disabled:opacity-50`}
-                    title={isTracking ? "Configure tracking preferences" : "Enable tracking for this patent"}
+                    title={
+                      isTracking
+                        ? 'Configure tracking preferences'
+                        : `Enable tracking for this patent${usage ? ` (${getLimitDisplay('patents')})` : ''}`
+                    }
                   >
                     {trackingLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -522,6 +591,16 @@ export function PatentDetailPage() {
           </div>
         </main>
       </div>
+
+      {/* Subscription Upgrade Modal */}
+      <SubscriptionUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        showCreateOption={!isActive}
+        onSubscriptionSuccess={handleSubscriptionSuccess}
+      />
     </div>
   );
 }
+
+export default PatentDetailPage;

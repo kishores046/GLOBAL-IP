@@ -1,11 +1,13 @@
-import { LayoutDashboard, Search, FileText, Bookmark, Bell, Settings, LogOut, BarChart3, Network, Users, User, Radio } from "lucide-react";
+import { LayoutDashboard, Search, Bookmark, Bell, LogOut, BarChart3, Network, Users, User, Radio, Key, Plus, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ROUTES } from "../../routes/routeConfig";
+import { useAuth } from "../../context/AuthContext";
+import { ROUTES, ROLES } from "../../routes/routeConfig";
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasRole } = useAuth();
   
   // Determine if user is an analyst - check localStorage first, then pathname
   const [isAnalyst, setIsAnalyst] = useState(() => {
@@ -24,23 +26,37 @@ export function Sidebar() {
     }
   }, [location.pathname]);
   
+  // Route matching helper
+  const matchRoute = (pathname: string, pattern: string): boolean => pathname.includes(pattern);
+  
+  // Route match patterns
+  const routePatterns: Record<string, string[]> = {
+    'advanced-search': ['/analyst/advanced-search'],
+    'visualization': ['/analyst/visualization'],
+    'patent-trends': ['/analyst/trends/patents'],
+    'trademark-trends': ['/analyst/trends/trademarks'],
+    'patent-lifecycle': ['/analyst/lifecycle/patents'],
+    'trademark-lifecycle': ['/analyst/lifecycle/trademarks'],
+    'competitor-analytics': ['/competitors/analytics'],
+    'competitor-management': ['/competitors'],
+    'create-subscription': ['/user/subscriptions/create'],
+    'subscriptions': ['/user/subscriptions'],
+    'tracker': ['/user/filing-tracker'],
+    'alerts': ['/user/alerts'],
+    'profile': ['/user/profile'],
+    'api-keys': ['/settings/api-keys'],
+    'settings': ['/settings'],
+    'search': ['/search'],
+  };
+  
   // Determine active item based on current route
-  const getActiveItem = () => {
-    if (location.pathname.includes("/analyst/advanced-search")) return "advanced-search";
-    if (location.pathname.includes("/analyst/visualization")) return "visualization";
-    if (location.pathname.includes("/competitors/analytics")) return "competitor-analytics";
-    if (location.pathname.includes("/competitors")) return "competitor-management";
-    if (location.pathname.includes("/analyst/trends/patents")) return "patent-trends";
-    if (location.pathname.includes("/analyst/trends/trademarks")) return "trademark-trends";
-    if (location.pathname.includes("/analyst/lifecycle/patents")) return "patent-lifecycle";
-    if (location.pathname.includes("/analyst/lifecycle/trademarks")) return "trademark-lifecycle";
-    if (location.pathname.includes("/monitoring")) return "monitoring";
-    if (location.pathname.includes("/search")) return "search";
-    if (location.pathname.includes("/user/filing-tracker")) return "tracker";
-    if (location.pathname.includes("/user/subscriptions")) return "subscriptions";
-    if (location.pathname.includes("/user/alerts")) return "alerts";
-    if (location.pathname.includes("/user/profile")) return "profile";
-    if (location.pathname.includes("/settings")) return "settings";
+  const getActiveItem = (): string => {
+    const pathname = location.pathname;
+    for (const [route, patterns] of Object.entries(routePatterns)) {
+      if (patterns.some((pattern) => matchRoute(pathname, pattern))) {
+        return route;
+      }
+    }
     return "dashboard";
   };
   
@@ -98,9 +114,6 @@ export function Sidebar() {
       case "tracked-patents":
         navigate(ROUTES.TRACKED_PATENTS);
         break;
-      case "monitoring":
-        navigate(ROUTES.MONITORING);
-        break;
       case "search":
         navigate(ROUTES.IP_SEARCH);
         break;
@@ -110,14 +123,17 @@ export function Sidebar() {
       case "subscriptions":
         navigate(ROUTES.SUBSCRIPTIONS);
         break;
+      case "create-subscription":
+        navigate(ROUTES.CREATE_SUBSCRIPTION);
+        break;
       case "alerts":
         navigate(ROUTES.ALERTS);
         break;
       case "profile":
         navigate(ROUTES.PROFILE);
         break;
-      case "settings":
-        navigate(ROUTES.SETTINGS);
+      case "api-keys":
+        navigate(ROUTES.API_KEYS_SETTINGS);
         break;
       default:
         // Stay on current page
@@ -129,11 +145,14 @@ export function Sidebar() {
   const userMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "search", label: "Global IP Search", icon: Search },
-    { id: "tracker", label: "Filing Tracker", icon: FileText },
     { id: "subscriptions", label: "My Subscriptions", icon: Bookmark },
     { id: "alerts", label: "Alerts", icon: Bell },
     { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
+    // Show API Keys if user has allowed roles
+    ...(hasRole([ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]) 
+      ? [{ id: "api-keys", label: "API Keys", icon: Key }]
+      : []
+    ),
   ];
 
   // Menu items for analysts
@@ -148,9 +167,13 @@ export function Sidebar() {
     { id: "patent-lifecycle", label: "Patent Lifecycle", icon: FileText },
     { id: "trademark-lifecycle", label: "Trademark Lifecycle", icon: FileText },
     { id: "tracked-patents", label: "Tracked Patents", icon: Radio },
-    { id: "monitoring", label: "Monitoring", icon: Radio },
+    { id: "create-subscription", label: "Create Subscription", icon: Plus },
     { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
+    // Show API Keys if user has allowed roles
+    ...(hasRole([ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]) 
+      ? [{ id: "api-keys", label: "API Keys", icon: Key }]
+      : []
+    ),
   ];
 
   const menuItems = isAnalyst ? analystMenuItems : userMenuItems;

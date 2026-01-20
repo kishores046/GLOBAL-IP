@@ -4,7 +4,7 @@
  */
 
 import { useParams } from 'react-router-dom';
-import { useCompetitorById } from '../hooks/useCompetitors';
+import { useCompetitorById } from '../../hooks/useCompetitors';
 
 export function CompetitorDetailPage() {
   const { id } = useParams<{ id: string }>();

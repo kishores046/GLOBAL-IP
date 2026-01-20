@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
+@PreAuthorize("hasAnyRole('ANALYST','ADMIN','USER')")
 @RequestMapping("/api/analyst/tracking")
 public class UnifiedPatentTrackingController {
 

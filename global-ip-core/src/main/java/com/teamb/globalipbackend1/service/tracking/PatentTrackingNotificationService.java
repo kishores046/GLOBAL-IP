@@ -1,7 +1,11 @@
 package com.teamb.globalipbackend1.service.tracking;
 
 import com.teamb.globalipbackend1.dto.tracking.PatentTrackingEventDto;
+import com.teamb.globalipbackend1.model.subscription.MonitoringType;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionStatus;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionTier;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferences;
+import com.teamb.globalipbackend1.repository.subscription.MonitoringSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -17,11 +21,35 @@ public class PatentTrackingNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final TrackingPreferencesService trackingPreferencesService;
+    private final MonitoringSubscriptionRepository subscriptionRepository;
 
     /**
      * Send notification to a specific user
      */
     public void sendUserNotification(String userId, PatentTrackingEventDto event) {
+
+        var subscriptionOpt =
+                subscriptionRepository.findByUserIdAndTypeAndStatus(
+                        userId,
+                        MonitoringType.LEGAL_STATUS,
+                        SubscriptionStatus.ACTIVE
+                );
+
+        if (subscriptionOpt.isEmpty()) {
+            log.debug("User={} has no active LEGAL_STATUS subscription. Skipping notification.", userId);
+            return;
+        }
+
+        var subscription = subscriptionOpt.get();
+
+
+        if (subscription.getTier() == SubscriptionTier.BASIC &&
+                ("EXPIRY_WARNING".equals(event.eventType()) ||
+                        "RENEWAL_REMINDER".equals(event.eventType()))) {
+            log.debug("Skipping {} for BASIC user={}", event.eventType(), userId);
+            return;
+        }
+
         String destination = "/user/" + userId + "/queue/patent-events";
 
         log.info("Sending notification to user={}, destination={}, event={}",
@@ -53,7 +81,7 @@ public class PatentTrackingNotificationService {
         for (UserTrackingPreferences prefs : trackingUsers) {
             String userId = prefs.getId().getUserId();
 
-            // Check if user has enabled the relevant tracking preference
+            // Existing preference check (UNCHANGED)
             if (shouldNotifyUser(prefs, event.eventType())) {
                 sendUserNotification(userId, event);
             }

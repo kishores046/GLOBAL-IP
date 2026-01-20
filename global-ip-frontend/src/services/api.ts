@@ -70,13 +70,29 @@ api.interceptors.response.use(
         }
       }
       
-      // Handle 403 Forbidden - user doesn't have required role
+      // Handle 403 Forbidden - user doesn't have required role or subscription
       if (error.response.status === 403) {
         console.error('403 Forbidden - User does not have required permissions');
         console.error('403 Error details:', error.response.data);
         console.error('Request URL:', error.config?.url);
         console.error('Request method:', error.config?.method);
         console.error('Auth header:', error.config?.headers?.Authorization);
+        
+        // Check if this is a subscription-related error
+        const errorData = error.response.data;
+        const errorMessage = typeof errorData === 'string' ? errorData : errorData?.message || '';
+        const errorType = errorData?.errorType || errorData?.type || '';
+        
+        if (
+          errorMessage.includes('subscription') ||
+          errorMessage.includes('Subscription') ||
+          errorType === 'SubscriptionRequiredException' ||
+          errorType === 'TierLimitExceededException'
+        ) {
+          // Mark this as a subscription error for handling by components
+          error.isSubscriptionError = true;
+          error.subscriptionErrorType = errorType || 'SubscriptionRequiredException';
+        }
       }
     } else if (error.request) {
       console.error('No response received from backend:', error.request);

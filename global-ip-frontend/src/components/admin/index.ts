@@ -8,3 +8,6 @@ export { HealthStatusCard } from './HealthStatusCard';
 export { StatusBadge } from './StatusBadge';
 export { ServiceBadge } from './ServiceBadge';
 export { LoadingSkeleton, TableLoadingSkeleton } from './LoadingSkeleton';
+export { CreateApiKeyModal } from './CreateApiKeyModal';
+export { RevokeApiKeyModal } from './RevokeApiKeyModal';
+export { ApiKeysTable } from './ApiKeysTable';

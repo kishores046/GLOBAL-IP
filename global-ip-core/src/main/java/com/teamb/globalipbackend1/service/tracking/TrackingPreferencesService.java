@@ -1,8 +1,11 @@
 package com.teamb.globalipbackend1.service.tracking;
 
 import com.teamb.globalipbackend1.dto.tracking.TrackingPreferencesDto;
+import com.teamb.globalipbackend1.model.subscription.MonitoringType;
+import com.teamb.globalipbackend1.model.subscription.SubscriptionStatus;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferences;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferencesId;
+import com.teamb.globalipbackend1.repository.subscription.MonitoringSubscriptionRepository;
 import com.teamb.globalipbackend1.repository.tracking.UserTrackingPreferencesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,7 @@ import java.util.Optional;
 public class TrackingPreferencesService {
 
     private final UserTrackingPreferencesRepository repository;
+    private final MonitoringSubscriptionRepository subscriptionRepository;
 
     /**
      * Save or update tracking preferences for a patent
@@ -26,6 +30,16 @@ public class TrackingPreferencesService {
     @Transactional
     public TrackingPreferencesDto saveTrackingPreferences(String userId, TrackingPreferencesDto dto) {
         log.info("Saving tracking preferences for user={}, patent={}", userId, dto.patentId());
+
+        subscriptionRepository
+                .findByUserIdAndTypeAndStatus(
+                        userId,
+                        MonitoringType.LEGAL_STATUS,
+                        SubscriptionStatus.ACTIVE
+                )
+                .orElseThrow(() -> new IllegalStateException(
+                        "Create Legal Status Monitoring subscription first"
+                ));
 
         UserTrackingPreferencesId id = new UserTrackingPreferencesId(userId, dto.patentId());
 
