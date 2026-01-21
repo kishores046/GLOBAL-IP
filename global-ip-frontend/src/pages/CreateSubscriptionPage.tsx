@@ -30,21 +30,18 @@ const TIER_OPTIONS = [
   {
     id: 'BASIC',
     label: 'Basic',
-    price: '$9.99',
     features: ['Core features', 'Email support', '100 requests/month'],
     color: 'blue',
   },
   {
     id: 'PRO',
     label: 'Professional',
-    price: '$29.99',
     features: ['All Basic features', 'Priority support', '1000 requests/month', 'Advanced analytics'],
     color: 'purple',
   },
   {
     id: 'ENTERPRISE',
     label: 'Enterprise',
-    price: 'Custom',
     features: ['All features', '24/7 support', 'Unlimited requests', 'Custom integrations'],
     color: 'amber',
   },
@@ -200,8 +197,6 @@ export function CreateSubscriptionPage() {
                         )}
                       </div>
 
-                      <p className="text-xl font-bold text-slate-900 mb-4">{tier.price}</p>
-
                       <ul className="space-y-2">
                         {tier.features.map((feature) => (
                           <li key={feature} className="flex items-start gap-2">
@@ -295,7 +290,7 @@ export function CreateSubscriptionPage() {
                       <strong>Type:</strong> {selectedType?.label}
                     </p>
                     <p>
-                      <strong>Tier:</strong> {selectedTier?.label} {selectedTier?.price}
+                      <strong>Tier:</strong> {selectedTier?.label}
                     </p>
                     <p>
                       <strong>Frequency:</strong>{' '}
