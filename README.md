@@ -22,10 +22,13 @@ integrated inside a single monorepo.
 
 ## Design Principles
 
-- Security-first role management (no role escalation at registration)
-- Backend-driven authorization (RBAC enforced server-side)
-- API normalization for future IP data sources (WIPO, EPO, TMView)
-- Clean separation of concerns between authentication, authorization, and business logic
+-**Security-first** role management (no role escalation at registration)
+-**Backend-driven** authorization (RBAC enforced server-side)
+-**API normalization** for future IP data sources (USPTO, EPO, PatentsView)
+-**Clean separation** of concerns between authentication, authorization, and business logic
+-**Clear separation** of auth, business logic, analytics, and tracking
+-**Cache-heavy, compute-light** architecture for analytics
+
 
 
 ---
@@ -47,17 +50,49 @@ The platform enables:
 
 GLOBAL-IP/
 │
-├── global-ip-backend/
+├── global-ip-core/
 │   ├── src/main/java/...
-│   ├── src/main/resources/
-│   ├── ddl_Role.sql
-│   ├── ddl_User.sql
-│   ├── ddl_RoleRequest.sql   
+│   ├── src/main/resources/ 
 │   ├── .env.example
 │   └── pom.xml
-│
+├── patents-trens-service/
+│   ├── src/main/java/...
+│   ├── src/main/resources/ 
+│   └── pom.xml
+├── trademarks-mock-service/
+│   ├── src/main/java/...
+│   ├── src/main/resources/ 
+│   └── pom.xml
 └── global-ip-frontend/
     └── Global_IP_Intelligence_Platform_Team_B/
+
+---
+
+## 👥 Roles & Capabilities
+
+### USER
+- Keyword-based patent & trademark search
+- View patent/trademark details
+- Bookmark IP assets
+- Track basic activity
+
+### ANALYST
+- Advanced patent & trademark search
+- Patent & trademark lifecycle tracking
+- Citation network visualization
+- Competitor filing analysis
+- Trend analysis & dashboards
+- Subscription-based monitoring
+- Real-time WebSocket alerts
+
+### ADMIN
+- Full system access
+- User & role management
+- Role request approvals
+- API key management
+- API usage logs
+- Health & error monitoring
+- Subscription oversight
 
 ---
 
@@ -71,6 +106,9 @@ GLOBAL-IP/
 - JWT-based session management
 - Custom success handlers for OAuth2
 - Secure REST APIs protected by JWT filters
+- **API Key authentication**
+  - For company automations
+  - Scoped & auditable
 
 ### **2. Role-Based Access Control (RBAC)**
 - USER → basic dashboard access
@@ -91,6 +129,137 @@ To ensure security and controlled privilege escalation, the platform follows an 
    - REJECT → no role change
 6. All actions are audited with timestamps and reviewer details
 
+## 4.Subscription System
+
+- Feature access is gated by **active subscriptions**
+- Supports monitoring types such as:
+  - Patent tracking
+  - Competitor filings
+  - Trend analytics
+- Enforced server-side for all APIs
+
+---
+
+## 5. Search Capabilities
+
+### Unified Search
+- Single endpoint for patents & trademarks
+- Keyword search (USER)
+- Advanced filters (ANALYST / ADMIN)
+
+### Data Sources
+- **Patents**
+  - PatentsView API
+  - EPO OPS API
+  - EPO Bulk Back & Front Files
+- **Trademarks**
+  - USPTO Bulk Data
+  - TMView-compatible model
+
+---
+
+## 6. Analytics & Trends
+
+### Patent Analytics
+- Filing trends
+- Grant trends
+- Top technologies
+- Top assignees
+- Geographic distribution
+- Patent type distribution
+- Claim complexity
+- Time-to-grant analysis
+- Technology evolution
+- Citation metrics
+
+### Trademark Analytics
+- Status distribution
+- Class distribution
+- Country-wise trends
+- Lifecycle summaries
+
+### Unified Analytics
+- Cross-source filing trends
+- Country-level aggregation (EPO + PatentsView)
+
+---
+
+## 7. Citation Intelligence
+
+- Backward & forward citation networks
+- Force-directed graph support
+- Citation metrics & insights
+- Controlled depth to prevent graph explosion
+- Cached for performance
+
+---
+
+## 8. Lifecycle Tracking
+
+- Patent application lifecycle visualization
+- Tracked patent portfolios
+- Subscription-controlled tracking
+- Persistent lifecycle snapshots
+
+---
+
+## 9. Competitor Intelligence
+
+- Competitor registry
+- Filing synchronization
+- Filing trend analysis
+- Monthly & yearly summaries
+- Searchable competitor filings
+- Subscription-protected endpoints
+
+---
+
+## 10. Real-Time Tracking & Alerts
+
+- Patent legal status tracking
+- Source auto-detection (USPTO / EPO)
+- User-defined tracking preferences
+- WebSocket-ready event architecture
+
+---
+
+## 11. IP Assets
+
+- Bookmarked patents
+- Bookmarked trademarks
+- Tracked assets
+- Personalized dashboards
+
+---
+
+## 12. Performance & Caching
+
+### Caching Strategy (Caffeine)
+- Patent & trademark search results
+- Snapshot caching
+- Citation networks
+- Analytics aggregations
+- Unified & EPO trends
+
+### Cache Management
+- TTL-based eviction
+- Scheduled eviction for search caches
+- Stats-enabled caches for monitoring
+
+---
+
+## 13. Monitoring & Observability
+
+### Admin Monitoring
+- API health checks
+- External service status
+- Error summaries
+- API usage logs
+- CSV export for audit logs
+- System health scoring
+
+---
+
 #### Benefits:
 - Prevents unauthorized role escalation
 - Maintains a clear audit trail
@@ -99,7 +268,7 @@ To ensure security and controlled privilege escalation, the platform follows an 
 
 > Note: Direct role assignment during registration is intentionally restricted.
 
-### **4. Database & Profiles**
+### **14. Database & Profiles**
 Supports:
 - **H2 database** (DEV & TEST)
 - **PostgreSQL** (PROD)
@@ -108,27 +277,6 @@ Spring Profiles:
 - `dev` → Local H2 + OAuth for testing
 - `test` → Automated test environment
 - `prod` → PostgreSQL deployment
-
-### **5. Admin Features**
-- Create & manage user roles
-- Approve/restrict analyst capabilities
-
-### **6. User Features**
-- Update profile
-- View personal activity
-- Access dashboard
-
-### **7.Analyst Features (Planned for Milestone 2)**
-
-The following analyst capabilities will be introduced in upcoming milestones:
-
-- Advanced patent/trademark search filters  
-- Statistical insights (year-wise, category-wise, status-based)  
-- Trend visualization using charts  
-- Analyst-specific dashboard widgets  
-- Rapid data exploration tools  
-
-These features are currently under development and will be included in future releases.
 
 ---
 ## Frontend Features (React)
@@ -158,6 +306,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
+Then all the api keys and url,websocket,scheduling configs
 
 
 ### **2. Activate DEV mode**
@@ -168,10 +317,18 @@ spring.profiles.active=dev
 ### **3. Run**
 cd global-ip-backend
 mvn spring-boot:run
-
-
 Backend URL:
 http://localhost:8080
+
+cd patents-trend-service
+mvn spring-boot:run
+Backend URL:
+http://localhost:8081
+
+cd tm-mock-service
+mvn spring-boot:run
+Backend URL:
+http://localhost:9090
 
 ---
 
@@ -227,28 +384,134 @@ Front-end static files can be deployed separately or served via Nginx.
 
 ---
 
-## Team Responsibilities (Milestone 1 Summary)
+## Team Responsibilities (All Milestones Summary)
 
 ### We have completed:
 
-#### Backend Responsibilities
-- Full backend setup using Spring Boot
-- JWT-based authentication and authorization system
-- Google & GitHub OAuth2 login flow
-- Role-based access control (RBAC) for USER, ANALYST, and ADMIN roles
-- User, Admin, and Analyst REST controllers
-- OAuth2 success handler and custom user loader
-- Environment variable configuration using `.env`
-- Integrated H2 (DEV/TEST) and PostgreSQL (PROD) using Spring Profiles
-- Global exception handling and standardized error responses
+## 🔧 Backend Responsibilities
 
-#### Frontend Responsibilities
-- Authentication UI for login and registration
-- OAuth2 login integration and redirect handling
-- JWT token storage and request interception
-- Role-based routing and protected pages
-- Dashboard UI for User, Analyst, and Admin roles
-- Frontend–backend API integration and validation
+### Core Architecture
+- Full backend development using **Spring Boot** with layered architecture (Controller → Service → Repository)
+- Global exception handling with centralized error responses
+- Environment and configuration management using `.env` files and Spring Profiles (`dev`, `test`, `prod`)
+
+### Authentication & Authorization
+- **JWT-based authentication** with secure token issuance and validation using Spring Security
+- **OAuth2 integration**
+  - Google OAuth2
+  - GitHub OAuth2
+  - Custom OAuth2 success handler
+  - Unified user identity mapping across OAuth and local login
+- **Role-Based Access Control (RBAC)**
+  - USER, ANALYST, and ADMIN roles
+  - Method-level authorization using `@PreAuthorize`
+  - No role escalation during user registration
+- **Role request and admin approval workflow**
+  - Users can request elevated roles
+  - Admin approval, rejection, or waitlisting
+  - Full audit trail for role changes
+
+### Subscription & Feature Management
+- Subscription-based feature enforcement
+- Premium features gated by active subscriptions
+- Server-side validation for all protected endpoints
+
+### IP Search & Analytics
+- **Unified patent and trademark search APIs**
+  - Keyword-based search for USER role
+  - Advanced filtered search for ANALYST and ADMIN roles
+- **Patent analytics and trend analysis**
+  - Filing trends, grant trends, and technology trends
+  - Geographic, assignee, and citation-based analytics
+  - Powered by PatentsView bulk data
+- **EPO analytics integration**
+  - Filing, country, technology, assignee, and family trends
+  - Support for EPO bulk back and front files
+- **Trademark analytics**
+  - Status, class, and country-wise distributions
+  - Lifecycle insights using USPTO bulk data
+
+### Intelligence & Tracking Systems
+- **Citation intelligence system**
+  - Backward and forward citation extraction
+  - Citation network generation for visualization
+  - Citation metrics and summary insights
+- **Patent lifecycle tracking**
+  - Application lifecycle computation and visualization
+  - Tracked patent portfolios per user
+- **Competitor intelligence module**
+  - Competitor management
+  - Filing analysis
+  - Filing trend and summary analytics
+- **Tracking and monitoring engine**
+  - Patent legal status tracking with USPTO/EPO auto-detection
+  - User-defined tracking preferences
+
+### API & Performance Management
+- **API key management**
+  - API key generation, listing, and revocation
+  - Scoped access for enterprise and automation use cases
+- **Caching and performance optimization**
+  - Multi-layer caching using Caffeine
+  - Scheduled cache eviction for frequently accessed data
+- **API documentation**
+  - Swagger/OpenAPI integration
+  - APIs grouped by domain and role
+
+### System Monitoring & Observability
+- API usage logging and export
+- External service health checks
+- Error summaries and system health reporting
+
+---
+
+## 🎨 Frontend Responsibilities
+
+### Authentication & User Management
+- **Authentication UI**
+  - Login and registration flows
+  - OAuth2 login with Google and GitHub
+  - Secure redirect handling and token processing
+- **JWT token management**
+  - Secure token storage
+  - Axios interceptors for authenticated API requests
+
+### Routing & Access Control
+- **Role-based routing**
+  - Protected routes for USER, ANALYST, and ADMIN roles
+  - Dynamic UI rendering based on role and subscription status
+- **Subscription-aware UI behavior**
+  - Feature visibility based on active subscriptions
+  - Graceful handling of restricted features
+
+### Dashboard & Views
+- **Dashboard implementations**
+  - User dashboard (search, bookmarks, activity)
+  - Analyst dashboard (analytics, trends, tracking)
+  - Admin dashboard (user management and system monitoring)
+- **Search and detail views**
+  - Unified search interface for patents and trademarks
+  - Detailed IP asset pages with bookmark and tracking actions
+
+### Analytics & Visualizations
+- **Trend charts**
+  - Filing trends, grant trends, technology trends
+- **Citation network visualizations**
+- **Lifecycle timelines**
+- **Competitor filing charts**
+
+### API Integration & Architecture
+- **API integration layer**
+  - Centralized API service abstraction
+  - Consistent request and response handling
+  - Frontend-side validation of backend responses
+- **Reusable and scalable UI components**
+  - Modular component design
+  - Clean separation of concerns
+- **Responsive layout**
+  - Dashboard-friendly, adaptable UI design
+
+---
 
 #### Platform & Repository Setup
 - Monorepo GitHub repository structure
@@ -257,4 +520,4 @@ Front-end static files can be deployed separately or served via Nginx.
 ---
 
 ## ✨ Acknowledgements
-Thanks to the development team members and mentors who provided guidance during the project
+Thanks to the development team members and mentor who provided guidance during the project
