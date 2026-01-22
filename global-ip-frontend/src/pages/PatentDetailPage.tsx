@@ -70,7 +70,17 @@ export function PatentDetailPage() {
   useEffect(() => {
     loadPatentDetails();
     checkTrackingStatus();
-  }, [publicationNumber]);
+
+    // Refresh subscription when page becomes visible (tab focus)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [publicationNumber, refreshSubscription]);
 
   const checkTrackingStatus = async () => {
     if (!publicationNumber) return;

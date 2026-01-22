@@ -1,5 +1,6 @@
 package com.teamb.globalipbackend1.repository.competitor;
 
+import com.teamb.globalipbackend1.dto.competitor.CompetitorFilingSummary;
 import com.teamb.globalipbackend1.model.patents.CompetitorFiling;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
@@ -89,21 +90,28 @@ public interface CompetitorFilingRepository extends JpaRepository<@NonNull Compe
 
     // Summary statistics
     @Query("""
-        SELECT COUNT(cf), 
-               MIN(cf.publicationDate), 
-               MAX(cf.publicationDate)
-        FROM CompetitorFiling cf
-    """)
+    SELECT
+        COUNT(cf),
+        MIN(cf.publicationDate),
+        MAX(cf.publicationDate),
+        COUNT(DISTINCT cf.competitorId)
+    FROM CompetitorFiling cf
+""")
     Object[] getFilingSummaryStats();
 
     @Query("""
-        SELECT cf.competitorId, 
-               COUNT(cf), 
-               MAX(cf.publicationDate)
-        FROM CompetitorFiling cf
-        GROUP BY cf.competitorId
-    """)
-    List<Object[]> getFilingStatsByCompetitor();
+    SELECT new com.teamb.globalipbackend1.dto.competitor.CompetitorFilingSummary(
+        CAST(cf.competitorId AS string),
+        cf.filedBy,
+        COUNT(cf),
+        MAX(cf.publicationDate)
+    )
+    FROM CompetitorFiling cf
+    GROUP BY cf.competitorId, cf.filedBy
+""")
+    List<CompetitorFilingSummary> getFilingSummaryByCompetitor();
+
+
 
     // Latest filings across all competitors
     @Query("""

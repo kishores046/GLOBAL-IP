@@ -85,6 +85,21 @@ export const SubscriptionProvider = ({ children }: SubscriptionProviderProps) =>
   }, [loadSubscription]);
 
   /**
+   * Listen for page visibility changes to refresh subscription
+   * This handles cases where user creates subscription in another tab/window
+   */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isAuthenticated) {
+        loadSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [loadSubscription, isAuthenticated]);
+
+  /**
    * Refresh subscription data
    */
   const refreshSubscription = useCallback(async () => {

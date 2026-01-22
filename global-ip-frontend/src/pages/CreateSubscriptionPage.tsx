@@ -113,7 +113,14 @@ export function CreateSubscriptionPage() {
       await subscriptionApi.createSubscription(formData);
       toast.success('Subscription created successfully!');
       navigate(ROUTES.SUBSCRIPTIONS);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle duplicate subscription error
+      if (error?.response?.status === 403 && error?.response?.data?.error?.includes('already exists')) {
+        toast.info('You already have an active subscription for this type. Redirecting to subscriptions...');
+        setTimeout(() => navigate(ROUTES.SUBSCRIPTIONS), 2000);
+        return;
+      }
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to create subscription';
       toast.error(errorMessage);
     } finally {

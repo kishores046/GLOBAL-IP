@@ -197,7 +197,7 @@ export function useHasCompetitorFilingSubscription() {
         return false;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,
+    staleTime: 1 * 60 * 1000, // Reduced to 1 minute for more frequent checks
+    gcTime: 5 * 60 * 1000,
   });
 }

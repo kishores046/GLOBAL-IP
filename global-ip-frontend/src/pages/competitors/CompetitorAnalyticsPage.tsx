@@ -11,7 +11,7 @@
  * Entry point for competitor filing analytics workflow
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useCompetitors,
@@ -38,8 +38,20 @@ export function CompetitorAnalyticsPage() {
   const navigate = useNavigate();
 
   // Permission check
-  const { data: hasSubscription, isLoading: checkingSubscription } =
+  const { data: hasSubscription, isLoading: checkingSubscription, refetch: refetchSubscription } =
     useHasCompetitorFilingSubscription();
+
+  // Refresh subscription check when page becomes visible (tab focus)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refetchSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refetchSubscription]);
 
   // Data fetching (only after subscription verified)
   const { data: competitors, isLoading: competitorsLoading, error: competitorsError } =

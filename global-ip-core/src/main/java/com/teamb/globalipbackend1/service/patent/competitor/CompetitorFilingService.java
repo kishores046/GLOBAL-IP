@@ -171,13 +171,18 @@ public class CompetitorFilingService {
 
     @Transactional(readOnly = true)
     public FilingSummaryDTO getFilingSummary() {
-        Object[] s = (Object[]) filingRepository.getFilingSummaryStats();
+
+        Object[] row = filingRepository.getFilingSummaryStats();
+
         return FilingSummaryDTO.builder()
-                .totalFilings(((Number) s[0]).longValue())
-                .oldestFiling((LocalDate) s[1])
-                .newestFiling((LocalDate) s[2])
+                .totalFilings(((Number) row[0]).longValue())
+                .oldestFiling((LocalDate) row[1])
+                .newestFiling((LocalDate) row[2])
+                .competitorsTracked(((Number) row[3]).longValue())
+                .byCompetitor(filingRepository.getFilingSummaryByCompetitor())
                 .build();
     }
+
 
     /* ===================== INTERNAL ===================== */
 
