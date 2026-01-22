@@ -108,9 +108,9 @@ export function SyncResultPanel({ result }: SyncResultPanelProps) {
               </tr>
             </thead>
             <tbody>
-              {result.details.map((detail) => (
+              {result.details.map((detail, index) => (
                 <tr
-                  key={detail.competitorCode}
+                  key={`${detail.competitorCode}-${index}`}
                   className="border-b border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-4 py-3 font-mono text-slate-900">{detail.competitorCode}</td>

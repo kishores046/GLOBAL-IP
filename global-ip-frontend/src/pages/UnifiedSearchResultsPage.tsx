@@ -29,6 +29,9 @@ export function UnifiedSearchResultsPage() {
   // Get search results from navigation state
   const { patents = [], trademarks = [] } = location.state ?? {};
   
+  console.log('[UnifiedSearchResultsPage] location.state:', location.state);
+  console.log('[UnifiedSearchResultsPage] patents:', patents?.length || 0, 'trademarks:', trademarks?.length || 0);
+  
   // Determine default active tab
   const getDefaultTab = (): TabType => {
     if (patents.length > 0) return "patents";
@@ -62,12 +65,13 @@ export function UnifiedSearchResultsPage() {
     }
   };
 
-  // Redirect if no results
+  // Redirect if no results ONLY on first render when state was explicitly empty
   useEffect(() => {
-    if (patents.length === 0 && trademarks.length === 0) {
+    if (location.state === null && patents.length === 0 && trademarks.length === 0) {
+      console.log('[UnifiedSearchResultsPage] No results and no state, redirecting to search');
       navigate("/search");
     }
-  }, [patents, trademarks, navigate]);
+  }, [location.state, patents, trademarks, navigate]);
 
   const handleViewPatentDetails = (publicationNumber: string) => {
     navigate(`/patents/${publicationNumber}`);

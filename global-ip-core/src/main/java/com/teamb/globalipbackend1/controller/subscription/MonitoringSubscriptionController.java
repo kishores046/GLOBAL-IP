@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/subscriptions")
-@PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
+@PreAuthorize("hasAnyRole('USER','ADMIN','ANALYST')")
 @RequiredArgsConstructor
 public class MonitoringSubscriptionController {
 

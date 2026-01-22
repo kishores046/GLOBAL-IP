@@ -168,7 +168,7 @@ public class ApiUsageTrackingAspect {
         return "TREND_OTHER";
     }
 
-
+     @Async
     public void writeLog(ApiUsageLog log){
         repository.save(log);
     }

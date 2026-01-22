@@ -3,9 +3,11 @@ package com.teamb.globalipbackend1.controller.trend;
 import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedCountryTrendDto;
 import com.teamb.globalipbackend1.external.trendsApi.dto.response.unified.UnifiedYearTrendDto;
 import com.teamb.globalipbackend1.service.trend.UnifiedTrendService;
+import com.teamb.globalipbackend1.service.user.TrackGraph;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.TypeRegistration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,12 +26,14 @@ public class AnalystUnifiedTrendController {
     private final UnifiedTrendService unifiedTrendService;
 
     @GetMapping("/filings")
+    @TrackGraph("FILINGS_UNIFIED")
     public ResponseEntity<@NonNull List<UnifiedYearTrendDto>> filings() {
         log.info("[UNIFIED] Analyst filing trend request");
         return ResponseEntity.ok(unifiedTrendService.getUnifiedFilingTrend());
     }
 
     @GetMapping("/countries")
+    @TrackGraph("COUNTRIES_UNIFIED")
     public ResponseEntity<@NonNull List<UnifiedCountryTrendDto>> countries() {
         log.info("[UNIFIED] Analyst country trend request");
         return ResponseEntity.ok(unifiedTrendService.getUnifiedCountryTrend());

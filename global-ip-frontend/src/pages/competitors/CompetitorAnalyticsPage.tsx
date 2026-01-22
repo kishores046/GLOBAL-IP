@@ -341,7 +341,7 @@ export function CompetitorAnalyticsPage() {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={() =>
-                            navigate(`${ROUTES.COMPETITORS}/analytics/${competitor.id}`)
+                            navigate(`${ROUTES.COMPETITOR_FILINGS}?competitorId=${competitor.id}`)
                           }
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm transition"
                         >

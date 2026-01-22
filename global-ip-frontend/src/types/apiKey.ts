@@ -28,7 +28,7 @@ export interface CreateApiKeyRequest {
 }
 
 export interface CreateApiKeyResponse {
-  rawKey: string; // Full API key shown only once
+  apiKey: string; // Full API key shown only once (per backend: CreatedApiKey.apiKey)
 }
 
 export interface RevokeApiKeyRequest {

@@ -85,7 +85,7 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
                             </span>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold truncate text-gray-900">
-                                {patent.title ?? patent.patentId}
+                                {patent.patentId}
                               </p>
                               <p className="text-xs text-gray-500 truncate">
                                 {patent.assignee}
@@ -153,7 +153,7 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
                             </span>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold truncate text-gray-900">
-                                {patent.title ?? patent.patentId}
+                                {patent.patentId}
                               </p>
                               <p className="text-xs text-gray-500 truncate">
                                 {patent.assignee}

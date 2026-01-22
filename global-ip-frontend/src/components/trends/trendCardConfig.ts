@@ -43,7 +43,7 @@ export const TREND_CARDS: TrendCardConfig[] = [
     title: 'Country Distribution',
     icon: '🌍',
     description: 'Geographic patent distribution',
-    fetchFunction: (filters, limit) => trendAnalysisAPI.getCountryTrends(filters, limit || 10),
+    fetchFunction: () => trendAnalysisAPI.getUnifiedCountryTrends(),
   },
   {
     id: 'top-cited-patents',
@@ -81,11 +81,11 @@ export const TREND_CARDS: TrendCardConfig[] = [
     fetchFunction: () => trendAnalysisAPI.getTimeToGrant(),
   },
   {
-    id: 'technology-evolution',
-    title: 'Technology Evolution',
-    icon: '🧬',
-    description: 'How technology domains evolve over time',
-    fetchFunction: (filters) => trendAnalysisAPI.getTechnologyEvolution(filters),
+    id: 'epo-family-trends',
+    title: 'EPO Family Trends',
+    icon: '👨‍👩‍👧‍👦',
+    description: 'Patent family size distribution from EPO',
+    fetchFunction: () => trendAnalysisAPI.getEpoFamilyTrends(),
   },
 ];
 

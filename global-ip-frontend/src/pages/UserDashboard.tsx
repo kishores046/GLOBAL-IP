@@ -1,7 +1,7 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { StatCard } from "../components/dashboard/StatCard";
-import { FileText, Award, TrendingUp, Bell, Eye, X, Shield, ArrowRight, Star, Trash2, Calendar } from "lucide-react";
+import { FileText, Award, Bell, Eye, X, Shield, ArrowRight, Star, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -239,7 +239,7 @@ export function UserDashboard() {
             </div>
 
             {/* Hero Summary Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <StatCard
                 title="Search Queries"
                 value={loadingSearchCount ? "..." : searchCount.toString()}
@@ -255,18 +255,11 @@ export function UserDashboard() {
                 delay={100}
               />
               <StatCard
-                title="New Filings This Week"
-                value="0"
-                icon={TrendingUp}
-                gradient="from-blue-500 to-blue-600"
-                delay={200}
-              />
-              <StatCard
                 title="Live Alerts"
                 value="0"
                 icon={Bell}
                 gradient="from-blue-500 to-blue-600"
-                delay={300}
+                delay={200}
               />
             </div>
 

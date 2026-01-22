@@ -37,14 +37,15 @@ const CompetitorSyncPage = lazy(() => import('../pages/competitors/CompetitorSyn
 const CompetitorAnalyticsPage = lazy(() => import('../pages/competitors/CompetitorAnalyticsPage').then(m => ({ default: m.CompetitorAnalyticsPage })));
 
 const VisualizationEnginePage = lazy(() => import('../pages/VisualizationEnginePage').then(m => ({ default: m.VisualizationEnginePage })));
+const CitationGraphPage = lazy(() => import('../pages/CitationGraphPage').then(m => ({ default: m.CitationGraphPage })));
 const ExportToolsPage = lazy(() => import('../pages/ExportToolsPage').then(m => ({ default: m.ExportToolsPage })));
 const PatentTrendAnalysisPage = lazy(() => import('../pages/PatentTrendAnalysisPage').then(m => ({ default: m.PatentTrendAnalysisDashboard })));
-const TrademarkTrendAnalysisPage = lazy(() => import('../pages/TrademarkTrendAnalysisPage').then(m => ({ default: m.TrademarkTrendAnalysisPage })));
+const TrademarkTrendAnalysisPage = lazy(() => import('../pages/TrademarkTrendAnalysisPage').then(m => ({ default: m.default })));
 const PatentLifecyclePage = lazy(() => import('../pages/PatentLifecyclePage').then(m => ({ default: m.PatentLifecyclePage })));
 const TrademarkLifecyclePage = lazy(() => import('../pages/TrademarkLifecyclePage').then(m => ({ default: m.TrademarkLifecyclePage })));
 const PatentTrackingPage = lazy(() => import('../pages/PatentTrackingPage').then(m => ({ default: m.PatentTrackingPage })));
 const TrackedPatentsPage = lazy(() => import('../pages/TrackedPatentsPage').then(m => ({ default: m.TrackedPatentsPage })));
-const MonitoringPage = lazy(() => import('../pages/MonitoringPage').then(m => ({ default: m.MonitoringPage })));
+const MonitoringPage = lazy(() => import('../pages/MonitoringPage').then(m => ({ default: m.default })));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -138,11 +139,11 @@ export function AppRoutes() {
         {/* Competitor Tracking Routes */}
         <Route 
           path={ROUTES.COMPETITORS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorsPage />} />} 
         />
         <Route 
-          path="/competitors/analytics/:competitorId" 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingsPage />} />} 
+          path={ROUTES.COMPETITOR_ANALYTICS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
         />
         <Route 
           path={ROUTES.COMPETITOR_DETAIL} 
@@ -218,7 +219,7 @@ export function AppRoutes() {
         />
         <Route 
           path={ROUTES.CREATE_SUBSCRIPTION} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CreateSubscriptionPage />} />} 
+          element={<RoleRoute roles={[ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]} element={<CreateSubscriptionPage />} />} 
         />
         <Route 
           path={ROUTES.ALERTS} 
@@ -227,6 +228,28 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.PROFILE} 
           element={<PrivateRoute><ProfilePage /></PrivateRoute>} 
+        />
+
+        {/* USER-SPECIFIC TRACKING ROUTES */}
+        <Route 
+          path={ROUTES.USER_TRACKED_PATENTS} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<TrackedPatentsPage />} />} 
+        />
+        <Route 
+          path={ROUTES.USER_VISUALIZATION_ENGINE} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<VisualizationEnginePage />} />} 
+        />
+        <Route 
+          path={ROUTES.USER_CITATION_GRAPH} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<CitationGraphPage />} />} 
+        />
+        <Route 
+          path={ROUTES.USER_PATENT_LIFECYCLE} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<PatentLifecyclePage />} />} 
+        />
+        <Route 
+          path={ROUTES.USER_TRADEMARK_LIFECYCLE} 
+          element={<RoleRoute roles={[ROLES.USER]} element={<TrademarkLifecyclePage />} />} 
         />
 
         {/* ==================== SHARED ROUTES (ALL authenticated users) ==================== */}

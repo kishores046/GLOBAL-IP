@@ -28,17 +28,18 @@ const getRelevantColumns = (trendId: string, sampleData: any): string[] => {
 
   // Map trend types to their specific display columns
   const columnMaps: { [key: string]: string[] } = {
-    'filing-trends': ['year', 'filingCount', 'grantCount', 'grantRate'],
-    'grant-trends': ['year', 'grantCount', 'grantRate', 'filingCount'],
+    'filing-trends': ['year', 'filingCount'],
+    'grant-trends': ['year', 'grantCount', 'grantRate'],
     'top-technologies': ['cpcGroup', 'cpcDescription', 'count'],
     'top-assignees': ['assigneeName', 'patentCount'],
-    'top-cited-patents': ['patentId', 'patentTitle', 'citationCount'],
-    'top-citing-patents': ['patentId', 'patentTitle', 'citationCount'],
+    'top-cited-patents': ['patentId', 'citationCount'],
+    'top-citing-patents': ['patentId', 'citationCount'],
     'country-distribution': ['countryName', 'patentCount'],
     'patent-types': ['type', 'count'],
     'patent-type-distribution': ['patentType', 'count'],
     'claim-complexity': ['year', 'avgClaims', 'medianClaims'],
     'time-to-grant': ['year', 'avgYearsToGrant'],
+    'epo-family-trends': ['familySize', 'familyCount'],
     'technology-evolution': ['year', 'cpcDescription', 'totalCount'],
   };
 
@@ -87,7 +88,7 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
       ...d,
     }),
     'top-assignees': (d) => ({
-      assigneeName: d.assigneeName || d.name || 'Unknown',
+      assigneeName: d.assignee || d.assigneeName || d.name || 'Unknown',
       patentCount: d.patentCount || d.count || 0,
       ...d,
     }),
@@ -125,6 +126,13 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
       medianClaims: Number(d.medianClaims || 0),
       ...d,
     }),
+    'epo-family-trends': (d) => ({
+      familySize: Number(d.familySize) || 0,
+      familyCount: Number(d.familyCount) || 0,
+      name: `Family Size ${d.familySize}`,
+      count: Number(d.familyCount) || 0,
+      ...d,
+    }),
   };
 
   const formatter = trendFormatters[trendId];
@@ -136,8 +144,16 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
   if (trendId === 'top-assignees' && data.topAssignees) {
     return data.topAssignees.map(formatter);
   }
+  if (trendId === 'top-assignees' && Array.isArray(data)) {
+    // Handle direct array response for top-assignees
+    return data.map(formatter);
+  }
   if (trendId === 'country-distribution' && data.countries) {
     return data.countries.map(formatter);
+  }
+  if (trendId === 'country-distribution' && Array.isArray(data)) {
+    // Handle direct array response from unified endpoint
+    return data.map(formatter);
   }
   if (trendId === 'patent-types' && data.typeDistribution) {
     return data.typeDistribution.map(formatter);
@@ -167,6 +183,24 @@ const formatChartData = (trendId: string, rawData: any): any[] => {
       // For filing trends, ensure we map filingCount to the Y-axis
       if (trendId === 'filing-trends' || trendId === 'grant-trends') {
         return formatFilingTrendItem(item);
+      }
+      
+      // For top-assignees, preserve assigneeName field
+      if (trendId === 'top-assignees') {
+        return {
+          assigneeName: item.assignee || item.assigneeName || item.name || 'Unknown',
+          patentCount: item.patentCount || item.count || 0,
+          ...item,
+        };
+      }
+      
+      // For country distribution, preserve countryName field
+      if (trendId === 'country-distribution') {
+        return {
+          countryName: item.countryName || item.country || item.name || 'Unknown',
+          patentCount: item.patentCount || item.count || 0,
+          ...item,
+        };
       }
       
       return formatGenericArrayItem(item, idx);
@@ -263,6 +297,16 @@ const formatChartData = (trendId: string, rawData: any): any[] => {
           ...item,
         }));
       }
+    }
+
+    if (trendId === 'epo-family-trends' && Array.isArray(rawData)) {
+      return rawData.map((item: any) => ({
+        familySize: Number(item.familySize) || 0,
+        familyCount: Number(item.familyCount) || 0,
+        name: `Family Size ${item.familySize}`,
+        count: Number(item.familyCount) || 0,
+        ...item,
+      }));
     }
   }
 
@@ -390,6 +434,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       title: 'Technology Evolution Over Time',
       subtitle: 'How technology domains and focus areas shift across years',
       insight: 'Identify emerging technology domains and declining areas to guide R&D resource allocation',
+    },
+    'epo-family-trends': {
+      title: 'EPO Patent Family Distribution',
+      subtitle: 'Distribution of patent family sizes from European Patent Office',
+      insight: 'Analyze patent family composition to understand filing strategy - larger families indicate higher claim coverage',
     },
   };
 
@@ -520,6 +569,16 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
           />
         );
 
+      case 'epo-family-trends':
+        return (
+          <BarChartComponent
+            data={transformedData}
+            dataKey="familyCount"
+            nameKey="name"
+            height={400}
+          />
+        );
+
       default:
         return (
           <LineChartComponent
@@ -540,22 +599,22 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg p-8 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg p-8 shadow-lg border border-yellow-400/40">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-3xl font-semibold mb-2 tracking-tight">{metadata.title}</h1>
-            <p className="text-slate-300 text-sm mb-4">{metadata.subtitle}</p>
-            <div className="flex items-start gap-2 bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 w-fit">
-              <div className="w-1 h-full bg-amber-500 rounded-full mt-0.5"></div>
+            <h1 className="text-3xl font-bold mb-2 tracking-tight text-yellow-300">{metadata.title}</h1>
+            <p className="text-yellow-200 text-sm mb-4 font-bold">{metadata.subtitle}</p>
+            <div className="flex items-start gap-2 bg-yellow-900/40 rounded-lg p-4 border border-yellow-400 w-fit">
+              <div className="w-2 h-full bg-yellow-400 rounded-full mt-0.5"></div>
               <div>
-                <p className="text-xs font-semibold text-amber-300 uppercase tracking-wide">Key Insight</p>
-                <p className="text-sm text-slate-200 mt-1">{metadata.insight}</p>
+                <p className="text-xs font-bold text-yellow-300 uppercase tracking-wide">Key Insight</p>
+                <p className="text-sm text-yellow-100 mt-2 font-bold">{metadata.insight}</p>
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-slate-300">Data Points</div>
-            <div className="text-3xl font-bold text-white mt-1">{transformedData.length.toLocaleString()}</div>
+            <div className="text-sm text-yellow-400 font-bold uppercase tracking-wide">Data Points</div>
+            <div className="text-3xl font-bold text-yellow-300 mt-1">{transformedData.length.toLocaleString()}</div>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCompetitorFilingsPaginated } from '../../hooks/useCompetitorAnalytics';
 import { ROUTES } from '../../routes/routeConfig';
 import {
@@ -51,7 +51,12 @@ const SortHeader = ({
 
 export function CompetitorFilingsPage() {
   const navigate = useNavigate();
-  const { competitorId } = useParams<{ competitorId: string }>();
+  const { competitorId: paramId } = useParams<{ competitorId: string }>();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('competitorId');
+  
+  // Use either URL param or query param
+  const competitorId = paramId || queryId;
   const id = parseInt(competitorId || '0', 10);
 
   // Pagination and sorting

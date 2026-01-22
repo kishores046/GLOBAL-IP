@@ -5,11 +5,13 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { ArrowLeft, Plus, Zap, AlertCircle } from 'lucide-react';
 import subscriptionApi from '../services/subscriptionApi';
 import type { CreateSubscriptionRequest } from '../types/subscription';
 import { toast } from 'sonner';
+import { ROUTES } from '../routes/routeConfig';
 
 const SUBSCRIPTION_TYPES = [
   {
@@ -56,6 +58,10 @@ const ALERT_FREQUENCIES = [
 
 export function CreateSubscriptionPage() {
   const navigate = useNavigate();
+  const { getRole, hasRole } = useAuth();
+  const userRole = getRole();
+  const isUserRole = hasRole('USER');
+  
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreateSubscriptionRequest>({
     type: 'LEGAL_STATUS',
@@ -64,6 +70,14 @@ export function CreateSubscriptionPage() {
     emailAlertsEnabled: false,
     dashboardAlertsEnabled: true,
   });
+
+  // Filter subscription types based on role
+  const availableSubscriptionTypes = isUserRole 
+    ? SUBSCRIPTION_TYPES.filter(t => t.id === 'LEGAL_STATUS')
+    : SUBSCRIPTION_TYPES;
+
+  // Debug logging
+  console.log('[CreateSubscriptionPage] User role:', userRole, 'isUserRole:', isUserRole, 'availableTypes:', availableSubscriptionTypes.length);
 
   const handleTypeChange = (type: string) => {
     setFormData({ ...formData, type: type as CreateSubscriptionRequest['type'] });
@@ -98,7 +112,7 @@ export function CreateSubscriptionPage() {
       setLoading(true);
       await subscriptionApi.createSubscription(formData);
       toast.success('Subscription created successfully!');
-      navigate('/user/subscriptions');
+      navigate(ROUTES.SUBSCRIPTIONS);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create subscription';
       toast.error(errorMessage);
@@ -119,7 +133,7 @@ export function CreateSubscriptionPage() {
           {/* Header */}
           <div className="mb-8">
             <button
-              onClick={() => navigate('/user/subscriptions')}
+              onClick={() => navigate(ROUTES.SUBSCRIPTIONS)}
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -139,7 +153,7 @@ export function CreateSubscriptionPage() {
               <h2 className="text-2xl font-bold text-slate-900 mb-6">Step 1: Choose Subscription Type</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {SUBSCRIPTION_TYPES.map((type) => (
+                {availableSubscriptionTypes.map((type) => (
                   <button
                     key={type.id}
                     type="button"
@@ -327,7 +341,7 @@ export function CreateSubscriptionPage() {
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => navigate('/user/subscriptions')}
+                onClick={() => navigate(ROUTES.SUBSCRIPTIONS)}
                 className="px-6 py-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
               >
                 Cancel
@@ -338,7 +352,11 @@ export function CreateSubscriptionPage() {
                   loading ||
                   (!formData.emailAlertsEnabled && !formData.dashboardAlertsEnabled)
                 }
-                className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className={`flex-1 px-6 py-3 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  loading || (!formData.emailAlertsEnabled && !formData.dashboardAlertsEnabled)
+                    ? 'bg-slate-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
                 {loading ? (
                   <>

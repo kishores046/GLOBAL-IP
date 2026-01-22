@@ -70,7 +70,7 @@ public class EPOPatentSearchService {
 
                 EpoExchangeDocument doc = documents.getFirst();
 
-                PatentDocument patent = epoPatentMapper.map(doc);
+                PatentDocument patent = epoPatentMapper.map(doc,id);
                 if (patent == null) {
                     log.warn("Mapper returned null for {}{}{}",
                             id.getCountry(), id.getDocNumber(), id.getKind());

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Bell, AlertTriangle, Settings, Lock } from "lucide-react";
+import { Bell, Lock, Clock, Zap, FileText, Users, AlertTriangle, AlertCircle, CheckCircle } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { motion } from "motion/react";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useWebSocket } from "../hooks/useWebSocket";
@@ -8,56 +9,75 @@ import { useAuth } from "../context/AuthContext";
 import { SubscriptionUpgradeModal } from "../components/subscription/SubscriptionUpgradeModal";
 import { toast } from "sonner";
 
-interface Alert {
-  id: string;
-  product: string;
-  date: string;
-  status: "Overdue" | "Resolved" | "Unresolved" | "Resondue";
+interface PatentTrackingEvent {
+  patentId: string;
+  eventType: "LIFECYCLE_UPDATE" | "STATUS_CHANGE" | "RENEWAL_REMINDER" | "EXPIRY_WARNING";
+  message: string;
+  previousValue?: string;
+  currentValue?: string;
+  timestamp: string;
+  severity: "INFO" | "WARNING" | "CRITICAL";
 }
 
-const mockAlerts: Alert[] = [
-  {
-    id: "Alert 1",
-    product: "Patt Search",
-    date: "19 Jan 1",
-    status: "Overdue",
-  },
-  {
-    id: "Alert 2",
-    product: "Filing Tracker",
-    date: "29 Jan",
-    status: "Resolved",
-  },
-  {
-    id: "Alert 3",
-    product: "Trademark Tracker",
-    date: "23 Feb",
-    status: "Unresolved",
-  },
-  {
-    id: "Alert 4",
-    product: "Legal Status Monitor",
-    date: "30 Mar",
-    status: "Resolved",
-  },
-  {
-    id: "Alert 5",
-    product: "Subscription Usage",
-    date: "22 Nov",
-    status: "Resondue",
-  },
-];
+interface CompetitorFilingEvent {
+  competitorId: number;
+  competitorCode: string;
+  newFilings: number;
+  latestPatentId: string;
+  timestamp: string;
+}
+
+interface WebSocketAlert {
+  id: string;
+  type: "PATENT_EVENT" | "COMPETITOR_EVENT";
+  message: string;
+  data: PatentTrackingEvent | CompetitorFilingEvent;
+  timestamp: string;
+  severity?: "INFO" | "WARNING" | "CRITICAL";
+}
 
 export function AlertsPage() {
-  const { isActive, subscription, tierLimits } = useSubscription();
+  const { isActive, subscription, tierLimits, refreshSubscription } = useSubscription();
   const { user } = useAuth();
   const { shouldConnect, subscribeToPatentEvents, subscribeToCompetitorEvents, connect, disconnect } =
     useWebSocket();
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
-  const [doNotDisturb, setDoNotDisturb] = useState(false);
-  const [showManageRulesModal, setShowManageRulesModal] = useState(false);
-  const [showNotificationSettingsModal, setShowNotificationSettingsModal] = useState(false);
+  const [webSocketAlerts, setWebSocketAlerts] = useState<WebSocketAlert[]>([]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'patents' | 'competitors'>('all');
+
+  // Helper function to format patent event messages
+  const formatPatentEventMessage = (event: PatentTrackingEvent): string => {
+    switch (event.eventType) {
+      case "LIFECYCLE_UPDATE":
+        return `Patent ${event.patentId} lifecycle changed: ${event.message}`;
+      case "STATUS_CHANGE":
+        return `Patent ${event.patentId} status: ${event.previousValue} → ${event.currentValue}`;
+      case "RENEWAL_REMINDER":
+        return `Patent ${event.patentId} renewal: ${event.message}`;
+      case "EXPIRY_WARNING":
+        return `Patent ${event.patentId} expiry: ${event.message}`;
+      default:
+        return event.message;
+    }
+  };
+
+  // Helper function to format competitor event messages
+  const formatCompetitorEventMessage = (event: CompetitorFilingEvent): string => {
+    return `${event.competitorCode} filed ${event.newFilings} new patent(s). Latest: ${event.latestPatentId}`;
+  };
+
+  // Helper function to get icon based on severity or event type
+  const getSeverityIcon = (severity?: string) => {
+    switch (severity) {
+      case "CRITICAL":
+        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+      case "WARNING":
+        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case "INFO":
+      default:
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+    }
+  };
 
   // Connect WebSocket if subscription allows real-time alerts
   useEffect(() => {
@@ -68,21 +88,58 @@ export function AlertsPage() {
 
         // Subscribe to patent events
         const unsubscribePatent = subscribeToPatentEvents((event) => {
-          console.log('Patent event received:', event);
-          toast.info(`Patent alert: ${event.type}`, {
-            description: JSON.stringify(event.data),
-          });
-          // Update alerts state with new event
-          // This is a placeholder - implement based on your alert structure
+          console.log('Patent tracking event received:', event);
+          const patentEvent = event.data as PatentTrackingEvent;
+          const wsAlert: WebSocketAlert = {
+            id: `patent-${Date.now()}-${Math.random()}`,
+            type: "PATENT_EVENT",
+            message: formatPatentEventMessage(patentEvent),
+            data: patentEvent,
+            timestamp: new Date().toLocaleString(),
+            severity: patentEvent.severity,
+          };
+          setWebSocketAlerts((prev) => [wsAlert, ...prev].slice(0, 50)); // Keep last 50 alerts
+          
+          // Toast notification with severity-based styling
+          let toastType: 'error' | 'warning' | 'info' = 'info';
+          if (patentEvent.severity === 'CRITICAL') {
+            toastType = 'error';
+          } else if (patentEvent.severity === 'WARNING') {
+            toastType = 'warning';
+          }
+
+          const duration = patentEvent.severity === 'CRITICAL' ? 10000 : 5000;
+          
+          toast[toastType](
+            `Patent Alert: ${patentEvent.eventType}`,
+            {
+              description: patentEvent.message,
+              duration,
+            }
+          );
         });
 
         // Subscribe to competitor events
         const unsubscribeCompetitor = subscribeToCompetitorEvents((event) => {
-          console.log('Competitor event received:', event);
-          toast.info(`Competitor alert: ${event.type}`, {
-            description: JSON.stringify(event.data),
-          });
-          // Update alerts state with new event
+          console.log('Competitor filing event received:', event);
+          const competitorEvent = event.data as CompetitorFilingEvent;
+          const wsAlert: WebSocketAlert = {
+            id: `competitor-${Date.now()}-${Math.random()}`,
+            type: "COMPETITOR_EVENT",
+            message: formatCompetitorEventMessage(competitorEvent),
+            data: competitorEvent,
+            timestamp: new Date().toLocaleString(),
+            severity: "INFO",
+          };
+          setWebSocketAlerts((prev) => [wsAlert, ...prev].slice(0, 50)); // Keep last 50 alerts
+          
+          toast.info(
+            `Competitor Alert: New Filings`,
+            {
+              description: `${competitorEvent.competitorCode} filed ${competitorEvent.newFilings} patent(s)`,
+              duration: 5000,
+            }
+          );
         });
 
         return () => {
@@ -95,6 +152,25 @@ export function AlertsPage() {
       disconnect();
     }
   }, [shouldConnect, user?.userId, connect, disconnect, subscribeToPatentEvents, subscribeToCompetitorEvents]);
+
+  // Refresh subscription when modal closes to check if user created a subscription
+  const handleModalClose = async () => {
+    setShowUpgradeModal(false);
+    // Refresh subscription to check if user created one
+    await refreshSubscription();
+  };
+
+  // Refresh subscription when page becomes visible (tab focus)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [refreshSubscription]);
 
   // Hide dashboard if no subscription
   if (!isActive) {
@@ -148,6 +224,14 @@ export function AlertsPage() {
     }
   };
 
+  // Filter alerts based on active filter
+  const filteredAlerts = webSocketAlerts.filter((alert) => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'patents') return alert.type === 'PATENT_EVENT';
+    if (activeFilter === 'competitors') return alert.type === 'COMPETITOR_EVENT';
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <div className="flex">
@@ -155,32 +239,31 @@ export function AlertsPage() {
         
         <main className="flex-1 overflow-auto">
           <div className="p-8">
-            {/* Page Header */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-4xl text-blue-900 mb-2">Alerts</h1>
-                  <p className="text-slate-600">
-                    {subscription?.tier === 'BASIC'
-                      ? 'Weekly summary only'
-                      : 'Live WebSocket updates and real-time alerts'}
-                  </p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-4xl text-blue-900 mb-2">Alerts</h1>
+                    <p className="text-slate-600">
+                      {subscription?.tier === 'BASIC'
+                        ? 'Weekly summary only'
+                        : 'Live WebSocket updates and real-time alerts'}
+                    </p>
+                  </div>
+                  {tierLimits?.realTimeAlerts && (
+                    <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold flex items-center gap-2">
+                      <Bell className="w-4 h-4" />
+                      Real-time Active
+                    </span>
+                  )}
                 </div>
-                {tierLimits?.realTimeAlerts && (
-                  <span className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold flex items-center gap-2">
-                    <Bell className="w-4 h-4" />
-                    Real-time Active
-                  </span>
-                )}
-              </div>
-            </motion.div>
+              </motion.div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -189,11 +272,11 @@ export function AlertsPage() {
               >
                 <div className="flex items-center gap-4 mb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Bell className="w-7 h-7 text-white" />
+                    <FileText className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-4xl text-blue-900">120</div>
                 </div>
-                <div className="text-slate-900">Total Alerts</div>
+                <div className="text-slate-900 font-semibold">Patent Tracking</div>
+                <p className="text-xs text-slate-600 mt-1">Real-time patent status alerts</p>
               </motion.div>
 
               <motion.div
@@ -203,244 +286,229 @@ export function AlertsPage() {
                 className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl"
               >
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <AlertTriangle className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="text-4xl text-blue-900">16</div>
-                </div>
-                <div className="text-slate-900">Unresolved Alerts</div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setDoNotDisturb(!doNotDisturb)}
-                      className={`relative w-16 h-8 rounded-full transition-all shadow-lg ${
-                        doNotDisturb
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600"
-                          : "bg-slate-300"
-                      }`}
-                    >
-                      <div
-                        className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform ${
-                          doNotDisturb ? "translate-x-9" : "translate-x-1"
-                        }`}
-                      ></div>
-                    </button>
-                    <div className="text-2xl text-blue-900">
-                      {doNotDisturb ? "ON" : "OFF"}
-                    </div>
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Users className="w-7 h-7 text-white" />
                   </div>
                 </div>
-                <div className="text-slate-900">Do Not Disturb</div>
+                <div className="text-slate-900 font-semibold">Competitor Filing</div>
+                <p className="text-xs text-slate-600 mt-1">Real-time competitor filing alerts</p>
               </motion.div>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Left Column - Alerts Table */}
-              <div className="lg:col-span-2">
+            {/* Main Content - Real-time WebSocket Alerts */}
+            <div className="w-full">
+
+              {/* Filter Buttons */}
+              <div className="flex gap-3 mb-6 flex-wrap">
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                    activeFilter === 'all'
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white/70 text-slate-700 border border-blue-200/50 hover:border-blue-300/50 hover:bg-white/90'
+                  }`}
+                >
+                  All Alerts ({webSocketAlerts.length})
+                </button>
+                <button
+                  onClick={() => setActiveFilter('patents')}
+                  className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                    activeFilter === 'patents'
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white/70 text-slate-700 border border-blue-200/50 hover:border-blue-300/50 hover:bg-white/90'
+                  }`}
+                >
+                  Patents ({webSocketAlerts.filter(a => a.type === 'PATENT_EVENT').length})
+                </button>
+                <button
+                  onClick={() => setActiveFilter('competitors')}
+                  className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                    activeFilter === 'competitors'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-white/70 text-slate-700 border border-purple-200/50 hover:border-purple-300/50 hover:bg-white/90'
+                  }`}
+                >
+                  Competitors ({webSocketAlerts.filter(a => a.type === 'COMPETITOR_EVENT').length})
+                </button>
+              </div>
+
+              {/* WebSocket Real-time Alerts Section */}
+              {filteredAlerts.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl"
+                  transition={{ delay: 0.6 }}
+                  className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-green-200/50 hover:border-green-300/50 transition-all shadow-xl mb-8"
                 >
-                  {/* Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b-2 border-blue-200">
-                          <th className="text-left py-4 px-4 text-slate-700">Alert</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Product</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Date</th>
-                          <th className="text-left py-4 px-4 text-slate-700">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {alerts.map((alert, index) => (
-                          <motion.tr
-                            key={alert.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.5 + index * 0.05 }}
-                            className="border-b border-blue-100 hover:bg-blue-50/50 transition-all cursor-pointer"
-                          >
-                            <td className="py-4 px-4 text-slate-900">{alert.id}</td>
-                            <td className="py-4 px-4 text-slate-900">{alert.product}</td>
-                            <td className="py-4 px-4 text-slate-700">{alert.date}</td>
-                            <td className="py-4 px-4">
-                              <span className={`px-3 py-1 rounded-full text-xs inline-block ${getStatusColor(alert.status)}`}>
-                                {alert.status}
-                              </span>
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-2xl text-slate-900 font-semibold">Real-time WebSocket Alerts</h2>
+                    <span className="ml-auto text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                      {filteredAlerts.length} {activeFilter === 'all' ? 'incoming' : activeFilter}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {filteredAlerts.map((wsAlert, index) => {
+                      const isPerfect = wsAlert.type === "PATENT_EVENT";
+                      const patentData = isPerfect ? (wsAlert.data as PatentTrackingEvent) : null;
+                      const competitorData = !isPerfect ? (wsAlert.data as CompetitorFilingEvent) : null;
+
+                      // Get severity color
+                      let severityColor = 'bg-green-50 border-l-green-500';
+                      if (wsAlert.severity === 'CRITICAL') {
+                        severityColor = 'bg-red-50 border-l-red-500';
+                      } else if (wsAlert.severity === 'WARNING') {
+                        severityColor = 'bg-yellow-50 border-l-yellow-500';
+                      }
+
+                      // Get severity background
+                      let severityBg = 'bg-green-100 text-green-800';
+                      if (wsAlert.severity === 'CRITICAL') {
+                        severityBg = 'bg-red-100 text-red-800';
+                      } else if (wsAlert.severity === 'WARNING') {
+                        severityBg = 'bg-yellow-100 text-yellow-800';
+                      }
+
+                      return (
+                        <motion.div
+                          key={wsAlert.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={`p-4 rounded-lg border-l-4 transition-all ${
+                            isPerfect ? severityColor : "bg-purple-50 border-l-purple-500"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="mt-0.5">
+                                {getSeverityIcon(wsAlert.severity)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {isPerfect && patentData ? (
+                                    <>
+                                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${severityBg}`}>
+                                        {patentData.eventType.replace(/_/g, ' ')}
+                                      </span>
+                                      <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
+                                        PATENT
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">
+                                      COMPETITOR
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-slate-500 ml-auto flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {wsAlert.timestamp}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-semibold text-slate-900 mb-2">{wsAlert.message}</p>
+                                
+                                {/* Patent Event Details */}
+                                {isPerfect && patentData && (
+                                  <div className="text-xs text-slate-600 space-y-1 mt-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <span className="font-semibold">Patent ID:</span>
+                                        <span className="ml-1 text-blue-600 font-mono">{patentData.patentId}</span>
+                                      </div>
+                                      <div>
+                                        <span className="font-semibold">Severity:</span>
+                                        <span className="ml-1 font-bold">{patentData.severity}</span>
+                                      </div>
+                                    </div>
+                                    {patentData.previousValue && (
+                                      <div>
+                                        <span className="font-semibold">Previous:</span>
+                                        <span className="ml-1 text-slate-500">{patentData.previousValue}</span>
+                                      </div>
+                                    )}
+                                    {patentData.currentValue && (
+                                      <div>
+                                        <span className="font-semibold">Current:</span>
+                                        <span className="ml-1 text-slate-500">{patentData.currentValue}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Competitor Event Details */}
+                                {!isPerfect && competitorData && (
+                                  <div className="text-xs text-slate-600 space-y-1 mt-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <span className="font-semibold">Competitor:</span>
+                                        <span className="ml-1 text-purple-600 font-semibold">{competitorData.competitorCode}</span>
+                                      </div>
+                                      <div>
+                                        <span className="font-semibold">New Filings:</span>
+                                        <span className="ml-1 text-green-600 font-bold">{competitorData.newFilings}</span>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="font-semibold">Latest Patent:</span>
+                                      <span className="ml-1 text-blue-600 font-mono">{competitorData.latestPatentId}</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </motion.div>
-              </div>
+              )}
 
-              {/* Right Column - Action Buttons */}
-              <div className="lg:col-span-1">
+              {/* Empty State for WebSocket Alerts - No alerts received */}
+              {webSocketAlerts.length === 0 && tierLimits?.realTimeAlerts && (
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-blue-50/50 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 transition-all shadow-xl mb-8 text-center"
                 >
-                  {/* Manage Rules */}
-                  <div 
-                    onClick={() => setShowManageRulesModal(true)}
-                    className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl hover:scale-[1.02] cursor-pointer"
-                  >
-                    <div className="w-full text-center">
-                      <div className="text-2xl text-slate-900 mb-2">Manage Rules</div>
-                    </div>
+                  <div className="inline-block p-4 bg-blue-100 rounded-full mb-4">
+                    <Bell className="w-8 h-8 text-blue-600" />
                   </div>
-
-                  {/* Notification Settings */}
-                  <div 
-                    onClick={() => setShowNotificationSettingsModal(true)}
-                    className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-blue-200/50 hover:border-blue-300/50 transition-all shadow-xl hover:scale-[1.02] cursor-pointer"
-                  >
-                    <div className="w-full text-center">
-                      <div className="flex items-center justify-center gap-3 mb-2">
-                        <Settings className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div className="text-xl text-slate-900">Notification</div>
-                      <div className="text-xl text-slate-900">Settings</div>
-                    </div>
-                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Alerts</h3>
+                  <p className="text-slate-600">No alerts have arrived from the WebSocket backend yet.</p>
+                  <p className="text-xs text-slate-500 mt-2">Patent tracking and competitor filing alerts will appear here as they arrive</p>
                 </motion.div>
-              </div>
+              )}
+
+              {/* Empty State - Filtered results empty */}
+              {webSocketAlerts.length > 0 && filteredAlerts.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-slate-50/50 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 transition-all shadow-xl mb-8 text-center"
+                >
+                  <div className="inline-block p-4 bg-slate-100 rounded-full mb-4">
+                    <AlertCircle className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No {activeFilter} Alerts</h3>
+                  <p className="text-slate-600">No {activeFilter} alerts match the current filter.</p>
+                  <p className="text-xs text-slate-500 mt-2">Try selecting a different filter to view other alerts</p>
+                </motion.div>
+              )}
             </div>
           </div>
         </main>
       </div>
 
-      {/* Manage Rules Modal */}
-      {showManageRulesModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
-            <h3 className="text-2xl text-blue-900 mb-6">Manage Alert Rules</h3>
-            
-            <div className="space-y-4 mb-6">
-              {[
-                { name: "Patent Filing Status Change", enabled: true },
-                { name: "Trademark Opposition", enabled: true },
-                { name: "Legal Deadline Approaching", enabled: true },
-                { name: "Competitor Activity", enabled: false },
-                { name: "Citation Alerts", enabled: true },
-              ].map((rule, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                  <div className="text-slate-900">{rule.name}</div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked={rule.enabled} />
-                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex gap-3">
-              <button className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all shadow-lg">
-                Save Changes
-              </button>
-              <button 
-                onClick={() => setShowManageRulesModal(false)}
-                className="px-4 py-2 bg-white border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notification Settings Modal */}
-      {showNotificationSettingsModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <h3 className="text-2xl text-blue-900 mb-6">Notification Settings</h3>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div>
-                  <div className="text-slate-900 mb-1">Email Notifications</div>
-                  <div className="text-sm text-slate-600">Receive alerts via email</div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div>
-                  <div className="text-slate-900 mb-1">Push Notifications</div>
-                  <div className="text-sm text-slate-600">Browser push alerts</div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div>
-                <label className="text-slate-700 mb-2 block">Alert Frequency</label>
-                <select className="w-full px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900">
-                  <option value="realtime">Real-time</option>
-                  <option value="hourly">Hourly Digest</option>
-                  <option value="daily">Daily Summary</option>
-                  <option value="weekly">Weekly Report</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-700 mb-2 block">Quiet Hours</label>
-                <div className="flex gap-2">
-                  <input
-                    type="time"
-                    defaultValue="22:00"
-                    className="flex-1 px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                  />
-                  <span className="self-center text-slate-600">to</span>
-                  <input
-                    type="time"
-                    defaultValue="08:00"
-                    className="flex-1 px-4 py-2 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-              <button className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all shadow-lg">
-                Save Settings
-              </button>
-              <button 
-                onClick={() => setShowNotificationSettingsModal(false)}
-                className="px-4 py-2 bg-white border border-blue-200 hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Subscription Upgrade Modal */}
       <SubscriptionUpgradeModal
         isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
+        onClose={handleModalClose}
         showCreateOption={!isActive}
       />
     </div>

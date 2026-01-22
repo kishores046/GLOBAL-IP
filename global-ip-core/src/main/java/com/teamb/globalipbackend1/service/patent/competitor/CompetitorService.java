@@ -207,4 +207,9 @@ public class CompetitorService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public long getTotalCompetitorTrackingCount() {
+        return filingRepository.getTotalCompetitorTrackingCount();
+    }
+
 }

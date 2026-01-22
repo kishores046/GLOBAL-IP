@@ -8,8 +8,19 @@ import { unifiedSearchAPI } from "../services/api";
 export function GlobalIPSearchPage() {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
+  const [jurisdiction, setJurisdiction] = useState("ALL");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const jurisdictions = [
+    { value: "ALL", label: "All Jurisdictions" },
+    { value: "EP", label: "European Patent Office" },
+    { value: "US", label: "US Patent & Trademark Office" },
+    { value: "JP", label: "Japan Patent Office" },
+    { value: "WO", label: "World Intellectual Property Organization" },
+    { value: "GB", label: "UK Intellectual Property Office" },
+    { value: "IN", label: "India Patent Office" },
+  ];
 
   const handleSearch = async () => {
     // Validation: keyword is required
@@ -23,8 +34,11 @@ export function GlobalIPSearchPage() {
     setError(null);
 
     try {
-      // Use unified search API
-      const response = await unifiedSearchAPI.search({ keyword: trimmedKeyword });
+      // Use unified search API with jurisdiction filter
+      const response = await unifiedSearchAPI.search({ 
+        keyword: trimmedKeyword,
+        jurisdiction: jurisdiction !== "ALL" ? jurisdiction : undefined,
+      });
       
       console.log("Search response:", response);
       console.log("Trademarks in response:", response.trademarks);
@@ -121,6 +135,18 @@ export function GlobalIPSearchPage() {
                   disabled={isLoading}
                   className="flex-1 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
                 />
+                <select
+                  value={jurisdiction}
+                  onChange={(e) => setJurisdiction(e.target.value)}
+                  disabled={isLoading}
+                  className="px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 disabled:opacity-50"
+                >
+                  {jurisdictions.map((j) => (
+                    <option key={j.value} value={j.value}>
+                      {j.label}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={handleSearch}
                   disabled={isLoading || !keyword.trim()}

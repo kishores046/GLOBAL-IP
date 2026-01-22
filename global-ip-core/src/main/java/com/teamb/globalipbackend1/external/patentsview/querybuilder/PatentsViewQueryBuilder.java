@@ -36,7 +36,7 @@ public class PatentsViewQueryBuilder {
         if (assigneeOrganizations.size() == 1) {
             ObjectNode textAny = mapper.createObjectNode();
             ObjectNode field = mapper.createObjectNode();
-            field.put("assignees.assignee_organization", assigneeOrganizations.get(0));
+            field.put("assignees.assignee_organization", assigneeOrganizations.getFirst());
             textAny.set("_text_any", field);
             andArray.add(textAny);
         } else {
@@ -44,7 +44,12 @@ public class PatentsViewQueryBuilder {
             for (String assignee : assigneeOrganizations) {
                 ObjectNode textAny = mapper.createObjectNode();
                 ObjectNode field = mapper.createObjectNode();
-                field.put("assignees.assignee_organization", assignee);
+                String normalized = assignee
+                        .replace(".", "")
+                        .toUpperCase()
+                        .trim();
+
+                field.put("assignees.assignee_organization", normalized);
                 textAny.set("_text_any", field);
                 orArray.add(textAny);
             }

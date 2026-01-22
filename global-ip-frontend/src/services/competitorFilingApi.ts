@@ -156,6 +156,26 @@ const competitorFilingApi = {
     );
     return response.data;
   },
+
+  /**
+   * Get total competitor tracking count
+   * GET /api/competitors/tracking/total-count
+   */
+  getTotalTrackingCount: async (): Promise<number> => {
+    try {
+      console.log('📊 Fetching total competitor tracking count from /api/competitors/tracking/total-count');
+      const response = await api.get<number>('/competitors/tracking/total-count');
+      console.log('✅ Total competitor tracking count response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch total competitor tracking count:');
+      console.error('  Status:', error.response?.status);
+      console.error('  StatusText:', error.response?.statusText);
+      console.error('  Data:', error.response?.data);
+      console.error('  Message:', error.message);
+      throw error;
+    }
+  },
 };
 
 export default competitorFilingApi;

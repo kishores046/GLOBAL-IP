@@ -85,4 +85,11 @@ public class CompetitorController {
         competitorService.deleteCompetitor(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/tracking/total-count")
+    public ResponseEntity<@NonNull Long> getTotalCompetitorTrackingCount() {
+        return ResponseEntity.ok(
+                competitorService.getTotalCompetitorTrackingCount()
+        );
+    }
 }

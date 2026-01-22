@@ -3,6 +3,7 @@ package com.teamb.globalipbackend1.controller.trend;
 import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.*;
 import com.teamb.globalipbackend1.model.trend.AnalyticsReport;
 import com.teamb.globalipbackend1.service.trend.PatentAnalyticsService;
+import com.teamb.globalipbackend1.service.user.TrackGraph;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.NonNull;
@@ -30,6 +31,7 @@ public class AnalystTrendController {
 
 
     @GetMapping("/filings")
+    @TrackGraph(value = "US_FILLING")
     public ResponseEntity<@NonNull List<FilingTrendDto>> filingTrend() {
         log.info("[TREND] Filing trend request received");
         var result = analyticsService.getFilingTrends();
@@ -38,6 +40,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/grants")
+    @TrackGraph(value = "US_GRANT_TREND")
     public ResponseEntity<@NonNull List<GrantTrendDto>> grantTrend() {
         log.info("[TREND] Grant trend request received");
         var result = analyticsService.getGrantTrends();
@@ -47,6 +50,7 @@ public class AnalystTrendController {
 
 
     @GetMapping("/technologies/top")
+    @TrackGraph("US_TOP_TECHNOLOGY")
     public ResponseEntity<@NonNull List<TechnologyTrendDto>> topTechnologies(
             @RequestParam(defaultValue = "10")
             @Min(1) @Max(100) int limit) {
@@ -57,6 +61,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/assignees/top")
+    @TrackGraph("US_TOP_ASSIGNEES")
     public ResponseEntity<@NonNull List<AssigneeTrendDto>> topAssignees(
             @RequestParam(defaultValue = "10")
             @Min(1) @Max(100) int limit) {
@@ -69,6 +74,7 @@ public class AnalystTrendController {
 
 
     @GetMapping("/countries")
+    @TrackGraph("US_TOP_COUNTRIES")
     public ResponseEntity<@NonNull List<GeographicTrendDto>> topCountries(
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -84,6 +90,7 @@ public class AnalystTrendController {
 
 
     @GetMapping("/citations/top-cited")
+    @TrackGraph("TOP_CITED_US")
     public ResponseEntity<@NonNull List<CitationTrendDto>> topCitedPatents(
             @RequestParam(defaultValue = "10")
             @Min(1) @Max(100) int limit) {
@@ -94,6 +101,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/citations/top-citing")
+    @TrackGraph("TOP_CITING_US")
     public ResponseEntity<@NonNull List<CitationMetricDto>> topCitingPatents(
             @RequestParam(defaultValue = "10")
             @Min(1) @Max(100) int limit) {
@@ -106,6 +114,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/patents/type-distribution")
+    @TrackGraph(value = "PATENT_TYPE_DISTRIBUTION_US")
     public ResponseEntity<@NonNull
             List<PatentTypeDto>> patentTypeDistribution() {
         log.info("[TREND] Patent type distribution request received");
@@ -115,6 +124,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/patents/claim-complexity")
+    @TrackGraph("CLAIM_COMPLEXITY_US")
     public ResponseEntity<@NonNull List<ClaimComplexityDto>> claimComplexityTrend() {
         log.info("[TREND] Claim complexity trend request received");
         List<ClaimComplexityDto> result = analyticsService.getClaimComplexityTrend();
@@ -123,6 +133,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/patents/time-to-grant")
+    @TrackGraph(value = "TIME_TO_GRAND_US")
     public ResponseEntity<@NonNull List<TimeToGrantDto>> timeToGrantTrend() {
         log.info("[TREND] Time-to-grant trend request received");
         List<TimeToGrantDto> result = analyticsService.getTimeToGrantTrend();
@@ -163,6 +174,7 @@ public class AnalystTrendController {
     }
 
     @GetMapping("/technologies/evolution")
+    @TrackGraph(value = "TECHNOLOGY_EVOLVE_US")
     public ResponseEntity<@NonNull List<TechnologyEvolutionDto>> technologyEvolution() {
         log.info("[TREND] Technology evolution request received");
         List<TechnologyEvolutionDto> result = analyticsService.getTechnologyEvolution();

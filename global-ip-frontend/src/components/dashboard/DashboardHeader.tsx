@@ -1,7 +1,9 @@
-import { Bell, ChevronDown, User, Globe } from "lucide-react";
+import { Bell, ChevronDown, User, Globe, LayoutDashboard } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate} from "react-router-dom";
-import { DashboardSwitcher } from "../DashboardSwitcher";
+import { useAuth } from "../../context/AuthContext";
+import { ROUTES, ROLES } from "../../routes/routeConfig";
+import { useLocation } from "react-router-dom";
 
 interface DashboardHeaderProps {
   readonly userName: string;
@@ -13,6 +15,41 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { hasRole } = useAuth();
+
+  // Determine available dashboards based on roles
+  interface Dashboard {
+    role: string;
+    label: string;
+    path: string;
+  }
+
+  const availableDashboards: Dashboard[] = [];
+  
+  if (hasRole(ROLES.ADMIN)) {
+    availableDashboards.push({
+      role: ROLES.ADMIN,
+      label: "Admin Dashboard",
+      path: ROUTES.ADMIN_DASHBOARD,
+    });
+  }
+  
+  if (hasRole(ROLES.ANALYST)) {
+    availableDashboards.push({
+      role: ROLES.ANALYST,
+      label: "Analyst Dashboard",
+      path: ROUTES.ANALYST_DASHBOARD,
+    });
+  }
+  
+  if (hasRole(ROLES.USER)) {
+    availableDashboards.push({
+      role: ROLES.USER,
+      label: "User Dashboard",
+      path: ROUTES.USER_DASHBOARD,
+    });
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,22 +65,13 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSettingsClick = () => {
-    setShowDropdown(false);
-    navigate("/settings");
-  };
-
   const handleLogout = () => {
     setShowDropdown(false);
     navigate("/login");
   };
 
-  const notifications = [
-    { id: 1, type: "alert", message: "Patent US11234567B2 status changed to Granted", time: "2 mins ago", unread: true },
-    { id: 2, type: "update", message: "New competitor filing detected", time: "1 hour ago", unread: true },
-    { id: 3, type: "reminder", message: "Trademark renewal deadline approaching", time: "3 hours ago", unread: false },
-    { id: 4, type: "alert", message: "Legal deadline for EP3456789A1", time: "1 day ago", unread: false },
-  ];
+  // State for notifications - starts empty, will be populated by dashboard alerts if available
+  const [notifications] = useState<any[]>([]);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -63,9 +91,6 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* Dashboard Switcher */}
-          <DashboardSwitcher />
-
           {/* Welcome Message */}
           <div className="hidden md:block text-slate-600">
             Welcome, <span className="text-blue-900">{userName}</span>
@@ -93,26 +118,39 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
                   <p className="text-sm text-slate-600">{unreadCount} unread notifications</p>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-all cursor-pointer ${
-                        notification.unread ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
-                        <div className="flex-1">
-                          <p className="text-slate-900 text-sm">{notification.message}</p>
-                          <p className="text-xs text-slate-500 mt-1">{notification.time}</p>
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-all cursor-pointer ${
+                          notification.unread ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
+                          <div className="flex-1">
+                            <p className="text-slate-900 text-sm">{notification.message}</p>
+                            <p className="text-xs text-slate-500 mt-1">{notification.time}</p>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-500">
+                      <p className="text-sm">No notifications yet</p>
+                      <p className="text-xs text-slate-400 mt-1">Dashboard alerts will appear here</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="p-3 border-t border-slate-200 bg-slate-50">
-                  <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 transition-all">
-                    View all notifications
+                  <button 
+                    onClick={() => {
+                      setShowNotifications(false);
+                      navigate("/alerts");
+                    }}
+                    className="w-full text-center text-sm text-blue-600 hover:text-blue-700 transition-all"
+                  >
+                    View all alerts
                   </button>
                 </div>
               </div>
@@ -133,18 +171,37 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50">
                 <div className="p-2">
-                  <button
-                    onClick={handleSettingsClick}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-blue-50 rounded-lg transition-all text-left"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Settings</span>
-                  </button>
+                  {/* Role Switcher - Only show if user has multiple roles */}
+                  {availableDashboards.length > 1 && (
+                    <>
+                      <div className="px-4 py-2 text-xs text-slate-500 font-semibold uppercase tracking-wide">Switch Dashboard</div>
+                      {availableDashboards.map((dashboard) => {
+                        const isActive = location.pathname.toLowerCase().includes(dashboard.role.toLowerCase()) || 
+                                       (dashboard.role === ROLES.USER && location.pathname.includes('/dashboard/user'));
+                        return (
+                          <button
+                            key={dashboard.role}
+                            onClick={() => {
+                              setShowDropdown(false);
+                              navigate(dashboard.path);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left mb-1 ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                : 'text-slate-700 hover:bg-slate-100'
+                            }`}
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            <span className="text-sm">{dashboard.label}</span>
+                            {isActive && <span className="ml-auto text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded">Active</span>}
+                          </button>
+                        );
+                      })}
+                      <div className="border-t border-slate-200 my-2"></div>
+                    </>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all text-left"

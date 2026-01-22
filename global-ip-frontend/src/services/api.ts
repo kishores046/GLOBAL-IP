@@ -401,6 +401,23 @@ export const dashboardAPI = {
     const response = await api.get('/analyst/dashboard/my/searchCount');
     return response.data;
   },
+
+  getTotalGraphCount: async (): Promise<number> => {
+    try {
+      console.log('📊 Fetching total graph count from /api/analyst/dashboard/graphs/total-count');
+      const response = await api.get('/analyst/dashboard/graphs/total-count');
+      console.log('✅ Total graph count response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch total graph count:');
+      console.error('  Status:', error.response?.status);
+      console.error('  StatusText:', error.response?.statusText);
+      console.error('  Data:', error.response?.data);
+      console.error('  Message:', error.message);
+      console.error('  Full error:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

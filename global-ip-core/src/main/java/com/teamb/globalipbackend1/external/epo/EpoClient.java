@@ -366,15 +366,26 @@ public class EpoClient {
     }
     @TrackApiUsage(service = "EPO", action = "SEARCH_TITLE")
     public List<EpoDocumentId> searchByTitle(String titleKeyword) {
+
+        if (titleKeyword == null || titleKeyword.isBlank()) {
+            return List.of();
+        }
+
         try {
-            String query = "ti=" + URLEncoder.encode(titleKeyword, StandardCharsets.UTF_8);
+            String keyword = titleKeyword.trim().toLowerCase();
+
+            String cql = keyword.contains(" ")
+                    ? "ti=\"" + keyword + "\""
+                    : "ti=" + keyword;
+
+            String encoded = URLEncoder.encode(cql, StandardCharsets.UTF_8);
 
             String base = properties.baseUrl();
             if (base.endsWith("/rest-services")) {
                 base = base.substring(0, base.length() - 14);
             }
 
-            String url = base + "/rest-services/published-data/search?q=" + query;
+            String url = base + "/rest-services/published-data/search?q=" + encoded;
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -382,7 +393,7 @@ public class EpoClient {
                     .header("Accept", "application/xml")
                     .header("X-OPS-Range", "1-25")
                     .header("User-Agent", "global-ip/1.0 (academic project)")
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(15))
                     .GET()
                     .build();
 
@@ -390,7 +401,7 @@ public class EpoClient {
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.warn("EPO search failed [{}]: {}", response.statusCode(), response.body());
+                log.warn("EPO search failed [{}]", response.statusCode());
                 return List.of();
             }
 
@@ -401,6 +412,7 @@ public class EpoClient {
                     searchResponse.getBiblioSearch() == null ||
                     searchResponse.getBiblioSearch().getSearchResult() == null ||
                     searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
+
                 return List.of();
             }
 
@@ -413,10 +425,11 @@ public class EpoClient {
                     .toList();
 
         } catch (Exception e) {
-            log.error("EPO title search failed for [{}]", titleKeyword, e);
+            log.error("EPO title search failed", e);
             return List.of();
         }
     }
+
 
 
     public List<EpoAbstract> fetchAbstract(EpoDocumentId id) {
@@ -655,9 +668,12 @@ public class EpoClient {
     ) {
         List<EpoCompetitorFilingDto> results = new ArrayList<>();
 
+        if (assignees == null || assignees.isEmpty()) {
+            return results;
+        }
+
         for (String assignee : assignees) {
             try {
-                // Build CQL
                 String cql = "pa=\"" + assignee + "\" and pd>=" +
                         fromDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 
@@ -674,7 +690,7 @@ public class EpoClient {
                         .uri(URI.create(url))
                         .header("Authorization", "Bearer " + token())
                         .header("Accept", "application/xml")
-                        .header("X-OPS-Range", "1-50")
+                        .header("X-OPS-Range", "1-25")
                         .header("User-Agent", "global-ip/1.0")
                         .timeout(Duration.ofSeconds(30))
                         .GET()
@@ -700,20 +716,29 @@ public class EpoClient {
                 }
 
                 for (EpoPublicationReferenceSearch pub :
-                        searchResponse.getBiblioSearch().getSearchResult().getPublications()) {
+                        searchResponse.getBiblioSearch()
+                                .getSearchResult()
+                                .getPublications()) {
 
                     EpoDocumentId id = pub.getDocumentId();
                     if (id == null) continue;
 
-                    results.add(EpoCompetitorFilingDto.builder()
-                            .publicationNumber(
-                                    id.getCountry() + id.getDocNumber() + id.getKind()
-                            )
-                            .kind(id.getKind())
-                            .applicant(assignee)
-                            .title(null) // fetched lazily if needed later
-                            .publicationDate(null) // optional, see note below
-                            .build());
+                    String publicationNumber =
+                            id.getCountry() + id.getDocNumber() + id.getKind();
+
+
+                    GlobalPatentDetailDto detail =
+                            fetchGlobalDetail(publicationNumber);
+
+                    results.add(
+                            EpoCompetitorFilingDto.builder()
+                                    .publicationNumber(publicationNumber)
+                                    .kind(id.getKind())
+                                    .applicant(assignee)
+                                    .title(detail != null ? detail.getTitle() : null)
+                                    .publicationDate(detail != null ? detail.getGrantDate() : null)
+                                    .build()
+                    );
                 }
 
             } catch (Exception e) {
@@ -724,5 +749,6 @@ public class EpoClient {
         log.info("Fetched {} EPO competitor filings", results.size());
         return results;
     }
+
 
 }

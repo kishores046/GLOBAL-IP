@@ -301,35 +301,6 @@ export function ProfilePage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Stats Card */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-md p-6">
-                  <h3 className="text-xl font-semibold text-blue-900 mb-4">
-                    Activity Stats
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-700">Tracked Patents</span>
-                      <span className="text-2xl font-semibold text-blue-600">
-                        {authUser?.trackedPatents || "0"}
-                      </span>
-                    </div>
-                    <div className="h-px bg-slate-200"></div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-700">Tracked Trademarks</span>
-                      <span className="text-2xl font-semibold text-blue-600">
-                        {authUser?.trackedTrademarks || "0"}
-                      </span>
-                    </div>
-                    <div className="h-px bg-slate-200"></div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-700">Reports Generated</span>
-                      <span className="text-2xl font-semibold text-blue-600">
-                        {authUser?.reportsGenerated || "0"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column - Profile Information */}

@@ -1,9 +1,10 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
-import { Search, Network, Flag, FileText, Star, Eye, Trash2, Calendar } from "lucide-react";
+import { Search, Network, Flag, Star, Eye, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { bookmarkAPI, patentDetailAPI, trademarkDetailAPI, BookmarkedPatent, BookmarkedTrademark, dashboardAPI } from "../services/api";
+import competitorFilingApi from "../services/competitorFilingApi";
 
 export function AnalystDashboard() {
   const navigate = useNavigate();
@@ -12,10 +13,16 @@ export function AnalystDashboard() {
   const [loadingBookmarks, setLoadingBookmarks] = useState(true);
   const [searchCount, setSearchCount] = useState(0);
   const [loadingSearchCount, setLoadingSearchCount] = useState(true);
+  const [graphCount, setGraphCount] = useState(0);
+  const [loadingGraphCount, setLoadingGraphCount] = useState(true);
+  const [competitorTrackingCount, setCompetitorTrackingCount] = useState(0);
+  const [loadingCompetitorCount, setLoadingCompetitorCount] = useState(true);
   
   useEffect(() => {
     loadBookmarks();
     loadSearchCount();
+    loadGraphCount();
+    loadCompetitorTrackingCount();
   }, []);
   
   const loadSearchCount = async () => {
@@ -27,6 +34,46 @@ export function AnalystDashboard() {
       setSearchCount(0);
     } finally {
       setLoadingSearchCount(false);
+    }
+  };
+
+  const loadGraphCount = async () => {
+    try {
+      console.log('📈 Loading graph count from dashboard API...');
+      const count = await dashboardAPI.getTotalGraphCount();
+      console.log('✅ Graph count loaded successfully:', count);
+      setGraphCount(count);
+    } catch (error: any) {
+      console.error("❌ Error loading graph count:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+      });
+      setGraphCount(0);
+    } finally {
+      setLoadingGraphCount(false);
+    }
+  };
+
+  const loadCompetitorTrackingCount = async () => {
+    try {
+      console.log('🎯 Loading competitor tracking count from API...');
+      const count = await competitorFilingApi.getTotalTrackingCount();
+      console.log('✅ Competitor tracking count loaded successfully:', count);
+      setCompetitorTrackingCount(count);
+    } catch (error: any) {
+      console.error("❌ Error loading competitor tracking count:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+      });
+      setCompetitorTrackingCount(0);
+    } finally {
+      setLoadingCompetitorCount(false);
     }
   };
   
@@ -143,7 +190,9 @@ export function AnalystDashboard() {
                 <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-lg mb-4">
                   <Network className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">0</div>
+                <div className="text-4xl text-blue-900 mb-2">
+                  {loadingGraphCount ? "..." : graphCount}
+                </div>
                 <div className="text-slate-600">Visualization Graphs</div>
               </div>
 
@@ -152,17 +201,10 @@ export function AnalystDashboard() {
                 <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-lg mb-4">
                   <Flag className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">0</div>
-                <div className="text-slate-600">Tracked Competitors</div>
-              </div>
-
-              {/* Exports This Week */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg p-6">
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-lg mb-4">
-                  <FileText className="w-6 h-6 text-white" />
+                <div className="text-4xl text-blue-900 mb-2">
+                  {loadingCompetitorCount ? "..." : competitorTrackingCount}
                 </div>
-                <div className="text-4xl text-blue-900 mb-2">0</div>
-                <div className="text-slate-600">Exports This Week</div>
+                <div className="text-slate-600">Total Competitor Tracking</div>
               </div>
             </div>
 

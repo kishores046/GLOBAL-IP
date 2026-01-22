@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, AlertCircle, CheckCircle, Loader2, Bell, CheckSquare } from 'lucide-react';
 import { trackingApi, TrackingPreferences } from '../../services/trackingAPI';
+import { useAuth } from '../../context/AuthContext';
 
 // Define types locally since they're not exported from the API
 type TrackingType = 'PATENT' | 'TRADEMARK';
@@ -46,6 +47,10 @@ export function TrackingModal({
   onTrackingSuccess,
 }: TrackingModalProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isUserRole = user?.role === 'USER';
+  const isAnalystRole = user?.role === 'ANALYST' || user?.role === 'ADMIN';
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -83,11 +88,12 @@ export function TrackingModal({
         onClose();
         setSuccess(false);
         
-        // Navigate to the appropriate lifecycle page
+        // Navigate to the appropriate lifecycle page based on user role
+        const dashboardPrefix = isUserRole ? '/user' : '/analyst';
         if (type === 'PATENT') {
-          navigate(`/analyst/lifecycle/patents?publicationNumber=${encodeURIComponent(externalId)}`);
+          navigate(`${dashboardPrefix}/lifecycle/patents?publicationNumber=${encodeURIComponent(externalId)}`);
         } else {
-          navigate(`/analyst/lifecycle/trademarks?trademarkId=${encodeURIComponent(externalId)}`);
+          navigate(`${dashboardPrefix}/lifecycle/trademarks?trademarkId=${encodeURIComponent(externalId)}`);
         }
       }, 2000);
     } catch (err) {
@@ -224,60 +230,105 @@ export function TrackingModal({
             {!success && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-900 text-sm uppercase tracking-wide">
-                  Tracking Preferences
+                  {isUserRole ? 'Legal Status Tracking' : 'Tracking Preferences'}
                 </h3>
 
-                <div className="space-y-3">
-                  {/* Track Lifecycle */}
-                  <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={trackLifecycle}
-                      onChange={(e) => setTrackLifecycle(e.target.checked)}
-                      disabled={loading}
-                      className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">Track Lifecycle Events</p>
-                      <p className="text-xs text-slate-600">
-                        Monitor filing, grant, expiration, and status changes
+                {isUserRole ? (
+                  /* USER ROLE: Legal Status Only */
+                  <div className="space-y-3">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-900">
+                        <strong>Legal Status Tracking:</strong> Track changes to the {type === 'PATENT' ? 'patent' : 'trademark'} legal status.
                       </p>
                     </div>
-                  </label>
 
-                  {/* Track Status Changes */}
-                  <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={trackStatusChanges}
-                      onChange={(e) => setTrackStatusChanges(e.target.checked)}
-                      disabled={loading}
-                      className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">Track Status Changes</p>
-                      <p className="text-xs text-slate-600">
-                        Get notified when {type === 'PATENT' ? 'patent status' : 'trademark status'} updates
-                      </p>
-                    </div>
-                  </label>
+                    {/* Track Status Changes */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={trackStatusChanges}
+                        onChange={(e) => setTrackStatusChanges(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Monitor Legal Status</p>
+                        <p className="text-xs text-slate-600">
+                          Get notified of status changes and important updates
+                        </p>
+                      </div>
+                    </label>
 
-                  {/* Track Renewals */}
-                  <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={trackRenewals}
-                      onChange={(e) => setTrackRenewals(e.target.checked)}
-                      disabled={loading}
-                      className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">Track Renewals & Expiry</p>
-                      <p className="text-xs text-slate-600">
-                        Monitor renewal deadlines and expiration dates
-                      </p>
-                    </div>
-                  </label>
+                    {/* Enable Alerts */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={enableAlerts}
+                        onChange={(e) => setEnableAlerts(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Dashboard Alerts</p>
+                        <p className="text-xs text-slate-600">
+                          Receive alerts in your dashboard
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                ) : (
+                  /* ANALYST ROLE: Full Tracking Options */
+                  <div className="space-y-3">
+                    {/* Track Lifecycle */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={trackLifecycle}
+                        onChange={(e) => setTrackLifecycle(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Track Lifecycle Events</p>
+                        <p className="text-xs text-slate-600">
+                          Monitor filing, grant, expiration, and status changes
+                        </p>
+                      </div>
+                    </label>
+
+                    {/* Track Status Changes */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={trackStatusChanges}
+                        onChange={(e) => setTrackStatusChanges(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Track Status Changes</p>
+                        <p className="text-xs text-slate-600">
+                          Get notified when {type === 'PATENT' ? 'patent status' : 'trademark status'} updates
+                        </p>
+                      </div>
+                    </label>
+
+                    {/* Track Renewals */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={trackRenewals}
+                        onChange={(e) => setTrackRenewals(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Track Renewals & Expiry</p>
+                        <p className="text-xs text-slate-600">
+                          Monitor renewal deadlines and expiration dates
+                        </p>
+                      </div>
+                    </label>
 
                   {/* Enable Alerts */}
                   <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">

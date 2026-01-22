@@ -8,4 +8,5 @@ export { TrendInsightCard, TrendInsightPanel } from './TrendInsightPanel';
 export { TrendDashboard } from './TrendDashboard';
 export { TrendCard } from './TrendCard';
 export { TrendViewer } from './TrendViewer';
-export { default as TREND_CARDS } from './trendCardConfig';
+export { TREND_CARDS } from './trendCardConfig';
+export { default as TREND_CARDS_DEFAULT } from './trendCardConfig';

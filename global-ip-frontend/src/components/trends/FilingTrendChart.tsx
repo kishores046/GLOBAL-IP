@@ -62,15 +62,13 @@ export const FilingTrendChart: React.FC<FilingTrendChartProps> = ({
           <div className="space-y-2">
             {data.map((item: FilingTrendData) => {
               const filingWidth = (item.filingCount / maxCount) * 100;
-              const grantWidth = (item.grantCount / maxCount) * 100;
 
               return (
                 <div key={item.year} className="space-y-1">
                   <div className="flex justify-between text-sm font-medium">
                     <span>{item.year}</span>
-                    <div className="flex gap-4 text-xs">
-                      <span className="text-blue-600">{item.filingCount} filings</span>
-                      {showGrants && <span className="text-green-600">{item.grantCount} grants</span>}
+                    <div className="text-xs">
+                      <span className="text-blue-600 font-semibold">{item.filingCount.toLocaleString()} filings</span>
                     </div>
                   </div>
 
@@ -81,20 +79,6 @@ export const FilingTrendChart: React.FC<FilingTrendChartProps> = ({
                       style={{ width: `${filingWidth}%` }}
                       title={`${item.filingCount} filings`}
                     />
-
-                    {/* Grant Bar */}
-                    {showGrants && (
-                      <div
-                        className="bg-green-500 rounded h-full transition-all duration-300"
-                        style={{ width: `${grantWidth}%` }}
-                        title={`${item.grantCount} grants`}
-                      />
-                    )}
-                  </div>
-
-                  {/* Grant Rate */}
-                  <div className="text-xs text-gray-500">
-                    Grant Rate: {item.grantRate.toFixed(1)}%
                   </div>
                 </div>
               );
@@ -102,23 +86,11 @@ export const FilingTrendChart: React.FC<FilingTrendChartProps> = ({
           </div>
 
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
             <div className="space-y-1">
               <p className="text-xs text-gray-500">Total Filings</p>
               <p className="text-lg font-semibold">
                 {data.reduce((sum: number, d: FilingTrendData) => sum + d.filingCount, 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Total Grants</p>
-              <p className="text-lg font-semibold">
-                {data.reduce((sum: number, d: FilingTrendData) => sum + d.grantCount, 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500">Avg Grant Rate</p>
-              <p className="text-lg font-semibold">
-                {(data.reduce((sum: number, d: FilingTrendData) => sum + d.grantRate, 0) / data.length).toFixed(1)}%
               </p>
             </div>
             <div className="space-y-1">

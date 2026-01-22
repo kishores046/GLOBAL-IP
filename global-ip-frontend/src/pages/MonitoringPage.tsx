@@ -314,3 +314,5 @@ export function MonitoringPage() {
     </div>
   );
 }
+
+export default MonitoringPage;

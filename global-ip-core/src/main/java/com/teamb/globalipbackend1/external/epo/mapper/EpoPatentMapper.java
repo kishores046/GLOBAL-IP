@@ -19,13 +19,13 @@ public class EpoPatentMapper {
     private static final DateTimeFormatter BASIC_DATE =
             DateTimeFormatter.BASIC_ISO_DATE;
 
-    public PatentDocument map(EpoExchangeDocument doc) {
+    public PatentDocument map(EpoExchangeDocument doc,EpoDocumentId id) {
         if (doc == null) return null;
 
         PatentDocument patent = new PatentDocument();
 
         patent.setPublicationNumber(buildPublicationNumber(doc));
-        patent.setJurisdiction(doc.getCountry());
+        patent.setJurisdiction(id.getCountry());
         patent.setTitle(extractEnglishTitle(doc));
         patent.setFilingDate(extractPublicationDate(doc));
         patent.setGrantDate(extractFilingDate(doc));

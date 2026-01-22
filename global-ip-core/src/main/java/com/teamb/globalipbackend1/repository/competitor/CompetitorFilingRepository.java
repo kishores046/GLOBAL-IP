@@ -128,4 +128,9 @@ public interface CompetitorFilingRepository extends JpaRepository<@NonNull Compe
             @Param("competitorId") Long competitorId,
             @Param("fromDate") LocalDate fromDate
     );
+
+
+
+    @Query("SELECT COUNT(cf) FROM CompetitorFiling cf")
+    long getTotalCompetitorTrackingCount();
 }

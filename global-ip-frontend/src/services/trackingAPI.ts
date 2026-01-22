@@ -20,7 +20,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const API_BASE = '/api/analyst/tracking';
+// Get API base path - use unified tracking endpoint for all roles
+const getApiBase = (): string => {
+  // The backend controller at /api/tracking allows all authenticated roles
+  // (ANALYST, ADMIN, USER) via @PreAuthorize("hasAnyRole('ANALYST','ADMIN','USER')")
+  return '/api/tracking';
+};
 
 export interface TrackingPreferences {
   patentId: string;
@@ -43,6 +48,7 @@ export const trackingApi = {
    */
   async isTracking(patentId: string): Promise<boolean> {
     try {
+      const API_BASE = getApiBase();
       const response = await api.get(`${API_BASE}/is-tracking/${patentId}`);
       return response.data;
     } catch (error: any) {
@@ -57,6 +63,7 @@ export const trackingApi = {
    */
   async getPreferences(patentId: string): Promise<TrackingPreferences> {
     try {
+      const API_BASE = getApiBase();
       const response = await api.get(`${API_BASE}/preferences/${patentId}`);
       return response.data;
     } catch (error: any) {
@@ -70,6 +77,7 @@ export const trackingApi = {
    */
   async getAllPreferences(): Promise<TrackingPreferences[]> {
     try {
+      const API_BASE = getApiBase();
       const response = await api.get(`${API_BASE}/preferences`);
       return response.data;
     } catch (error: any) {
@@ -84,7 +92,8 @@ export const trackingApi = {
    */
   async savePreferences(preferences: TrackingPreferences): Promise<TrackingPreferences> {
     try {
-      console.log('Saving preferences:', preferences);
+      const API_BASE = getApiBase();
+      console.log('Saving preferences:', preferences, 'to:', API_BASE);
       const response = await api.post(`${API_BASE}/preferences`, preferences);
       console.log('Save response:', response.data);
       return response.data;
@@ -101,6 +110,7 @@ export const trackingApi = {
    */
   async deletePreferences(patentId: string): Promise<void> {
     try {
+      const API_BASE = getApiBase();
       await api.delete(`${API_BASE}/preferences/${patentId}`);
     } catch (error: any) {
       console.error('Error deleting preferences:', error);

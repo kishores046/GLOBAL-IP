@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, LogOut, BarChart3, Network, Users, User, Radio, Key, Plus, FileText } from "lucide-react";
+import { LayoutDashboard, Search, LogOut, BarChart3, Network, Users, User, Radio, Key, Plus, FileText, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -79,6 +79,7 @@ export function Sidebar() {
     
     // Get the last dashboard from localStorage, default to user dashboard
     const lastDashboard = localStorage.getItem("lastDashboard") || ROUTES.USER_DASHBOARD;
+    const isUserRole = !isAnalyst && !hasRole([ROLES.ANALYST, ROLES.ADMIN]);
     
     // Navigate to the appropriate route using ROUTES constants
     switch (itemId) {
@@ -89,7 +90,7 @@ export function Sidebar() {
         navigate(ROUTES.ADVANCED_SEARCH);
         break;
       case "visualization":
-        navigate(ROUTES.VISUALIZATION_ENGINE);
+        navigate(isUserRole ? ROUTES.USER_VISUALIZATION_ENGINE : ROUTES.VISUALIZATION_ENGINE);
         break;
       case "competitor-analytics":
         navigate(ROUTES.COMPETITOR_ANALYTICS);
@@ -104,13 +105,13 @@ export function Sidebar() {
         navigate(ROUTES.TRADEMARK_TRENDS);
         break;
       case "patent-lifecycle":
-        navigate(ROUTES.PATENT_LIFECYCLE);
+        navigate(isUserRole ? ROUTES.USER_PATENT_LIFECYCLE : ROUTES.PATENT_LIFECYCLE);
         break;
       case "trademark-lifecycle":
-        navigate(ROUTES.TRADEMARK_LIFECYCLE);
+        navigate(isUserRole ? ROUTES.USER_TRADEMARK_LIFECYCLE : ROUTES.TRADEMARK_LIFECYCLE);
         break;
       case "tracked-patents":
-        navigate(ROUTES.TRACKED_PATENTS);
+        navigate(isUserRole ? ROUTES.USER_TRACKED_PATENTS : ROUTES.TRACKED_PATENTS);
         break;
       case "search":
         navigate(ROUTES.IP_SEARCH);
@@ -124,7 +125,12 @@ export function Sidebar() {
       case "api-keys":
         navigate(ROUTES.API_KEYS_SETTINGS);
         break;
-      default:
+      case "create-subscription":
+        navigate(ROUTES.CREATE_SUBSCRIPTION);
+        break;
+      case "alerts":
+        navigate(ROUTES.ALERTS);
+        break;
         // Stay on current page
         break;
     }
@@ -134,6 +140,9 @@ export function Sidebar() {
   const userMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "search", label: "Global IP Search", icon: Search },
+    { id: "alerts", label: "Alerts", icon: Bell },
+    { id: "create-subscription", label: "Create Subscription", icon: Plus },
+    { id: "tracked-patents", label: "Tracked Patents", icon: Radio },
     { id: "profile", label: "Profile", icon: User },
     // Show API Keys if user has allowed roles
     ...(hasRole([ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]) 
@@ -146,6 +155,7 @@ export function Sidebar() {
   const analystMenuItems = [
     { id: "dashboard", label: "Analyst Dashboard", icon: LayoutDashboard },
     { id: "advanced-search", label: "Advanced Search", icon: Search },
+    { id: "alerts", label: "Alerts", icon: Bell },
     { id: "visualization", label: "Visualization Engine", icon: Network },
     { id: "competitor-analytics", label: "Competitor Analytics", icon: Users },
     { id: "competitor-management", label: "Competitor Management", icon: Users },

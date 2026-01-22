@@ -1,6 +1,7 @@
 package com.teamb.globalipbackend1.controller.analyst;
 
 import com.teamb.globalipbackend1.service.search.SearchActivityService;
+import com.teamb.globalipbackend1.service.user.GraphViewTracker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -21,7 +22,7 @@ public class AnalystController {
 
 
    private final SearchActivityService searchActivityService;
-
+  private final GraphViewTracker graphViewTracker;
 
     @Operation(
             summary = "Get analyst dashboard",
@@ -52,4 +53,11 @@ public class AnalystController {
     public ResponseEntity<@NonNull  Long> searchCount(){
         return ResponseEntity.ok(searchActivityService.getAnalystSearchCount());
     }
+
+
+    @GetMapping("/dashboard/graphs/total-count")
+    public ResponseEntity<@NonNull Long> totalGraphCount() {
+        return ResponseEntity.ok(graphViewTracker.getTotalGraphViews());
+    }
+
 }

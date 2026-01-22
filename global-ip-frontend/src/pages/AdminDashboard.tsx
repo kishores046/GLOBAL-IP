@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminOverview, useHealthSummary, useUsageLogs } from "../hooks/useAdminQueries";
 import { useSearchUsers } from "../hooks/useUsers";
+import { useAdminApiKeys } from "../hooks/useAdminApiKeys";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export function AdminDashboard() {
   const { data: healthSummary } = useHealthSummary();
   const { data: logsData } = useUsageLogs({ page: 0, size: 5, sortBy: 'timestamp', sortDir: 'desc' });
   const { data: usersData, isLoading: isLoadingUsers } = useSearchUsers({ page: 0, size: 4 });
+  const { data: apiKeysData } = useAdminApiKeys({ page: 0, size: 5 });
   const [selectedLogLevel, setSelectedLogLevel] = useState("all");
   const [showUserModal, setShowUserModal] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -19,17 +21,14 @@ export function AdminDashboard() {
   // Get users from API
   const users = usersData?.content || [];
 
+  // Get API keys from API
+  const apiKeys = apiKeysData?.content || [];
+
   // Get recent logs (first 5) and filter by level
   const recentLogs = logsData?.content || [];
   const filteredLogs = selectedLogLevel === "all" 
     ? recentLogs 
     : recentLogs.filter(log => log.status === selectedLogLevel);
-
-  const apiKeys = [
-    { id: 1, name: "Production API Key", key: "pk_live_****************************abc123", created: "2024-01-15", lastUsed: "2 mins ago" },
-    { id: 2, name: "Development Key", key: "pk_test_****************************def456", created: "2024-03-22", lastUsed: "1 hour ago" },
-    { id: 3, name: "Analytics Service", key: "pk_live_****************************ghi789", created: "2024-06-10", lastUsed: "5 mins ago" },
-  ];
 
   const getLogLevelColor = (status: string) => {
     switch (status) {
@@ -459,9 +458,9 @@ export function AdminDashboard() {
                     {apiKeys.map((apiKey) => (
                       <div key={apiKey.id} className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <div className="text-slate-900 text-sm mb-1">{apiKey.name}</div>
-                        <div className="text-xs text-slate-500 font-mono mb-2">{apiKey.key}</div>
+                        <div className="text-xs text-slate-500 font-mono mb-2">{apiKey.maskedKey}</div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600">Used: {apiKey.lastUsed}</span>
+                          <span className="text-slate-600">Status: {apiKey.status}</span>
                           <button className="text-red-600 hover:text-red-700">Revoke</button>
                         </div>
                       </div>

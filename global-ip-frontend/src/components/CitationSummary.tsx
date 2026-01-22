@@ -1,5 +1,6 @@
 import { ArrowRight, Network } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface Citation {
   citedPatent?: string;
@@ -22,6 +23,8 @@ interface CitationSummaryProps {
 
 export function CitationSummary({ citationNetwork, patentId, source }: CitationSummaryProps) {
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
+  const isUserRole = hasRole('USER');
 
   // Only show for PatentsView data
   if (source !== 'PATENTSVIEW' || !citationNetwork) {
@@ -51,12 +54,28 @@ export function CitationSummary({ citationNetwork, patentId, source }: CitationS
   const topCitations = citationNetwork.backwardCitations?.slice(0, 5) || [];
 
   const handleViewNetwork = () => {
-    navigate(`/analyst/visualization?patentId=${patentId}&view=citations`);
+    // Route to appropriate page based on user role
+    if (isUserRole) {
+      navigate(`/user/citation-graph?patentId=${patentId}`);
+    } else {
+      navigate(`/analyst/visualization?patentId=${patentId}&view=citations`);
+    }
   };
 
   const handleCitationClick = (citationPatentId: string) => {
     // Use correct route pattern: /patents/ (plural)
     navigate(`/patents/${citationPatentId}`);
+  };
+
+  // Determine forward citation message
+  const getForwardCitationMessage = (): string => {
+    if (forwardCount === 0) {
+      return 'This patent has not yet been cited by later patents. This is common for newly granted or specialized patents.';
+    } else if (forwardCount > 10) {
+      return `This patent has strong forward citation impact with ${forwardCount} later patents citing this work, indicating significant influence in the field.`;
+    } else {
+      return `This patent has been cited by ${forwardCount} later patent${forwardCount !== 1 ? 's' : ''}.`;
+    }
   };
 
   return (
@@ -81,21 +100,7 @@ export function CitationSummary({ citationNetwork, patentId, source }: CitationS
       {/* Context Text */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-slate-700">
-          {forwardCount === 0 ? (
-            <>
-              This patent has not yet been cited by later patents. 
-              This is common for newly granted or specialized patents.
-            </>
-          ) : forwardCount > 10 ? (
-            <>
-              This patent has strong forward citation impact with {forwardCount} later patents 
-              citing this work, indicating significant influence in the field.
-            </>
-          ) : (
-            <>
-              This patent has been cited by {forwardCount} later patent{forwardCount !== 1 ? 's' : ''}.
-            </>
-          )}
+          {getForwardCitationMessage()}
         </p>
       </div>
 
@@ -106,13 +111,13 @@ export function CitationSummary({ citationNetwork, patentId, source }: CitationS
             Cited Patents (showing {Math.min(topCitations.length, 5)} of {backwardCount})
           </h3>
           <div className="space-y-2">
-            {topCitations.map((citation, index) => {
+            {topCitations.map((citation) => {
               const patentId = citation.citedPatent;
               if (!patentId) return null;
 
               return (
                 <button
-                  key={index}
+                  key={patentId}
                   onClick={() => handleCitationClick(patentId)}
                   className="w-full text-left p-3 bg-white border border-slate-200 rounded-lg hover:border-blue-400 hover:bg-blue-50/50 transition-all"
                 >

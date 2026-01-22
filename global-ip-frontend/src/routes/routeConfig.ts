@@ -36,6 +36,13 @@ export const ROUTES = {
   TRACKED_PATENTS: '/analyst/tracked-patents',
   MONITORING: '/monitoring',
   
+  // User-specific routes (for USER role)
+  USER_TRACKED_PATENTS: '/user/tracked-patents',
+  USER_VISUALIZATION_ENGINE: '/user/visualization',
+  USER_PATENT_LIFECYCLE: '/user/lifecycle/patents',
+  USER_TRADEMARK_LIFECYCLE: '/user/lifecycle/trademarks',
+  USER_CITATION_GRAPH: '/user/citation-graph',
+  
   // Admin routes
   ADMIN_DASHBOARD: '/dashboard/admin',
   ADMIN_OVERVIEW: '/admin/overview', // New monitoring dashboard overview

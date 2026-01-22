@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ANALYST','ADMIN','USER')")
-@RequestMapping("/api/analyst/tracking")
+@RequestMapping("/api/tracking")
 public class UnifiedPatentTrackingController {
 
     private final TrackingPreferencesService trackingPreferencesService;

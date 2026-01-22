@@ -370,6 +370,67 @@ export const trendAnalysisAPI = {
     }
   },
 
+  // Unified Country Trends (combines PatentsView and EPO counts)
+  getUnifiedCountryTrends: async (): Promise<any[]> => {
+    const cacheKey = 'unified-countries';
+    const cached = getCachedData(cacheKey);
+    if (cached) return cached;
+
+    try {
+      console.log('🌍 Fetching unified country trends from /unified/trends/countries');
+      const response = await trendApi.get<any[]>('/unified/trends/countries');
+      console.log('✅ Unified country trends response:', response.data);
+      
+      // Transform the data: combine counts and filter out WO
+      const transformedData = (response.data || [])
+        .filter((item: any) => item.country !== 'WO') // Filter out World (WO)
+        .map((item: any) => ({
+          countryName: item.country,
+          patentCount: (item.patentsViewCount || 0) + (item.epoCount || 0), // Combine both counts
+          patentsViewCount: item.patentsViewCount || 0,
+          epoCount: item.epoCount || 0,
+          ...item,
+        }))
+        .sort((a: any, b: any) => b.patentCount - a.patentCount); // Sort by combined count descending
+      
+      setCacheData(cacheKey, transformedData);
+      return transformedData;
+    } catch (error) {
+      console.error('Error fetching unified country trends:', error);
+      return [];
+    }
+  },
+
+  // EPO Family Trends
+  getEpoFamilyTrends: async (): Promise<any[]> => {
+    const cacheKey = 'epo-family-trends';
+    const cached = getCachedData(cacheKey);
+    if (cached) return cached;
+
+    try {
+      console.log('👨‍👩‍👧‍👦 Fetching EPO family trends');
+      const response = await trendApi.get<any[]>('/epo/trends/families');
+      console.log('✅ EPO family trends response:', response.data);
+      
+      // Transform the data
+      const transformedData = (response.data || [])
+        .map((item: any) => ({
+          familySize: item.familySize || 0,
+          familyCount: item.familyCount || 0,
+          name: `Family Size ${item.familySize}`,
+          count: item.familyCount || 0,
+          ...item,
+        }))
+        .sort((a: any, b: any) => a.familySize - b.familySize); // Sort by family size ascending
+      
+      setCacheData(cacheKey, transformedData);
+      return transformedData;
+    } catch (error) {
+      console.error('Error fetching EPO family trends:', error);
+      return [];
+    }
+  },
+
   // Utility: Clear cache
   clearCache: (): void => {
     trendCache.clear();
