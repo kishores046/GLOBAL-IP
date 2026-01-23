@@ -1,0 +1,327 @@
+/\*\*
+
+- Trademark Trend Analysis Intelligence Layer - Integration Guide
+-
+- This file demonstrates how to integrate and use the Trademark Trend Analysis
+- Intelligence Layer in your application.
+-
+- ===========================
+- QUICK START
+- ===========================
+-
+- 1.  Import the main dashboard component:
+-
+- import { TrademarkTrendAnalysisDashboard } from '@/components/trademark-trends';
+-
+- 2.  Use it in your page:
+-
+- export default function TrademarkAnalysisPage() {
+-      return (
+-        <div className="p-6">
+-          <TrademarkTrendAnalysisDashboard
+-            title="Trademark Market Intelligence"
+-            showRawData={true}
+-            autoRefreshInterval={10 * 60 * 1000} // 10 minutes
+-          />
+-        </div>
+-      );
+- }
+-
+- ===========================
+- ARCHITECTURE OVERVIEW
+- ===========================
+-
+- 📦 LAYERS:
+-
+- 1.  API Layer (services/trademarkTrendAPI.ts)
+- └─ Fetches data from 4 backend endpoints
+- └─ Implements caching (10-minute TTL)
+- └─ Handles authentication & error management
+-
+- 2.  Data Types (types/trademark-trends.ts)
+- └─ Defines all data structures
+- └─ Supports filtering & aggregation
+-
+- 3.  Intelligence Engine (utils/trademarkTrendAnalyzer.ts)
+- └─ Converts raw data into business insights
+- └─ Generates 4 insight categories:
+-       - Executive Summary (4 insights)
+-       - Trend Interpretation (growth/concentration/stability)
+-       - Business Implications (with recommendations)
+-       - Visualization Recommendations
+-
+- 4.  React Hooks (hooks/useTrademarkTrendAnalysis.ts)
+- └─ useTrademarkTrendAnalysis() - Main hook with full analysis
+- └─ useTrademarkSummary() - Summary metrics only
+- └─ useTrademarkClasses() - Class distribution only
+- └─ useTrademarkCountries() - Geographic data only
+- └─ useTrademarkStatus() - Status distribution only
+-
+- 5.  UI Components (components/trademark-trends/):
+- ├─ TrademarkTrendAnalysisDashboard - Main container
+- ├─ ExecutiveInsightPanel - 3-4 key findings
+- ├─ TrendInterpretationPanel - Pattern analysis
+- ├─ BusinessImplicationsPanel - Strategic insights
+- ├─ VisualizationRecommendationsPanel - Chart suggestions
+- └─ DataTable - Sortable data tables
+-
+- ===========================
+- USAGE PATTERNS
+- ===========================
+-
+- Pattern 1: Full Dashboard (Recommended)
+- ────────────────────────────────────────
+- import { TrademarkTrendAnalysisDashboard } from '@/components/trademark-trends';
+-
+- export default function TrademarkPage() {
+- return <TrademarkTrendAnalysisDashboard showRawData={true} />;
+- }
+-
+- Pattern 2: Custom Composition
+- ───────────────────────────────
+- import {
+- ExecutiveInsightPanel,
+- BusinessImplicationsPanel,
+- } from '@/components/trademark-trends';
+- import { useTrademarkTrendAnalysis } from '@/hooks/useTrademarkTrendAnalysis';
+-
+- export default function CustomView() {
+- const { analysisReport, loading, error } = useTrademarkTrendAnalysis();
+-
+- return (
+-     <div className="space-y-6">
+-       <ExecutiveInsightPanel
+-         insights={analysisReport?.executiveSummary || []}
+-         loading={loading}
+-         error={error}
+-       />
+-       <BusinessImplicationsPanel
+-         implications={analysisReport?.businessImplications || []}
+-         loading={loading}
+-         error={error}
+-       />
+-     </div>
+- );
+- }
+-
+- Pattern 3: Specific Data Only
+- ──────────────────────────────
+- import { useTrademarkClasses } from '@/hooks/useTrademarkTrendAnalysis';
+-
+- export default function ClassAnalytics() {
+- const { data, loading, error } = useTrademarkClasses();
+-
+- return (
+-     <div>
+-       {/* Render your custom visualization */}
+-     </div>
+- );
+- }
+-
+- ===========================
+- DATA FLOW
+- ===========================
+-
+- Backend Endpoints:
+- ├─ GET /api/trends/trademarks/summary
+- ├─ GET /api/trends/trademarks/classes/top
+- ├─ GET /api/trends/trademarks/countries/top
+- └─ GET /api/trends/trademarks/status
+-
+-        ↓ (cached for 10 min)
+-
+- API Service Layer:
+- └─ trademarkTrendAPI.getAllTrendData()
+-
+-        ↓ (aggregated)
+-
+- Intelligence Engine:
+- └─ TrademarkTrendAnalyzer.generateFullReport()
+-
+-        ↓ (analyzed)
+-
+- React Hook:
+- └─ useTrademarkTrendAnalysis()
+-
+-        ↓ (rendered)
+-
+- UI Components:
+- └─ TrademarkTrendAnalysisDashboard
+-
+- ===========================
+- INSIGHT GENERATION RULES
+- ===========================
+-
+- Executive Insights:
+- 1.  Filing Growth Analysis
+-      - >10% growth: "Strong Filing Growth"
+-      - <-10% decline: "Filing Activity Decline"
+-      - Else: "Stable Filing Activity"
+-
+- 2.  Class Concentration
+-      - >25%: "High Class Concentration" (brand conflict risk)
+-      - >15%: "Moderate Class Concentration"
+-      - Else: "Diversified Class Portfolio"
+-
+- 3.  Geographic Focus
+-      - >40%: "Strong Geographic Concentration"
+-      - >25%: "Moderate Geographic Focus"
+-      - Else: "Geographically Distributed"
+-
+- 4.  Brand Lifecycle Health
+-      - Dead/Cancelled >30%: "Brand Longevity Concern"
+-      - Dead/Cancelled >15%: "Moderate Brand Churn"
+-      - Else: "Strong Brand Longevity"
+-
+- Business Implications:
+- - Market Saturation (when class concentration >20%)
+- - Geographic Focus (when top country >35%)
+- - Brand Lifecycle (based on active rate)
+- - Competitive Intelligence (based on class diversity)
+-
+- ===========================
+- COMPONENT PROPS
+- ===========================
+-
+- TrademarkTrendAnalysisDashboard:
+- - title?: string (default: "Trademark Trend Analysis")
+- - showRawData?: boolean (default: true)
+- - autoRefreshInterval?: number (milliseconds, 0 = disabled)
+-
+- ExecutiveInsightPanel:
+- - insights: ExecutiveInsight[]
+- - loading?: boolean
+- - error?: Error | null
+-
+- TrendInterpretationPanel:
+- - interpretation: TrendInterpretation | null
+- - loading?: boolean
+- - error?: Error | null
+-
+- BusinessImplicationsPanel:
+- - implications: BusinessImplication[]
+- - loading?: boolean
+- - error?: Error | null
+-
+- VisualizationRecommendationsPanel:
+- - recommendations: VisualizationRecommendation[]
+- - loading?: boolean
+- - error?: Error | null
+-
+- ===========================
+- FILTERING & PARAMETERS
+- ===========================
+-
+- All hooks accept TrademarkTrendFilterOptions:
+- - startYear?: number
+- - endYear?: number
+- - countries?: string[]
+- - status?: string[]
+-
+- Example with filters:
+-
+- const { data } = useTrademarkSummary({
+-     startYear: 2020,
+-     endYear: 2025,
+-     countries: ['US', 'EU'],
+-     status: ['LIVE']
+- });
+-
+- ===========================
+- CACHING STRATEGY
+- ===========================
+-
+- - Default TTL: 10 minutes
+- - Cache keys include filter parameters
+- - Manual cache clear: trademarkTrendAPI.clearCache()
+-
+- Example:
+-
+- // First call: Fetches from API
+- const { data: data1 } = useTrademarkSummary();
+-
+- // Second call (within 10 min): Uses cache
+- const { data: data2 } = useTrademarkSummary();
+-
+- // After manual refresh
+- trademarkTrendAPI.clearCache();
+- const { data: data3 } = useTrademarkSummary(); // Fetches again
+-
+- ===========================
+- ERROR HANDLING
+- ===========================
+-
+- All components handle errors gracefully:
+- - Red alert cards for errors
+- - Error messages logged to console
+- - Retry buttons provided
+- - Fallback UI for loading states
+-
+- ===========================
+- STYLING & THEMING
+- ===========================
+-
+- - Uses existing Tailwind classes (bg-, text-, border-, etc.)
+- - Compatible with your existing UI component system
+- - Respects dark/light mode if configured in Tailwind config
+- - Color coding:
+- - Red (High severity): Brand conflicts, concerns
+- - Yellow (Medium severity): Moderate trends
+- - Green (Low severity): Positive indicators
+- - Blue (Info): Analysis & recommendations
+-
+- ===========================
+- EXPORT & REPORTING
+- ===========================
+-
+- The dashboard includes export functionality:
+- - "Export Report" button downloads JSON
+- - Filename: trademark-analysis-YYYY-MM-DD.json
+- - Contains full analysis report & raw data
+-
+- ===========================
+- PERFORMANCE CONSIDERATIONS
+- ===========================
+-
+- - All API calls are parallel (Promise.all)
+- - Data is cached to prevent redundant API calls
+- - Components use React.memo for optimization (can be added)
+- - Analysis runs synchronously after data fetch
+- - Auto-refresh can be configured per instance
+-
+- ===========================
+- BROWSER SUPPORT
+- ===========================
+-
+- - Modern browsers (Chrome, Firefox, Safari, Edge)
+- - ES2020+ JavaScript features used
+- - No IE11 support (uses modern APIs like Blob, URL.createObjectURL)
+-
+- ===========================
+- NEXT STEPS
+- ===========================
+-
+- 1.  Add custom visualizations:
+- - Line charts for filing trends
+- - Bar charts for class distribution
+- - Pie charts for status distribution
+- - Geographic maps for country data
+-
+- 2.  Integrate with dashboard:
+- - Add to analyst dashboard page
+- - Create dedicated trademark page
+- - Embed in reports
+-
+- 3.  Extend analysis:
+- - Add more insight rules
+- - Implement trend predictions
+- - Add benchmarking
+-
+- 4.  Connect to backend:
+- - Verify API endpoints are live
+- - Test with production data
+- - Configure CORS if needed
+    \*/
+
+// This file is for documentation only. No exports needed.
+export {};

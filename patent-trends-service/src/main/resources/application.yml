@@ -1,0 +1,116 @@
+server:
+  port: ${SERVER_PORT}
+spring:
+  profiles:
+    active: prod
+
+---
+
+spring:
+  application:
+    name: patent-trends-service
+
+
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 30              # INCREASED from 10
+      minimum-idle: 10                   # INCREASED from 2
+      idle-timeout: 600000               # INCREASED (10 minutes)
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 600000   # ADDED - detect connection leaks
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: public
+        format_sql: true
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
+        # ADDED - Query timeout
+        jakarta.persistence.query.timeout: 20000
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+service:
+  auth:
+    api-key: ${TREND_SERVICE_API_KEY}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: ingest
+
+  filepath: D:\patents-data\Epo Data\Raw
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 30              # INCREASED from 10
+      minimum-idle: 10                   # INCREASED from 2
+      idle-timeout: 600000               # INCREASED (10 minutes)
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 600000   # ADDED - detect connection leaks
+
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      open-in-view: false
+      hibernate:
+        ddl-auto: none
+      properties:
+        hibernate:
+          default_schema: public
+          format_sql: true
+          jdbc:
+            batch_size: 1000
+          order_inserts: true
+          order_updates: true
+          # ADDED - Query timeout
+          jakarta.persistence.query.timeout: 20000
+
+    sql:
+      init:
+        mode: never
+
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+      com.zaxxer.hikari: INFO
+
+service:
+  auth:
+    api-key: ${TREND_SERVICE_API_KEY}

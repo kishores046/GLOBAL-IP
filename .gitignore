@@ -1,0 +1,23 @@
+global-ip-frontend/build/ 
+tm-mock-service/src/main/resources/*.xml
+# ===============================
+# IDE / Editor files
+# ===============================
+.idea/
+.vscode/
+*.iml
+
+# ===============================
+# Frontend documentation (DO NOT TRACK)
+# ===============================
+global-ip-frontend/*.md
+global-ip-frontend/**/**/*.md
+
+# Explicit competitor docs
+global-ip-frontend/src/features/competitors/components/COMPONENTS.md
+
+# ===============================
+# OS / System
+# ===============================
+.DS_Store
+Thumbs.db
