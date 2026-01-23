@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +27,7 @@ public class JwtUtil {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes =jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -43,13 +43,13 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("roles", roles)
-                .issuer("global-ip-core")
+                .issuer(jwtConfig.getIssuer())
+                .audience().add(jwtConfig.getAudience()).and() // Add audience claim
                 .issuedAt(new Date(now))
                 .expiration(new Date(exp))
                 .id(UUID.randomUUID().toString())
                 .signWith(getSigningKey())
                 .compact();
-
     }
 
     public String extractUsername(String token) {
@@ -70,7 +70,26 @@ public class JwtUtil {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
-            String username = extractUsername(token);
+            Claims claims = parseClaims(token);
+            String username = claims.getSubject();
+
+            // Validate issuer
+            String issuer = claims.getIssuer();
+            if (!jwtConfig.getIssuer().equals(issuer)) {
+                log.warn("Invalid issuer: expected {}, got {}", jwtConfig.getIssuer(), issuer);
+                return false;
+            }
+
+            Object audClaim = claims.get("aud");
+
+            if (audClaim instanceof String aud) {
+                if (!jwtConfig.getAudience().equals(aud)) return false;
+            } else if (audClaim instanceof Collection<?> auds) {
+                if (!auds.contains(jwtConfig.getAudience())) return false;
+            } else {
+                return false;
+            }
+
             return username != null
                     && username.equals(userDetails.getUsername())
                     && !isTokenExpired(token);
@@ -93,4 +112,16 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public String extractTokenId(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getId();
+    }
+
+
+    public Date extractExpiration(String token) {
+        Claims claims = parseClaims(token);
+        return claims.getExpiration();
+    }
+
 }

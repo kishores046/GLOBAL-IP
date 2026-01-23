@@ -1,10 +1,7 @@
 package com.teamb.globalipbackend1.admin.service;
 
 import com.teamb.globalipbackend1.admin.audit.ApiUsageLog;
-import com.teamb.globalipbackend1.admin.dto.CreateUserRequest;
-import com.teamb.globalipbackend1.admin.dto.DashboardUserCountResponse;
-import com.teamb.globalipbackend1.admin.dto.UserActivityDto;
-import com.teamb.globalipbackend1.admin.dto.UserAdminDto;
+import com.teamb.globalipbackend1.admin.dto.*;
 import com.teamb.globalipbackend1.admin.repository.ApiUsageLogRepository;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
 import com.teamb.globalipbackend1.exception.ResourceNotFoundException;
@@ -16,6 +13,7 @@ import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.repository.user.UserRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +31,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AdminService {
 
     private final UserRepository userRepository;
@@ -54,7 +53,7 @@ public class AdminService {
     public Page<@NonNull UserAdminDto> searchUsers(String query, String role, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        Specification<User> spec = (root, criteriaQuery, criteriaBuilder) -> {
+        Specification<@NonNull User> spec = (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             // Search by username or email
@@ -255,6 +254,66 @@ public class AdminService {
                     Role role = new Role(roleName);
                     return roleRepository.save(role);
                 });
+    }
+
+
+    @Transactional
+    public BlockUserResponse blockUser(String userId, BlockUserRequest request, String adminEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (user.isBlocked()) {
+            throw new IllegalStateException("User is already blocked");
+        }
+
+        user.setBlocked(true);
+        user.setBlockReason(request.reason());
+        user.setBlockedAt(LocalDateTime.now());
+        user.setBlockedBy(adminEmail);
+
+        userRepository.save(user);
+
+        log.info("User {} blocked by admin {}. Reason: {}", user.getEmail(), adminEmail, request.reason());
+
+        return new BlockUserResponse(
+                user.getUserId(),
+                user.getEmail(),
+                true,
+                user.getBlockReason(),
+                user.getBlockedAt().toString(),
+                "User blocked successfully"
+        );
+    }
+
+    /**
+     * Unblock a user
+     */
+    @Transactional
+    public BlockUserResponse unblockUser(String userId, String adminEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (!user.isBlocked()) {
+            throw new IllegalStateException("User is not blocked");
+        }
+
+        user.setBlocked(false);
+        user.setBlockReason(null);
+        user.setBlockedAt(null);
+        user.setBlockedBy(null);
+
+        userRepository.save(user);
+
+        log.info("User {} unblocked by admin {}", user.getEmail(), adminEmail);
+
+        return new BlockUserResponse(
+                user.getUserId(),
+                user.getEmail(),
+                false,
+                null,
+                null,
+                "User unblocked successfully"
+        );
     }
 
 

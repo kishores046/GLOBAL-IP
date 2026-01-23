@@ -1,6 +1,7 @@
 package com.teamb.globalipbackend1.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -151,4 +152,20 @@ public class CaffeineCacheConfig {
                         .build()
         );
     }
+
+    /**
+     * JWT blacklist cache
+     * Used ONLY for token revocation
+     */
+    @Bean
+    public com.github.benmanes.caffeine.cache.Cache<@NonNull String, Boolean>
+    tokenBlacklistCache() {
+
+        return Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .maximumSize(10_000)
+                .recordStats()
+                .build();
+    }
+
 }

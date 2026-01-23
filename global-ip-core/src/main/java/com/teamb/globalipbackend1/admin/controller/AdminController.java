@@ -1,15 +1,14 @@
 package com.teamb.globalipbackend1.admin.controller;
 
-import com.teamb.globalipbackend1.admin.dto.CreateUserRequest;
-import com.teamb.globalipbackend1.admin.dto.DashboardUserCountResponse;
-import com.teamb.globalipbackend1.admin.dto.UserAdminDto;
-import com.teamb.globalipbackend1.admin.dto.UserActivityDto;
+import com.teamb.globalipbackend1.admin.dto.*;
 import com.teamb.globalipbackend1.admin.service.AdminService;
 import com.teamb.globalipbackend1.dto.user.UserProfileResponse;
+import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -103,5 +102,28 @@ public class AdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserAdminDto createUser(@RequestBody CreateUserRequest request) {
         return adminService.createUser(request);
+    }
+
+
+    @PostMapping("/users/{id}/block")
+    public BlockUserResponse blockUser(
+            @PathVariable String id,
+            @RequestBody @Valid BlockUserRequest request,
+            Authentication authentication
+    ) {
+        String adminEmail = authentication.getName();
+        return adminService.blockUser(id, request, adminEmail);
+    }
+
+    /**
+     * Unblock a user
+     */
+    @PostMapping("/users/{id}/unblock")
+    public BlockUserResponse unblockUser(
+            @PathVariable String id,
+            Authentication authentication
+    ) {
+        String adminEmail = authentication.getName();
+        return adminService.unblockUser(id, adminEmail);
     }
 }

@@ -86,6 +86,18 @@ public class User {
         this.updatedAt=LocalDateTime.now();
     }
 
+    @Column(name = "is_blocked", nullable = false)
+    private boolean blocked = false;
+
+    @Column(name = "blocked_at")
+    private LocalDateTime blockedAt;
+
+    @Column(name = "blocked_by")
+    private String blockedBy;
+
+    @Column(name = "block_reason")
+    private String blockReason;
+
 
     @PreUpdate
     public void preUpdate(){

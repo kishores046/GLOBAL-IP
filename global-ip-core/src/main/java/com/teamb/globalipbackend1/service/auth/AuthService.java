@@ -7,6 +7,8 @@ import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.user.RoleRepository;
 import com.teamb.globalipbackend1.repository.user.UserRepository;
 import com.teamb.globalipbackend1.security.JwtUtil;
+import com.teamb.globalipbackend1.security.SecurityUtil;
+import com.teamb.globalipbackend1.security.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +29,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RoleRepository roleRepository;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final SecurityUtil securityUtil;
 
     /**
      * Authenticate user
@@ -35,6 +39,12 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+
+        if (user.isBlocked()) {
+            log.warn("Login attempt by blocked user: {}", user.getEmail());
+            throw new BadCredentialsException("Account has been blocked. Reason: " +
+                    (user.getBlockReason() != null ? user.getBlockReason() : "Contact administrator"));
+        }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
@@ -136,6 +146,16 @@ public class AuthService {
         user.setPasswordChangeRequired(false);
 
         userRepository.save(user);
+    }
+
+    public void logout(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            String jwtToken = token.substring(7);
+            tokenBlacklistService.blacklistToken(jwtToken, securityUtil.getCurrentUserEmail());
+            log.info("User logged out successfully, token blacklisted");
+        } else {
+            throw new IllegalArgumentException("Invalid token format");
+        }
     }
 
 }

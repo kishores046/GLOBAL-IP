@@ -59,7 +59,9 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000
+  expiration: ${EXPIRATION}
+  issuer: ${ISSUER}
+  audience : ${AUDIENCE}
 epo:
   base-url: ${EPO_BASE_URL}
   consumer-key: ${EPO_CONSUMER_KEY}
@@ -202,9 +204,11 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000
+  expiration: ${EXPIRATION}
+  issuer: ${ISSUER}
+  audience : ${AUDIENCE}
 server:
-  port: 0
+  port: ${TEST_SERVER_PORT}
 
 
 patent-analytics:
@@ -268,7 +272,9 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 3600000
+  expiration: ${EXPIRATION}
+  issuer: ${ISSUER}
+  audience : ${AUDIENCE}
 
 server:
   port: ${SERVER_PORT}

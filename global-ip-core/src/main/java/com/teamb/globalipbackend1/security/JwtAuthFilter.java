@@ -5,8 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -22,11 +23,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private JwtUtil jwtUtil;
     private CustomUserDetailsService userDetailsService;
+    private TokenBlacklistService tokenBlacklistService; // Add this
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         try {
@@ -34,17 +36,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = null;
             String username = null;
 
-
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 token = authHeader.substring(7);
+
+
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
 
                 try {
                     username = jwtUtil.extractUsername(token);
                 } catch (Exception e) {
-                    log.error("Error extracting username from token: {} " , e.getMessage());
+                    log.error("Error extracting username from token: {}", e.getMessage());
                 }
             }
-
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -60,13 +66,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                    log.info("✓ JWT validated successfully for user: {}",username);
+                    log.info("✓ JWT validated successfully for user: {}", username);
                 } else {
-                    log.error("✗ Invalid JWT token for user: {}" , username);
+                    log.error("✗ Invalid JWT token for user: {}", username);
                 }
             }
         } catch (Exception e) {
-            log.error("JWT Authentication Error: {}" ,e.getMessage());
+            log.error("JWT Authentication Error: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
@@ -75,7 +81,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-
 
         return path.startsWith("/api/auth/")
                 || path.startsWith("/oauth2/")
