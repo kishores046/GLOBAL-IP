@@ -255,6 +255,29 @@ export const adminApi = {
     return data;
   },
 
+  /**
+   * Block a user by ID
+   * @param userId - User ID to block
+   * @param reason - Reason for blocking
+   * @returns Promise<BlockUserResponse>
+   */
+  blockUser: async (userId: string, reason: string) => {
+    const { data } = await adminApiClient.post(`/users/${userId}/block`, {
+      reason,
+    });
+    return data;
+  },
+
+  /**
+   * Unblock a user by ID
+   * @param userId - User ID to unblock
+   * @returns Promise<UnblockUserResponse>
+   */
+  unblockUser: async (userId: string) => {
+    const { data } = await adminApiClient.post(`/users/${userId}/unblock`);
+    return data;
+  },
+
   // ==================== API Key Management APIs ====================
 
   /**

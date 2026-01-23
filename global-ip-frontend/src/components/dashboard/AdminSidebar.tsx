@@ -1,11 +1,15 @@
 import { LayoutDashboard, Users, Shield, Activity, Key, LogOut, LineChart, AlertTriangle, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { ROUTES } from "../../routes/routeConfig";
+import { toast } from "sonner";
 
 export function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['monitoring']); // Monitoring Hub expanded by default
   
   // Determine active item based on current route
@@ -28,12 +32,23 @@ export function AdminSidebar() {
     setActiveItem(getActiveItem());
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    // Clear any user data/tokens here if needed
-    localStorage.removeItem("lastDashboard");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("authToken");
-    navigate(ROUTES.LOGIN);
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      toast.success('Logged out successfully');
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Logout failed, clearing session anyway');
+      // Clear local state and redirect anyway
+      localStorage.removeItem("lastDashboard");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("authToken");
+      navigate(ROUTES.LOGIN, { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleNavigation = (itemId: string) => {
@@ -70,7 +85,14 @@ export function AdminSidebar() {
     }
   };
 
-  // Admin menu items
+  const toggleMenuExpand = (itemId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
   const adminMenuItems = [
     { id: "dashboard", label: "Dashboard Overview", icon: LayoutDashboard },
     { 
@@ -118,13 +140,7 @@ export function AdminSidebar() {
             return (
               <div key={item.id} className="space-y-1">
                 <button
-                  onClick={() => {
-                    setExpandedMenus(prev => 
-                      prev.includes(item.id) 
-                        ? prev.filter(id => id !== item.id)
-                        : [...prev, item.id]
-                    );
-                  }}
+                  onClick={() => toggleMenuExpand(item.id)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-left ${
                     hasActiveSubmenu
                       ? "bg-purple-900/50 text-white"
@@ -197,10 +213,11 @@ export function AdminSidebar() {
         {/* Logout Button */}
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-950 hover:text-red-300 rounded-lg transition-all"
+          disabled={isLoggingOut}
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-950 hover:text-red-300 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <LogOut className="w-5 h-5" />
-          <span>Logout</span>
+          <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </aside>

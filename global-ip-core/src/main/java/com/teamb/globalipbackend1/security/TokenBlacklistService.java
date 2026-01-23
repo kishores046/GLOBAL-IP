@@ -29,10 +29,10 @@ public class TokenBlacklistService {
      */
     @Transactional
     public void blacklistToken(String token, String userEmail) {
-        // Add to cache for fast lookup
+
         tokenBlacklistCache.put(token, Boolean.TRUE);
 
-        // Parse token to get expiration
+
         try {
             String tokenWithoutBearer = token.startsWith("Bearer ") ? token.substring(7) : token;
             Date expiration = jwtUtil.extractExpiration(tokenWithoutBearer);

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Analyst", description = "Analyst dashboard and analytics APIs")
 @SecurityRequirement(name = "Bearer Authentication")
+@SecurityRequirement(name = "ApiKeyAuth")
 public class AnalystController {
 
 
@@ -55,6 +56,16 @@ public class AnalystController {
     }
 
 
+
+    @Operation(
+            summary = "Get total graph view count",
+            description = "Returns the total number of graph views across the analyst dashboard. Used for analytics and engagement tracking.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Total graph view count returned successfully"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden")
+            }
+    )
     @GetMapping("/dashboard/graphs/total-count")
     public ResponseEntity<@NonNull Long> totalGraphCount() {
         return ResponseEntity.ok(graphViewTracker.getTotalGraphViews());

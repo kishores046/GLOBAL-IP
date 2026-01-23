@@ -29,7 +29,7 @@ public class OpenApiConfig {
                         .description("""
                                 REST API for searching and managing patents and trademarks.
                                 Integrates with EPO, PatentsView, and TMView.
-                                Secured using JWT and OAuth2.
+                                Secured using JWT and API Key authentication.
                                 """)
                         .version("1.0.0")
                         .contact(new Contact()
@@ -41,16 +41,33 @@ public class OpenApiConfig {
                                 .description("Development Server")
                 ))
 
+                //Global security requirement: JWT + API Key
                 .addSecurityItem(new SecurityRequirement()
-                        .addList("Bearer Authentication"))
+                        .addList("Bearer Authentication")
+                        .addList("ApiKey Authentication")
+                )
+
+                // 🔧 Security scheme definitions
                 .components(new Components()
+                        // JWT
                         .addSecuritySchemes("Bearer Authentication",
                                 new SecurityScheme()
-                                        .name("Authorization")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
-                                        .description("Enter JWT token like: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-                        ));
+                                        .description(
+                                                "Enter JWT token like: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                        )
+                        )
+
+                        // API Key
+                        .addSecuritySchemes("ApiKey Authentication",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .name("X-API-KEY")
+                                        .description("API key required for programmatic and analytics access")
+                        )
+                );
     }
 }

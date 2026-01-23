@@ -162,6 +162,23 @@ export interface DashboardUserCountResponse {
   inactiveUsers: number;
 }
 
+export interface BlockUserResponse {
+  userId: string;
+  email: string;
+  blocked: boolean;
+  blockReason: string;
+  blockedAt: string;
+  message: string;
+}
+
+export interface UnblockUserResponse {
+  userId: string;
+  email: string;
+  blocked: boolean;
+  message: string;
+  unblockTime?: string;
+}
+
 export interface UserSearchParams {
   query?: string;    // Search by username or email
   role?: string;     // Filter by role: "USER" | "ADMIN" | etc.

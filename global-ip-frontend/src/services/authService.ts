@@ -142,10 +142,33 @@ class AuthService {
     return !!token;
   }
 
-  // Logout user
-  logout(): void {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user');
+  // Logout user - calls backend to blacklist token
+  async logout(): Promise<void> {
+    try {
+      const token = this.getToken();
+      
+      // Call backend logout endpoint if token exists
+      if (token) {
+        try {
+          await api.post('/auth/logout', {}, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          console.log('✅ Backend logout successful - token blacklisted');
+        } catch (error: any) {
+          // Even if backend logout fails, still clear frontend
+          console.warn('⚠️ Backend logout failed, clearing frontend state:', error.message);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    } finally {
+      // Always clear localStorage and state regardless of backend response
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user');
+      console.log('🔐 Local auth data cleared');
+    }
   }
 
   // Get stored user data

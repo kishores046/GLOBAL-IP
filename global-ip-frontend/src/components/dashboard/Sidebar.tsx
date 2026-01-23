@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ROUTES, ROLES } from "../../routes/routeConfig";
+import { toast } from "sonner";
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasRole } = useAuth();
+  const { hasRole, logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Determine if user is an analyst - check localStorage first, then pathname
   const [isAnalyst, setIsAnalyst] = useState(() => {
@@ -67,11 +69,22 @@ export function Sidebar() {
     }
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    // Clear any user data/tokens here if needed
-    localStorage.removeItem("lastDashboard");
-    localStorage.removeItem("userRole");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      toast.success('Logged out successfully');
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Logout failed, clearing session anyway');
+      // Clear local state and redirect anyway
+      localStorage.removeItem("lastDashboard");
+      localStorage.removeItem("userRole");
+      navigate("/login", { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleNavigation = (itemId: string) => {
@@ -216,10 +229,11 @@ export function Sidebar() {
       <div className="p-4 border-t border-blue-800/30">
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-300 hover:bg-red-900/30 hover:text-red-200 rounded-lg transition-all group"
+          disabled={isLoggingOut}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-300 hover:bg-red-900/30 hover:text-red-200 rounded-lg transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium">Logout</span>
+          <span className="text-sm font-medium">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </aside>

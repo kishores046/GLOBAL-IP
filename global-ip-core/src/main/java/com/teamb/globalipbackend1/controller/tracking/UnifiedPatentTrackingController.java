@@ -4,6 +4,10 @@ import com.teamb.globalipbackend1.dto.tracking.TrackingPreferencesDto;
 import com.teamb.globalipbackend1.security.SecurityUtil;
 import com.teamb.globalipbackend1.service.tracking.TrackingPreferencesService;
 import com.teamb.globalipbackend1.util.trackingUtil.PatentSourceDetector;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +22,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ANALYST','ADMIN','USER')")
 @RequestMapping("/api/tracking")
+@Tag(
+        name = "Patent Tracking",
+        description = "Unified patent tracking preferences across USPTO and EPO sources"
+)
+@SecurityRequirement(name = "Bearer Authentication")
 public class UnifiedPatentTrackingController {
 
     private final TrackingPreferencesService trackingPreferencesService;
@@ -28,6 +37,15 @@ public class UnifiedPatentTrackingController {
      * Save or update tracking preferences for a patent
      * Automatically detects USPTO or EPO based on patent ID
      */
+    @Operation(
+            summary = "Save or update tracking preferences",
+            description = "Creates or updates tracking preferences for a patent. "
+                    + "Patent source (USPTO or EPO) is automatically detected.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Tracking preferences saved successfully"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
     @PostMapping("/preferences")
     public ResponseEntity<@NonNull TrackingPreferencesDto> saveTrackingPreferences(
             @RequestBody TrackingPreferencesDto preferences
@@ -51,6 +69,14 @@ public class UnifiedPatentTrackingController {
      * Get tracking preferences for a specific patent
      * Works for both USPTO and EPO patents
      */
+    @Operation(
+            summary = "Get tracking preferences for a patent",
+            description = "Returns tracking preferences for a specific patent ID.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Tracking preferences returned"),
+                    @ApiResponse(responseCode = "404", description = "Tracking preferences not found")
+            }
+    )
     @GetMapping("/preferences/{patentId}")
     public ResponseEntity<@NonNull TrackingPreferencesDto> getTrackingPreferences(
             @PathVariable String patentId
@@ -71,6 +97,14 @@ public class UnifiedPatentTrackingController {
      * Get all tracking preferences for the logged-in user
      * Returns both USPTO and EPO patents
      */
+    @Operation(
+            summary = "Get all tracking preferences",
+            description = "Returns all tracked patents for the logged-in user. "
+                    + "Optionally filter by patent source (USPTO or EPO).",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Tracking preferences returned successfully")
+            }
+    )
     @GetMapping("/preferences")
     public ResponseEntity<@NonNull List<TrackingPreferencesDto>> getAllTrackingPreferences(
             @RequestParam(required = false) String source
@@ -99,6 +133,14 @@ public class UnifiedPatentTrackingController {
     /**
      * Delete tracking preferences (untrack a patent)
      */
+    @Operation(
+            summary = "Delete tracking preferences",
+            description = "Stops tracking a patent for the logged-in user.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Tracking preferences deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Tracking preferences not found")
+            }
+    )
     @DeleteMapping("/preferences/{patentId}")
     public ResponseEntity<@NonNull Void> deleteTrackingPreferences(
             @PathVariable String patentId
@@ -118,6 +160,13 @@ public class UnifiedPatentTrackingController {
     /**
      * Check if a patent is being tracked
      */
+    @Operation(
+            summary = "Check if patent is being tracked",
+            description = "Returns true if the given patent is currently tracked by the user.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Tracking status returned")
+            }
+    )
     @GetMapping("/is-tracking/{patentId}")
     public ResponseEntity<@NonNull Boolean> isTracking(@PathVariable String patentId) {
         String userId = securityUtil.getUserId();
@@ -130,6 +179,14 @@ public class UnifiedPatentTrackingController {
     /**
      * Get patent source information
      */
+    @Operation(
+            summary = "Get patent source information",
+            description = "Returns detected patent source and polling metadata "
+                    + "(USPTO or EPO, API used, refresh frequency).",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Patent source info returned")
+            }
+    )
     @GetMapping("/patent-source/{patentId}")
     public ResponseEntity<@NonNull PatentSourceInfo> getPatentSource(@PathVariable String patentId) {
         PatentSourceDetector.PatentSource source = sourceDetector.detectSource(patentId);

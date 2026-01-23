@@ -47,6 +47,13 @@ api.interceptors.request.use(
   }
 );
 
+// Helper function to extract error details
+const extractErrorDetails = (errorData: any) => {
+  const errorMessage = typeof errorData === 'string' ? errorData : errorData?.message ?? '';
+  const errorType = errorData?.errorType ?? errorData?.type ?? '';
+  return { errorMessage, errorType };
+};
+
 // Response interceptor to handle errors globally
 api.interceptors.response.use(
   (response) => {
@@ -58,50 +65,82 @@ api.interceptors.response.use(
     console.error('Error message:', error.message);
     
     if (error.response) {
-      // Handle 401 Unauthorized - token expired or invalid
+      // Handle 401 Unauthorized - token expired, invalid, or blacklisted
       if (error.response.status === 401) {
-        console.error('401 Unauthorized - Token may be expired or invalid');
-        
-        // Don't redirect if already on login or change-password pages
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/login' && currentPath !== '/change-password') {
-          clearAuthData();
-          window.location.href = '/login';
-        }
+        handleUnauthorized();
       }
       
-      // Handle 403 Forbidden - user doesn't have required role or subscription
+      // Handle 403 Forbidden - user blocked or permission denied
       if (error.response.status === 403) {
-        console.error('403 Forbidden - User does not have required permissions');
-        console.error('403 Error details:', error.response.data);
-        console.error('Request URL:', error.config?.url);
-        console.error('Request method:', error.config?.method);
-        console.error('Auth header:', error.config?.headers?.Authorization);
-        
-        // Check if this is a subscription-related error
-        const errorData = error.response.data;
-        const errorMessage = typeof errorData === 'string' ? errorData : errorData?.message || '';
-        const errorType = errorData?.errorType || errorData?.type || '';
-        
-        if (
-          errorMessage.includes('subscription') ||
-          errorMessage.includes('Subscription') ||
-          errorType === 'SubscriptionRequiredException' ||
-          errorType === 'TierLimitExceededException'
-        ) {
-          // Mark this as a subscription error for handling by components
-          error.isSubscriptionError = true;
-          error.subscriptionErrorType = errorType || 'SubscriptionRequiredException';
-        }
+        handleForbidden(error);
       }
     } else if (error.request) {
-      console.error('No response received from backend:', error.request);
+      console.error('⚠️ No response received from backend:', error.request);
       console.error('Make sure your backend is running on http://localhost:8080');
     }
     
     return Promise.reject(error);
   }
 );
+
+// Handle 401 Unauthorized errors
+const handleUnauthorized = () => {
+  console.error('❌ 401 Unauthorized - Token expired, invalid, or blacklisted');
+  
+  // Don't redirect if already on login or change-password pages
+  const currentPath = window.location.pathname;
+  if (currentPath !== '/login' && currentPath !== '/change-password') {
+    // Clear all auth data
+    clearAuthData();
+    // Show message to user (they can see this in the login page redirect)
+    sessionStorage.setItem('authMessage', 'Session expired. Please log in again.');
+    // Redirect to login
+    window.location.href = '/login';
+  }
+};
+
+// Handle 403 Forbidden errors
+const handleForbidden = (error: any) => {
+  console.error('❌ 403 Forbidden - User may be blocked or lacks permissions');
+  const errorData = error.response.data;
+  const { errorMessage, errorType } = extractErrorDetails(errorData);
+  
+  console.error('403 Error details:', {
+    message: errorMessage,
+    type: errorType,
+    data: errorData,
+    url: error.config?.url,
+    method: error.config?.method,
+  });
+  
+  // Check if user is blocked (common scenario)
+  const isUserBlocked = 
+    errorMessage.includes('blocked') ||
+    errorMessage.includes('Blocked') ||
+    errorType === 'UserBlockedException' ||
+    errorMessage.includes('account has been blocked');
+  
+  if (isUserBlocked) {
+    console.error('🚫 User account blocked by administrator');
+    // Force logout
+    clearAuthData();
+    sessionStorage.setItem('authMessage', 'Your account has been blocked. Contact administrator.');
+    window.location.href = '/login';
+  }
+  
+  // Check if this is a subscription-related error
+  const isSubscriptionError =
+    errorMessage.includes('subscription') ||
+    errorMessage.includes('Subscription') ||
+    errorType === 'SubscriptionRequiredException' ||
+    errorType === 'TierLimitExceededException';
+  
+  if (isSubscriptionError) {
+    // Mark this as a subscription error for handling by components
+    error.isSubscriptionError = true;
+    error.subscriptionErrorType = errorType ?? 'SubscriptionRequiredException';
+  }
+};
 
 // ==================== UNIFIED SEARCH TYPES ====================
 export interface UnifiedSearchRequest {

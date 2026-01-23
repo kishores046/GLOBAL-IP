@@ -4,6 +4,10 @@ import com.teamb.globalipbackend1.external.trendsApi.dto.response.patentsview.*;
 import com.teamb.globalipbackend1.model.trend.AnalyticsReport;
 import com.teamb.globalipbackend1.service.trend.PatentAnalyticsService;
 import com.teamb.globalipbackend1.service.user.TrackGraph;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.NonNull;
@@ -25,11 +29,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Validated
 @PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
+
+@Tag(
+        name = "US Patent Trends",
+        description = "Advanced USPTO patent analytics, trends, dashboards, and reports"
+)
+@SecurityRequirement(name = "Bearer Authentication")
+@SecurityRequirement(name = "ApiKey Authentication")
 public class AnalystTrendController {
 
     private final PatentAnalyticsService analyticsService;
 
 
+    @Operation(
+            summary = "US filing trends",
+            description = "Returns year-wise USPTO filing trends.",
+            responses = @ApiResponse(responseCode = "200", description = "Filing trends returned successfully")
+    )
     @GetMapping("/filings")
     @TrackGraph(value = "US_FILLING")
     public ResponseEntity<@NonNull List<FilingTrendDto>> filingTrend() {
@@ -38,6 +54,12 @@ public class AnalystTrendController {
         log.info("[TREND] Filing trend result size={}", result.size());
         return ResponseEntity.ok(result);
     }
+
+    @Operation(
+            summary = "US grant trends",
+            description = "Returns year-wise USPTO grant trends.",
+            responses = @ApiResponse(responseCode = "200", description = "Grant trends returned successfully")
+    )
 
     @GetMapping("/grants")
     @TrackGraph(value = "US_GRANT_TREND")
@@ -48,6 +70,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "Top technologies",
+            description = "Returns top technology domains by filing count.",
+            responses = @ApiResponse(responseCode = "200", description = "Top technologies returned")
+    )
 
     @GetMapping("/technologies/top")
     @TrackGraph("US_TOP_TECHNOLOGY")
@@ -60,6 +87,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "Top assignees",
+            description = "Returns assignees with the highest USPTO filings.",
+            responses = @ApiResponse(responseCode = "200", description = "Top assignees returned")
+    )
     @GetMapping("/assignees/top")
     @TrackGraph("US_TOP_ASSIGNEES")
     public ResponseEntity<@NonNull List<AssigneeTrendDto>> topAssignees(
@@ -73,6 +105,11 @@ public class AnalystTrendController {
 
 
 
+    @Operation(
+            summary = "Top countries",
+            description = "Returns country-wise filing distribution starting from a given date.",
+            responses = @ApiResponse(responseCode = "200", description = "Country distribution returned")
+    )
     @GetMapping("/countries")
     @TrackGraph("US_TOP_COUNTRIES")
     public ResponseEntity<@NonNull List<GeographicTrendDto>> topCountries(
@@ -89,6 +126,11 @@ public class AnalystTrendController {
     }
 
 
+    @Operation(
+            summary = "Top cited patents",
+            description = "Returns patents with the highest forward citation counts.",
+            responses = @ApiResponse(responseCode = "200", description = "Top cited patents returned")
+    )
     @GetMapping("/citations/top-cited")
     @TrackGraph("TOP_CITED_US")
     public ResponseEntity<@NonNull List<CitationTrendDto>> topCitedPatents(
@@ -100,6 +142,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "Top citing patents",
+            description = "Returns patents that cite the most prior art.",
+            responses = @ApiResponse(responseCode = "200", description = "Top citing patents returned")
+    )
     @GetMapping("/citations/top-citing")
     @TrackGraph("TOP_CITING_US")
     public ResponseEntity<@NonNull List<CitationMetricDto>> topCitingPatents(
@@ -113,6 +160,12 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+
+    @Operation(
+            summary = "Patent type distribution",
+            description = "Returns distribution of patent types (utility, design, plant).",
+            responses = @ApiResponse(responseCode = "200", description = "Patent type distribution returned")
+    )
     @GetMapping("/patents/type-distribution")
     @TrackGraph(value = "PATENT_TYPE_DISTRIBUTION_US")
     public ResponseEntity<@NonNull
@@ -123,6 +176,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "Claim complexity trends",
+            description = "Returns trends based on patent claim complexity.",
+            responses = @ApiResponse(responseCode = "200", description = "Claim complexity trends returned")
+    )
     @GetMapping("/patents/claim-complexity")
     @TrackGraph("CLAIM_COMPLEXITY_US")
     public ResponseEntity<@NonNull List<ClaimComplexityDto>> claimComplexityTrend() {
@@ -132,6 +190,12 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
+
+    @Operation(
+            summary = "Time to grant trends",
+            description = "Returns trends of time taken from filing to grant.",
+            responses = @ApiResponse(responseCode = "200", description = "Time-to-grant trends returned")
+    )
     @GetMapping("/patents/time-to-grant")
     @TrackGraph(value = "TIME_TO_GRAND_US")
     public ResponseEntity<@NonNull List<TimeToGrantDto>> timeToGrantTrend() {
@@ -140,6 +204,12 @@ public class AnalystTrendController {
         log.info("[TREND] Time-to-grant trend result size={}", result.size());
         return ResponseEntity.ok(result);
     }
+
+    @Operation(
+            summary = "Comprehensive dashboard",
+            description = "Returns a consolidated analytics dashboard for a given year.",
+            responses = @ApiResponse(responseCode = "200", description = "Dashboard data returned")
+    )
 
     @GetMapping("/dashboard/{year}")
     public ResponseEntity<@NonNull Map<String, Object>> dashboard(
@@ -151,6 +221,12 @@ public class AnalystTrendController {
         log.info("[DASHBOARD] Dashboard response keys={}", result.keySet());
         return ResponseEntity.ok(result);
     }
+
+    @Operation(
+            summary = "Generate analytics report",
+            description = "Generates and stores a yearly analytics report.",
+            responses = @ApiResponse(responseCode = "200", description = "Report generated successfully")
+    )
 
     @PostMapping("/reports/generate")
     public ResponseEntity<@NonNull AnalyticsReport> generateReport(
@@ -165,6 +241,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(report);
     }
 
+    @Operation(
+            summary = "List analytics reports",
+            description = "Returns all generated analytics reports.",
+            responses = @ApiResponse(responseCode = "200", description = "Reports returned successfully")
+    )
     @GetMapping("/reports")
     public ResponseEntity<@NonNull List<AnalyticsReport>> getAllReports() {
         log.info("[REPORT] Fetch all analytics reports request received");
@@ -173,6 +254,11 @@ public class AnalystTrendController {
         return ResponseEntity.ok(reports);
     }
 
+    @Operation(
+            summary = "Technology evolution trends",
+            description = "Returns how technology domains evolve over time.",
+            responses = @ApiResponse(responseCode = "200", description = "Technology evolution returned")
+    )
     @GetMapping("/technologies/evolution")
     @TrackGraph(value = "TECHNOLOGY_EVOLVE_US")
     public ResponseEntity<@NonNull List<TechnologyEvolutionDto>> technologyEvolution() {

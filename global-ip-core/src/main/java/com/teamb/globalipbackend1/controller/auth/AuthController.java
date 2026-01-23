@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -50,6 +51,22 @@ public class AuthController {
     }
 
 
+    @Operation(
+            summary = "Login",
+            description = "Authenticates user credentials and issues a JWT.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Login successful, JWT issued",
+                            content = @Content(schema = @Schema(implementation = LoginResponse.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Invalid credentials",
+                            content = @Content
+                    )
+            }
+    )
     @PostMapping("/login")
     public ResponseEntity<@NonNull LoginResponse> login(
             @Valid @RequestBody LoginRequest request
@@ -60,6 +77,16 @@ public class AuthController {
     /**
      * Change password (first login or normal change)
      */
+    @Operation(
+            summary = "Change password",
+            description = "Allows authenticated users to change their password (first login or regular change).",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Password changed successfully"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request")
+            }
+    )
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
            @Valid @RequestBody ChangePasswordRequest request
@@ -71,6 +98,15 @@ public class AuthController {
     }
 
 
+    @Operation(
+            summary = "Logout",
+            description = "Invalidates the JWT token and logs the user out.",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Logged out successfully"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @RequestHeader("Authorization") String token

@@ -25,7 +25,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   getRole: () => string | null;
   getAllRoles: () => string[];
   hasRole: (roles: string | string[]) => boolean;
@@ -103,8 +103,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Logout function
-  const logout = () => {
-    authService.logout();
+  const logout = async () => {
+    await authService.logout();
     setToken(null);
     setUser(null);
   };

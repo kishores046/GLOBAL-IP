@@ -10,4 +10,5 @@ export { ServiceBadge } from './ServiceBadge';
 export { LoadingSkeleton, TableLoadingSkeleton } from './LoadingSkeleton';
 export { CreateApiKeyModal } from './CreateApiKeyModal';
 export { RevokeApiKeyModal } from './RevokeApiKeyModal';
+export { BlockUserModal } from './BlockUserModal';
 export { ApiKeysTable } from './ApiKeysTable';

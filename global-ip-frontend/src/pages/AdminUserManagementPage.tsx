@@ -1,12 +1,14 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { AdminSidebar } from "../components/dashboard/AdminSidebar";
-import { UserX, UserPlus, Search, RefreshCw, Activity, Shield, Loader2, ChevronLeft, ChevronRight, BarChart3, TrendingUp } from "lucide-react";
+import { UserX, UserPlus, Search, RefreshCw, Activity, Shield, Loader2, ChevronLeft, ChevronRight, BarChart3, TrendingUp, Ban } from "lucide-react";
 import { useState } from "react";
 import { useSearchUsers, useDashboardCounts, useDeleteUser } from "../hooks/useUsers";
 import { useDebounce } from "../hooks/useDebounce";
 import { UserActivityModal } from "../components/admin/UserActivityModal";
 import { RoleManagementModal } from "../components/admin/RoleManagementModal";
 import { CreateUserModal } from "../components/admin/CreateUserModal";
+import { BlockUserModal } from "../components/admin/BlockUserModal";
+import adminApi from "../services/adminApi";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -20,9 +22,14 @@ export function AdminUserManagementPage() {
   // Modal states
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedUsername, setSelectedUsername] = useState('');
   const [selectedUserRoles, setSelectedUserRoles] = useState<string[]>([]);
+  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [selectedUserBlocked, setSelectedUserBlocked] = useState(false);
+  const [selectedUserBlockReason, setSelectedUserBlockReason] = useState('');
+  const [blockUserLoading, setBlockUserLoading] = useState(false);
 
   // Debounce search query
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -105,6 +112,49 @@ export function AdminUserManagementPage() {
         toast.error('Failed to delete user');
         console.error('Error deleting user:', error);
       }
+    }
+  };
+
+  const handleOpenBlockModal = (userId: string, username: string, email: string, isBlocked: boolean = false, blockReason: string = '') => {
+    setSelectedUserId(userId);
+    setSelectedUsername(username);
+    setSelectedUserEmail(email);
+    setSelectedUserBlocked(isBlocked);
+    setSelectedUserBlockReason(blockReason);
+    setBlockModalOpen(true);
+  };
+
+  const handleBlockUser = async (reason?: string) => {
+    if (!selectedUserId) return;
+
+    setBlockUserLoading(true);
+    try {
+      if (selectedUserBlocked) {
+        // Unblock user
+        const response = await adminApi.unblockUser(selectedUserId);
+        toast.success('User unblocked successfully');
+        console.log('✅ User unblocked:', response);
+      } else {
+        // Block user
+        if (!reason?.trim()) {
+          toast.error('Please provide a reason for blocking');
+          setBlockUserLoading(false);
+          return;
+        }
+        const response = await adminApi.blockUser(selectedUserId, reason);
+        toast.success('User blocked successfully');
+        console.log('✅ User blocked:', response);
+      }
+      
+      // Refresh user list
+      await refetch();
+      setBlockModalOpen(false);
+    } catch (error: any) {
+      console.error('❌ Error blocking/unblocking user:', error);
+      const errorMsg = error.response?.data?.message ?? error.message ?? 'Failed to block/unblock user';
+      toast.error(errorMsg);
+    } finally {
+      setBlockUserLoading(false);
     }
   };
 
@@ -342,13 +392,22 @@ export function AdminUserManagementPage() {
                                           Roles
                                         </button>
                                         <button 
+                                          onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
+                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Block user account"
+                                          disabled={blockUserLoading}
+                                        >
+                                          <Ban className="w-3.5 h-3.5" />
+                                          Block
+                                        </button>
+                                        <button 
                                           onClick={() => handleDeleteUser(user.id, user.username)}
                                           className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                           title="Delete user permanently"
                                           disabled={deleteMutation.isPending}
                                         >
                                           <UserX className="w-3.5 h-3.5" />
-                                          Ban
+                                          Delete
                                         </button>
                                       </>
                                     );
@@ -373,19 +432,39 @@ export function AdminUserManagementPage() {
                                           <TrendingUp className="w-3.5 h-3.5" />
                                           Trends
                                         </button>
+                                        <button 
+                                          onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
+                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Block user account"
+                                          disabled={blockUserLoading}
+                                        >
+                                          <Ban className="w-3.5 h-3.5" />
+                                          Block
+                                        </button>
                                       </>
                                     );
                                   }
                                   
                                   // USER - Basic search only
                                   return (
-                                    <button 
-                                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
-                                      title="Basic search access"
-                                    >
-                                      <Search className="w-3.5 h-3.5" />
-                                      Search
-                                    </button>
+                                    <>
+                                      <button 
+                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                        title="Basic search access"
+                                      >
+                                        <Search className="w-3.5 h-3.5" />
+                                        Search
+                                      </button>
+                                      <button 
+                                        onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
+                                        className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Block user account"
+                                        disabled={blockUserLoading}
+                                      >
+                                        <Ban className="w-3.5 h-3.5" />
+                                        Block
+                                      </button>
+                                    </>
                                   );
                                 })()}
                               </div>
@@ -451,6 +530,19 @@ export function AdminUserManagementPage() {
         isOpen={roleModalOpen}
         onClose={() => setRoleModalOpen(false)}
         onSuccess={() => refetch()}
+      />
+
+      {/* Block User Modal */}
+      <BlockUserModal
+        isOpen={blockModalOpen}
+        userId={selectedUserId}
+        username={selectedUsername}
+        email={selectedUserEmail}
+        isBlocked={selectedUserBlocked}
+        currentBlockReason={selectedUserBlockReason}
+        isLoading={blockUserLoading}
+        onConfirm={handleBlockUser}
+        onCancel={() => setBlockModalOpen(false)}
       />
     </div>
   );
