@@ -318,6 +318,8 @@ export function AdminUserManagementPage() {
                           <th className="text-left py-3 px-4 text-slate-700">Access Level</th>
                           <th className="text-left py-3 px-4 text-slate-700 hidden md:table-cell">Created</th>
                           <th className="text-left py-3 px-4 text-slate-700">Actions</th>
+                          <th className="text-left py-3 px-4 text-slate-700">Block</th>
+                          <th className="text-left py-3 px-4 text-slate-700">Delete</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -391,24 +393,6 @@ export function AdminUserManagementPage() {
                                           <Shield className="w-3.5 h-3.5" />
                                           Roles
                                         </button>
-                                        <button 
-                                          onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
-                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                          title="Block user account"
-                                          disabled={blockUserLoading}
-                                        >
-                                          <Ban className="w-3.5 h-3.5" />
-                                          Block
-                                        </button>
-                                        <button 
-                                          onClick={() => handleDeleteUser(user.id, user.username)}
-                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                          title="Delete user permanently"
-                                          disabled={deleteMutation.isPending}
-                                        >
-                                          <UserX className="w-3.5 h-3.5" />
-                                          Delete
-                                        </button>
                                       </>
                                     );
                                   }
@@ -432,42 +416,48 @@ export function AdminUserManagementPage() {
                                           <TrendingUp className="w-3.5 h-3.5" />
                                           Trends
                                         </button>
-                                        <button 
-                                          onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
-                                          className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                          title="Block user account"
-                                          disabled={blockUserLoading}
-                                        >
-                                          <Ban className="w-3.5 h-3.5" />
-                                          Block
-                                        </button>
                                       </>
                                     );
                                   }
                                   
                                   // USER - Basic search only
                                   return (
-                                    <>
-                                      <button 
-                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
-                                        title="Basic search access"
-                                      >
-                                        <Search className="w-3.5 h-3.5" />
-                                        Search
-                                      </button>
-                                      <button 
-                                        onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
-                                        className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Block user account"
-                                        disabled={blockUserLoading}
-                                      >
-                                        <Ban className="w-3.5 h-3.5" />
-                                        Block
-                                      </button>
-                                    </>
+                                    <button 
+                                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium"
+                                      title="Basic search access"
+                                    >
+                                      <Search className="w-3.5 h-3.5" />
+                                      Search
+                                    </button>
                                   );
                                 })()}
                               </div>
+                            </td>
+
+                            {/* Block Column */}
+                            <td className="py-3 px-4">
+                              <button 
+                                onClick={() => handleOpenBlockModal(user.id, user.username, user.email, false)}
+                                className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Block user account"
+                                disabled={blockUserLoading}
+                              >
+                                <Ban className="w-3.5 h-3.5" />
+                                Block
+                              </button>
+                            </td>
+
+                            {/* Delete Column */}
+                            <td className="py-3 px-4">
+                              <button 
+                                onClick={() => handleDeleteUser(user.id, user.username)}
+                                className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Delete user permanently"
+                                disabled={deleteMutation.isPending}
+                              >
+                                <UserX className="w-3.5 h-3.5" />
+                                Delete
+                              </button>
                             </td>
                           </tr>
                         ))}
