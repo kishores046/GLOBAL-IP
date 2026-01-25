@@ -47,8 +47,15 @@ export const TrademarkTrendLazyDashboard: React.FC = () => {
 
     try {
       // Fetch only this specific trademark card (lazy load)
+      console.log(`[TrademarkDashboard] Fetching card: ${card.id}...`);
       const data = await card.fetchFunction();
-      console.debug(`[TrademarkDashboard] Fetched data for ${card.id}:`, data);
+      console.debug(`[TrademarkDashboard] ✅ Fetched data for ${card.id}:`, data);
+      
+      // Validate we got some data
+      if (!data) {
+        throw new Error(`No data returned from ${card.id} endpoint`);
+      }
+      
       setTrademarkStates((prev) => ({
         ...prev,
         [card.id]: { loading: false, error: null, data },
@@ -61,8 +68,8 @@ export const TrademarkTrendLazyDashboard: React.FC = () => {
         error: null,
       });
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      console.error(`[TrademarkDashboard] Error fetching ${card.id}:`, err);
+      const err = error instanceof Error ? error : new Error('Unknown error occurred');
+      console.error(`[TrademarkDashboard] ❌ Error fetching ${card.id}:`, err);
       setTrademarkStates((prev) => ({
         ...prev,
         [card.id]: { loading: false, error: err, data: null },
