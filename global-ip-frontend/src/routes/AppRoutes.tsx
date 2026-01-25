@@ -27,6 +27,7 @@ const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ defau
 
 // Analyst Pages
 const AnalystDashboard = lazy(() => import('../pages/AnalystDashboard').then(m => ({ default: m.AnalystDashboard })));
+const AnalystSubscriptionsPage = lazy(() => import('../pages/AnalystSubscriptionsPage').then(m => ({ default: m.AnalystSubscriptionsPage })));
 const AdvancedSearchPage = lazy(() => import('../pages/AdvancedSearchPage').then(m => ({ default: m.AdvancedSearchPage })));
 
 // Competitor Tracking Pages
@@ -192,6 +193,10 @@ export function AppRoutes() {
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrackedPatentsPage />} />} 
         />
         <Route 
+          path={ROUTES.ANALYST_ALERTS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AlertsPage />} />} 
+        />
+        <Route 
           path={ROUTES.MONITORING} 
           element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<MonitoringPage />} />} 
         />
@@ -220,6 +225,14 @@ export function AppRoutes() {
         <Route 
           path={ROUTES.CREATE_SUBSCRIPTION} 
           element={<RoleRoute roles={[ROLES.USER, ROLES.ANALYST, ROLES.ADMIN]} element={<CreateSubscriptionPage />} />} 
+        />
+        <Route 
+          path={ROUTES.ANALYST_CREATE_SUBSCRIPTION} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CreateSubscriptionPage />} />} 
+        />
+        <Route 
+          path={ROUTES.ANALYST_SUBSCRIPTIONS} 
+          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AnalystSubscriptionsPage />} />} 
         />
         <Route 
           path={ROUTES.ALERTS} 

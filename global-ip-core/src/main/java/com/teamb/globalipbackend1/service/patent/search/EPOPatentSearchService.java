@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Service for searching patents from EPO (European Patent Office)
@@ -26,7 +27,7 @@ public class EPOPatentSearchService {
     private final PatentFilterService patentFilterService;
 
     public List<PatentDocument> searchPatents(String keyword) {
-        log.info("Starting EPO patent searchByKeyword for keyword: {}", keyword);
+        log.info("Starting EPO patent search for keyword: {}", keyword);
 
         List<EpoDocumentId> ids = searchByKeyword(keyword);
 
@@ -35,11 +36,30 @@ public class EPOPatentSearchService {
             return List.of();
         }
 
-        log.info("Found {} document IDs from EPO searchByKeyword", ids.size());
+        log.info("Found {} document IDs from EPO search", ids.size());
 
         List<PatentDocument> results = fetchPatentDetails(ids);
 
-        log.info("EPO searchByKeyword completed. Total patents fetched: {}", results.size());
+        log.info("EPO search completed. Total patents fetched: {}", results.size());
+        return results;
+    }
+
+    // Overloaded method that accepts a filter for jurisdiction-aware searching
+    public List<PatentDocument> searchPatents(String keyword, String jurisdiction) {
+        log.info("Starting EPO patent search for keyword: {} with jurisdiction: {}", keyword, jurisdiction);
+
+        List<EpoDocumentId> ids = searchByKeywordWithJurisdiction(keyword, jurisdiction);
+
+        if (ids.isEmpty()) {
+            log.warn("No publication IDs found for keyword: {} in jurisdiction: {}", keyword, jurisdiction);
+            return List.of();
+        }
+
+        log.info("Found {} document IDs from EPO search", ids.size());
+
+        List<PatentDocument> results = fetchPatentDetails(ids);
+
+        log.info("EPO search completed. Total patents fetched: {}", results.size());
         return results;
     }
 
@@ -47,8 +67,17 @@ public class EPOPatentSearchService {
         try {
             return epoClient.searchByTitle(keyword);
         } catch (Exception e) {
-            log.error("EPO searchByKeyword failed for keyword: {}", keyword, e);
-            throw new RuntimeException("EPO searchByKeyword failed", e);
+            log.error("EPO search failed for keyword: {}", keyword, e);
+            throw new RuntimeException("EPO search failed", e);
+        }
+    }
+
+    private List<EpoDocumentId> searchByKeywordWithJurisdiction(String keyword, String jurisdiction) {
+        try {
+            return epoClient.searchByTitleWithJurisdiction(keyword, jurisdiction);
+        } catch (Exception e) {
+            log.error("EPO search failed for keyword: {} with jurisdiction: {}", keyword, jurisdiction, e);
+            throw new RuntimeException("EPO search failed", e);
         }
     }
 
@@ -68,19 +97,19 @@ public class EPOPatentSearchService {
                     continue;
                 }
 
-                EpoExchangeDocument doc = documents.getFirst();
+                EpoExchangeDocument doc = documents.get(0);
 
-                PatentDocument patent = epoPatentMapper.map(doc,id);
+                PatentDocument patent = epoPatentMapper.map(doc, id);
                 if (patent == null) {
                     log.warn("Mapper returned null for {}{}{}",
                             id.getCountry(), id.getDocNumber(), id.getKind());
                     continue;
                 }
 
-
+                // Enrich with abstract - FIXED to use getFullText()
                 enrichWithAbstract(patent, id);
 
-
+                // Enrich with classifications
                 enrichWithClassifications(patent, doc);
 
                 results.add(patent);
@@ -99,17 +128,40 @@ public class EPOPatentSearchService {
 
     private void enrichWithAbstract(PatentDocument patent, EpoDocumentId id) {
         try {
-            var abstracts = epoClient.fetchAbstract(id);
+            List<EpoAbstract> abstracts = epoClient.fetchAbstract(id);
 
-            abstracts.stream()
-                    .filter(a -> a.getLang() == null || "en".equalsIgnoreCase(a.getLang()))
-                    .map(EpoAbstract::getValue)
+            if (abstracts.isEmpty()) {
+                log.debug("No abstracts available for {}", patent.getPublicationNumber());
+                return;
+            }
+
+            // Try to get English abstract first using getFullText()
+            String abstractText = abstracts.stream()
+                    .filter(a -> a != null && "en".equalsIgnoreCase(a.getLang()))
+                    .map(EpoAbstract::getFullText)  // FIXED: Use getFullText() instead of getValue()
                     .filter(v -> v != null && !v.isBlank())
                     .findFirst()
-                    .orElse(null);
+                    .orElseGet(() -> {
+                        // Fallback to first available abstract
+                        return abstracts.stream()
+                                .filter(a -> a != null)
+                                .map(EpoAbstract::getFullText)  // FIXED: Use getFullText()
+                                .filter(v -> v != null && !v.isBlank())
+                                .findFirst()
+                                .orElse(null);
+                    });
+
+            if (abstractText != null) {
+                patent.setAbstractText(abstractText);
+                log.debug("Set abstract for {} (length: {})",
+                        patent.getPublicationNumber(), abstractText.length());
+            } else {
+                log.debug("No valid abstract text found for {}", patent.getPublicationNumber());
+            }
 
         } catch (Exception e) {
-            log.debug("Abstract not available for {}", patent.getPublicationNumber());
+            log.debug("Abstract not available for {}: {}",
+                    patent.getPublicationNumber(), e.getMessage());
         }
     }
 
@@ -121,15 +173,18 @@ public class EPOPatentSearchService {
 
         var biblio = doc.getBibliographicData();
 
-
+        // Extract IPC classifications
         List<String> ipcCodes = biblio.getIpcList().stream()
+                .filter(Objects::nonNull)
                 .map(EpoIpcClassification::getFullClassificationCode)
                 .filter(code -> code != null && !code.isBlank())
                 .distinct()
                 .toList();
         patent.setIpcClasses(ipcCodes);
 
+        // Extract CPC classifications
         List<String> cpcCodes = biblio.getCpcList().stream()
+                .filter(cpc -> cpc != null)
                 .map(EpoCpcClassification::getFullClassificationCode)
                 .filter(code -> code != null && !code.isBlank())
                 .distinct()
@@ -138,17 +193,24 @@ public class EPOPatentSearchService {
     }
 
     public List<PatentDocument> searchAdvanced(PatentSearchFilter filter) {
+        log.info("Starting EPO advanced search with filter: {}", filter);
 
         List<EpoDocumentId> ids = epoClient.advancedSearch(filter);
 
+        log.info("EPO advanced search returned {} document IDs", ids.size());
+
         List<PatentDocument> docs = fetchPatentDetails(ids);
 
+        log.info("Fetched {} patent details, applying post-filters", docs.size());
 
-        return docs.stream()
+        // Apply assignee and inventor filters (other filters already in CQL)
+        List<PatentDocument> filtered = docs.stream()
                 .filter(p -> patentFilterService.matchesAssignee(p, filter))
                 .filter(p -> patentFilterService.matchesInventor(p, filter))
                 .toList();
+
+        log.info("After post-filtering: {} patents remain", filtered.size());
+
+        return filtered;
     }
-
-
 }

@@ -27,8 +27,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -71,6 +71,7 @@ public class EpoClient {
             throw new RuntimeException("OPS token failure", e);
         }
     }
+
     @TrackApiUsage(service = "EPO", action = "PATENT_DETAIL")
     public GlobalPatentDetailDto fetchGlobalDetail(String publicationNumber) {
         log.info("Fetching global detail for: {}", publicationNumber);
@@ -130,11 +131,16 @@ public class EpoClient {
                 log.debug("Found {} abstracts from dedicated endpoint", abstracts.size());
                 abstractText = abstracts.stream()
                         .filter(a -> "en".equalsIgnoreCase(a.getLang()))
-                        .map(EpoAbstract::getValue)
+                        .map(EpoAbstract::getFullText)
+                        .filter(text -> text != null && !text.isBlank())
                         .findFirst()
                         .orElseGet(() -> {
                             // If no English abstract, get first available
-                            return abstracts.isEmpty() ? null : abstracts.get(0).getValue();
+                            return abstracts.stream()
+                                    .map(EpoAbstract::getFullText)
+                                    .filter(text -> text != null && !text.isBlank())
+                                    .findFirst()
+                                    .orElse(null);
                         });
             }
         }
@@ -142,7 +148,7 @@ public class EpoClient {
         // Final check - if still null, log warning
         if (abstractText == null || abstractText.isBlank()) {
             log.warn("No abstract found for {} after trying all methods", publicationNumber);
-            dto.setAbstractText(null); // Explicitly set to null for clarity
+            dto.setAbstractText(null);
         } else {
             dto.setAbstractText(abstractText);
             log.debug("Abstract set successfully, length: {}", abstractText.length());
@@ -175,11 +181,8 @@ public class EpoClient {
         dto.setGrantDate(grantDate);
         log.debug("Grant/Publication date: {}", grantDate);
 
-        LocalDate expirationDate =
-                PatentExpiryCalculator.computeExpiry(filingDate);
-
+        LocalDate expirationDate = PatentExpiryCalculator.computeExpiry(filingDate);
         dto.setExpiryDate(expirationDate);
-
         log.debug("Computed expiration date (EPC standard): {}", expirationDate);
 
         log.info("Successfully fetched global detail for: {}", publicationNumber);
@@ -219,25 +222,26 @@ public class EpoClient {
         // Try to find English abstract first
         String englishAbstract = b.getAbstracts().stream()
                 .filter(a -> a != null && "en".equalsIgnoreCase(a.getLang()))
-                .map(EpoAbstract::getValue)
-                .filter(v -> v != null && !v.isBlank())
+                .map(EpoAbstract::getFullText)
+                .filter(text -> text != null && !text.isBlank())
                 .findFirst()
                 .orElse(null);
 
         if (englishAbstract != null) {
-            log.debug("Found English abstract");
+            log.debug("Found English abstract, length: {}", englishAbstract.length());
             return englishAbstract;
         }
 
         // Fallback to first available abstract
         String firstAbstract = b.getAbstracts().stream()
-                .filter(a -> a != null && a.getValue() != null && !a.getValue().isBlank())
-                .map(EpoAbstract::getValue)
+                .filter(Objects::nonNull)
+                .map(EpoAbstract::getFullText)
+                .filter(text -> text != null && !text.isBlank())
                 .findFirst()
                 .orElse(null);
 
         if (firstAbstract != null) {
-            log.debug("Using first available abstract (non-English)");
+            log.debug("Using first available abstract (non-English), length: {}", firstAbstract.length());
         } else {
             log.debug("No valid abstract text found in biblio data");
         }
@@ -302,7 +306,7 @@ public class EpoClient {
         if (cpcList == null || cpcList.isEmpty()) return List.of();
 
         return cpcList.stream()
-                .filter(cpc -> cpc != null)
+                .filter(Objects::nonNull)
                 .map(EpoCpcClassification::getFullClassificationCode)
                 .filter(code -> code != null && !code.isBlank())
                 .distinct()
@@ -364,6 +368,7 @@ public class EpoClient {
 
         return fn.apply(firstItem);
     }
+
     @TrackApiUsage(service = "EPO", action = "SEARCH_TITLE")
     public List<EpoDocumentId> searchByTitle(String titleKeyword) {
 
@@ -378,51 +383,7 @@ public class EpoClient {
                     ? "ti=\"" + keyword + "\""
                     : "ti=" + keyword;
 
-            String encoded = URLEncoder.encode(cql, StandardCharsets.UTF_8);
-
-            String base = properties.baseUrl();
-            if (base.endsWith("/rest-services")) {
-                base = base.substring(0, base.length() - 14);
-            }
-
-            String url = base + "/rest-services/published-data/search?q=" + encoded;
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + token())
-                    .header("Accept", "application/xml")
-                    .header("X-OPS-Range", "1-25")
-                    .header("User-Agent", "global-ip/1.0 (academic project)")
-                    .timeout(Duration.ofSeconds(15))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response =
-                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                log.warn("EPO search failed [{}]", response.statusCode());
-                return List.of();
-            }
-
-            EpoSearchResponse searchResponse =
-                    xmlMapper.readValue(response.body(), EpoSearchResponse.class);
-
-            if (searchResponse == null ||
-                    searchResponse.getBiblioSearch() == null ||
-                    searchResponse.getBiblioSearch().getSearchResult() == null ||
-                    searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
-
-                return List.of();
-            }
-
-            return searchResponse.getBiblioSearch()
-                    .getSearchResult()
-                    .getPublications()
-                    .stream()
-                    .map(EpoPublicationReferenceSearch::getDocumentId)
-                    .filter(id -> id != null && id.getKind() != null)
-                    .toList();
+            return executeSearch(cql);
 
         } catch (Exception e) {
             log.error("EPO title search failed", e);
@@ -430,7 +391,93 @@ public class EpoClient {
         }
     }
 
+    @TrackApiUsage(service = "EPO", action = "SEARCH_TITLE")
+    public List<EpoDocumentId> searchByTitleWithJurisdiction(String titleKeyword, String jurisdiction) {
 
+        if (titleKeyword == null || titleKeyword.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            String keyword = titleKeyword.trim().toLowerCase();
+
+            String titlePart = keyword.contains(" ")
+                    ? "ti=\"" + keyword + "\""
+                    : "ti=" + keyword;
+
+            String cql;
+            if (jurisdiction != null && !jurisdiction.isBlank() && !"ALL".equalsIgnoreCase(jurisdiction)) {
+                String jurisdictionCode = jurisdiction.trim().toUpperCase();
+                // Use 'pn' (publication number) with country prefix - this is the correct EPO OPS approach
+                cql = titlePart + " and pn=" + jurisdictionCode;
+                log.info("EPO Search with jurisdiction filter (pn wildcard): {}", cql);
+            } else {
+                cql = titlePart;
+                log.info("EPO Search without jurisdiction filter: {}", cql);
+            }
+
+            return executeSearch(cql);
+
+        } catch (Exception e) {
+            log.error("EPO title search with jurisdiction failed", e);
+            return List.of();
+        }
+    }
+
+    private List<EpoDocumentId> executeSearch(String cql) throws Exception {
+        String encoded = URLEncoder.encode(cql, StandardCharsets.UTF_8);
+
+        String base = properties.baseUrl();
+        if (base.endsWith("/rest-services")) {
+            base = base.substring(0, base.length() - 14);
+        }
+
+        String url = base + "/rest-services/published-data/search?q=" + encoded;
+        log.info("EPO Search URL: {}", url);
+        log.info("EPO Search CQL: {}", cql);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + token())
+                .header("Accept", "application/xml")
+                .header("X-OPS-Range", "1-25")
+                .header("User-Agent", "global-ip/1.0 (academic project)")
+                .timeout(Duration.ofSeconds(15))
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            log.warn("EPO search failed [{}]: {}",
+                    response.statusCode(),
+                    response.body() != null ? response.body().substring(0, Math.min(500, response.body().length())) : "null");
+            return List.of();
+        }
+
+        EpoSearchResponse searchResponse =
+                xmlMapper.readValue(response.body(), EpoSearchResponse.class);
+
+        if (searchResponse == null ||
+                searchResponse.getBiblioSearch() == null ||
+                searchResponse.getBiblioSearch().getSearchResult() == null ||
+                searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
+
+            return List.of();
+        }
+
+        List<EpoDocumentId> results = searchResponse.getBiblioSearch()
+                .getSearchResult()
+                .getPublications()
+                .stream()
+                .map(EpoPublicationReferenceSearch::getDocumentId)
+                .filter(id -> id != null && id.getKind() != null)
+                .toList();
+
+        log.info("EPO search returned {} results", results.size());
+        return results;
+    }
 
     public List<EpoAbstract> fetchAbstract(EpoDocumentId id) {
         try {
@@ -472,6 +519,15 @@ public class EpoClient {
 
             List<EpoAbstract> abstracts = doc.getBibliographicData().getAbstracts();
             log.debug("Successfully fetched {} abstracts", abstracts.size());
+
+            // Log the full text for debugging
+            abstracts.forEach(a -> {
+                String fullText = a.getFullText();
+                if (fullText != null) {
+                    log.debug("Abstract lang={}, length={}", a.getLang(), fullText.length());
+                }
+            });
+
             return abstracts;
 
         } catch (Exception e) {
@@ -523,17 +579,25 @@ public class EpoClient {
     public String buildCqlQuery(PatentSearchFilter f) {
         List<String> parts = new ArrayList<>();
 
-        // Keyword search - IMPORTANT: Use proper syntax
+        // Keyword search
         if (f.getKeyword() != null && !f.getKeyword().isBlank()) {
             String keyword = f.getKeyword().trim().toLowerCase();
 
-            // For multi-word keywords, use quotes
             if (keyword.contains(" ")) {
                 parts.add("ti=\"" + keyword + "\"");
             } else {
-                // Single word - use with wildcards for better results
                 parts.add("ti=" + keyword + " or ab=" + keyword);
             }
+        }
+
+        // Jurisdiction filter using pn (publication number) with wildcard
+        if (f.getJurisdiction() != null &&
+                !f.getJurisdiction().isBlank() &&
+                !"ALL".equalsIgnoreCase(f.getJurisdiction())) {
+            String jurisdiction = f.getJurisdiction().trim().toUpperCase();
+            // Use pn with wildcard for jurisdiction filtering
+            parts.add("pn=" + jurisdiction + "*");
+            log.info("Adding jurisdiction filter to CQL: pn={}*", jurisdiction);
         }
 
         // Assignee
@@ -548,7 +612,7 @@ public class EpoClient {
             parts.add("in=" + inventor);
         }
 
-        // Date range - EPO is VERY picky about this
+        // Date range
         if (f.getFilingDateFrom() != null || f.getFilingDateTo() != null) {
             String fromDate = f.getFilingDateFrom() != null
                     ? f.getFilingDateFrom().format(DateTimeFormatter.BASIC_ISO_DATE)
@@ -558,7 +622,6 @@ public class EpoClient {
                     ? f.getFilingDateTo().format(DateTimeFormatter.BASIC_ISO_DATE)
                     : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
 
-            // CRITICAL: Space between dates, not comma
             parts.add("pd within \"" + fromDate + " " + toDate + "\"");
         }
 
@@ -570,6 +633,7 @@ public class EpoClient {
         log.info("Built CQL query: {}", query);
         return query;
     }
+
     @TrackApiUsage(service = "EPO", action = "ADVANCED_SEARCH")
     public List<EpoDocumentId> advancedSearch(PatentSearchFilter filter) {
         try {
@@ -604,9 +668,6 @@ public class EpoClient {
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             log.info("Response Status: {}", response.statusCode());
-            log.info("Response Headers: {}", response.headers().map());
-            log.info("Response Body (first 1000 chars): {}",
-                    response.body().substring(0, Math.min(1000, response.body().length())));
 
             if (response.statusCode() == 404) {
                 log.warn("404 - No results found for query: {}", cql);
@@ -615,7 +676,8 @@ public class EpoClient {
 
             if (response.statusCode() != 200) {
                 log.error("EPO search failed with status {}: {}",
-                        response.statusCode(), response.body());
+                        response.statusCode(),
+                        response.body() != null ? response.body().substring(0, Math.min(500, response.body().length())) : "null");
                 return List.of();
             }
 
@@ -623,23 +685,11 @@ public class EpoClient {
             EpoSearchResponse searchResponse =
                     xmlMapper.readValue(response.body(), EpoSearchResponse.class);
 
-            if (searchResponse == null) {
-                log.warn("Parsed response is null");
-                return List.of();
-            }
-
-            if (searchResponse.getBiblioSearch() == null) {
-                log.warn("biblioSearch is null");
-                return List.of();
-            }
-
-            if (searchResponse.getBiblioSearch().getSearchResult() == null) {
-                log.warn("searchResult is null");
-                return List.of();
-            }
-
-            if (searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
-                log.warn("publications is null");
+            if (searchResponse == null ||
+                    searchResponse.getBiblioSearch() == null ||
+                    searchResponse.getBiblioSearch().getSearchResult() == null ||
+                    searchResponse.getBiblioSearch().getSearchResult().getPublications() == null) {
+                log.warn("No publications in search response");
                 return List.of();
             }
 
@@ -726,7 +776,6 @@ public class EpoClient {
                     String publicationNumber =
                             id.getCountry() + id.getDocNumber() + id.getKind();
 
-
                     GlobalPatentDetailDto detail =
                             fetchGlobalDetail(publicationNumber);
 
@@ -749,6 +798,4 @@ public class EpoClient {
         log.info("Fetched {} EPO competitor filings", results.size());
         return results;
     }
-
-
 }

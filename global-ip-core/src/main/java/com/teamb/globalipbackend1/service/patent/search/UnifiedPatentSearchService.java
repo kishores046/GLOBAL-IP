@@ -10,10 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /**
  * Unified service that searches patents from multiple sources (EPO, PatentsView)
@@ -40,12 +40,38 @@ public class UnifiedPatentSearchService {
                     + "#filter.inventor)"
     )
     public List<PatentDocument> searchByKeyword(PatentSearchFilter filter) {
+        log.info("=== UNIFIED PATENT SEARCH - KEYWORD ===");
+        log.info("Filter: {}", filter);
+        log.info("Total providers available: {}", providers.size());
+
+        // Filter providers that support this jurisdiction
+        List<PatentSearchProvider> selectedProviders = providers.stream()
+                .filter(p -> {
+                    boolean supports = p.supportsJurisdiction(filter.getJurisdiction());
+                    log.info("Provider {} supports jurisdiction '{}': {}",
+                            p.getSource(), filter.getJurisdiction(), supports);
+                    return supports;
+                })
+                .toList();
+
+        log.info("Selected {} providers: {}",
+                selectedProviders.size(),
+                selectedProviders.stream().map(PatentSearchProvider::getSource).collect(Collectors.joining(", ")));
+
+        if (selectedProviders.isEmpty()) {
+            log.warn("No providers selected for jurisdiction: {}", filter.getJurisdiction());
+            return List.of();
+        }
 
         List<CompletableFuture<List<PatentDocument>>> futures =
-                providers.stream()
-                        .filter(p -> p.supportsJurisdiction(filter.getJurisdiction()))
+                selectedProviders.stream()
                         .map(p -> CompletableFuture.supplyAsync(
-                                () -> p.searchByKeyword(filter),
+                                () -> {
+                                    log.info("Starting {} search", p.getSource());
+                                    List<PatentDocument> results = p.searchByKeyword(filter);
+                                    log.info("{} returned {} results", p.getSource(), results.size());
+                                    return results;
+                                },
                                 patentSearchExecutor
                         ).exceptionally(ex -> {
                             log.error("{} search failed", p.getSource(), ex);
@@ -57,12 +83,38 @@ public class UnifiedPatentSearchService {
     }
 
     public List<PatentDocument> searchAdvanced(PatentSearchFilter filter) {
+        log.info("=== UNIFIED PATENT SEARCH - ADVANCED ===");
+        log.info("Filter: {}", filter);
+        log.info("Total providers available: {}", providers.size());
+
+        // Filter providers that support this jurisdiction
+        List<PatentSearchProvider> selectedProviders = providers.stream()
+                .filter(p -> {
+                    boolean supports = p.supportsJurisdiction(filter.getJurisdiction());
+                    log.info("Provider {} supports jurisdiction '{}': {}",
+                            p.getSource(), filter.getJurisdiction(), supports);
+                    return supports;
+                })
+                .toList();
+
+        log.info("Selected {} providers: {}",
+                selectedProviders.size(),
+                selectedProviders.stream().map(PatentSearchProvider::getSource).collect(Collectors.joining(", ")));
+
+        if (selectedProviders.isEmpty()) {
+            log.warn("No providers selected for jurisdiction: {}", filter.getJurisdiction());
+            return List.of();
+        }
 
         List<CompletableFuture<List<PatentDocument>>> futures =
-                providers.stream()
-                        .filter(p -> p.supportsJurisdiction(filter.getJurisdiction()))
+                selectedProviders.stream()
                         .map(p -> CompletableFuture.supplyAsync(
-                                () -> p.searchAdvanced(filter),
+                                () -> {
+                                    log.info("Starting {} advanced search", p.getSource());
+                                    List<PatentDocument> results = p.searchAdvanced(filter);
+                                    log.info("{} returned {} results", p.getSource(), results.size());
+                                    return results;
+                                },
                                 patentSearchExecutor
                         ).exceptionally(ex -> {
                             log.error("{} advanced search failed", p.getSource(), ex);
@@ -84,10 +136,16 @@ public class UnifiedPatentSearchService {
                         .flatMap(f -> f.join().stream())
                         .toList();
 
+        log.info("Combined results from all providers: {} patents", all.size());
+
         List<PatentDocument> filtered =
                 filterService.applyFilters(all, filter);
 
+        log.info("After applying filters: {} patents remain", filtered.size());
+
         filtered.forEach(snapshotCacheService::logPatents);
+
+        log.info("=== SEARCH COMPLETE ===");
         return filtered;
     }
 }

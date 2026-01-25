@@ -5,6 +5,7 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { Search, X, Loader2, Calendar } from "lucide-react";
 import { unifiedSearchAPI } from "../services/api";
 import { validateFilingDateRange, getMaxFilingDate } from "../utils/trademarkUtils";
+import { getSortedJurisdictions, getJurisdictionLabel } from "../constants/jurisdictions";
 
 export function AdvancedSearchPage() {
   const navigate = useNavigate();
@@ -169,17 +170,42 @@ export function AdvancedSearchPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label htmlFor="jurisdiction-select" className="block text-slate-700 mb-2 font-medium">Jurisdiction</label>
-                    <select 
-                      id="jurisdiction-select"
-                      value={jurisdiction}
-                      onChange={(e) => setJurisdiction(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    >
-                      <option value="ALL">All Jurisdictions</option>
-                      <option value="US">United States (US)</option>
-                      <option value="EP">European Patent Office (EP)</option>
-                    </select>
+                    <label htmlFor="jurisdiction-select" className="block text-slate-700 mb-2 font-medium flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
+                      Jurisdiction
+                    </label>
+                    <div className="relative">
+                      <select 
+                        id="jurisdiction-select"
+                        value={jurisdiction}
+                        onChange={(e) => setJurisdiction(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer font-medium text-slate-900 hover:border-blue-400"
+                      >
+                        <option value="ALL">🌍 All Jurisdictions</option>
+                        <optgroup label="━━━ Regional Patent Offices ━━━">
+                          {getSortedJurisdictions().regionalOffices.map((code) => (
+                            <option key={code} value={code}>
+                              🌐 {getJurisdictionLabel(code)}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="━━━ Individual Countries ━━━">
+                          {getSortedJurisdictions().individualCountries.map((code) => (
+                            <option key={code} value={code}>
+                              🏛️ {getJurisdictionLabel(code)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-blue-600 font-medium">
+                      {jurisdiction === "ALL" ? "📊 Searching all jurisdictions" : `📌 Filtered to: ${jurisdiction}`}
+                    </p>
                   </div>
 
                   <div>

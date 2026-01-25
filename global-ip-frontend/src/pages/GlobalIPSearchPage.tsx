@@ -1,12 +1,19 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Search, Loader2, X } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
+import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
 import { unifiedSearchAPI } from "../services/api";
 
 export function GlobalIPSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { hasRole } = useAuth();
+  
+  // Determine if user is an analyst
+  const isAnalyst = hasRole(['ANALYST', 'ADMIN']) || location.pathname.includes("/analyst");
   const [keyword, setKeyword] = useState("");
   const [jurisdiction, setJurisdiction] = useState("ALL");
   const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +93,7 @@ export function GlobalIPSearchPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 relative overflow-hidden">
       <div className="relative z-10 flex">
-        <Sidebar />
+        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
         
         <main className="flex-1 overflow-auto">
           <div className="p-8">
