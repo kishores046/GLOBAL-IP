@@ -330,43 +330,44 @@ export function TrackingModal({
                       </div>
                     </label>
 
-                  {/* Enable Alerts */}
-                  <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={enableAlerts}
-                      onChange={(e) => setEnableAlerts(e.target.checked)}
-                      disabled={loading}
-                      className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm flex items-center gap-2">
-                        <Bell className="w-4 h-4" />
-                        Enable Dashboard Alerts
-                      </p>
-                      <p className="text-xs text-slate-600">
-                        Receive in-app notifications for important events
-                      </p>
-                    </div>
-                  </label>
+                    {/* Enable Alerts */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={enableAlerts}
+                        onChange={(e) => setEnableAlerts(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm flex items-center gap-2">
+                          <Bell className="w-4 h-4" />
+                          Enable Dashboard Alerts
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          Receive in-app notifications for important events
+                        </p>
+                      </div>
+                    </label>
 
-                  {/* Enable Email Notifications */}
-                  <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={enableEmailNotifications}
-                      onChange={(e) => setEnableEmailNotifications(e.target.checked)}
-                      disabled={loading}
-                      className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">Enable Email Notifications</p>
-                      <p className="text-xs text-slate-600">
-                        Get email alerts for critical updates (optional)
-                      </p>
-                    </div>
-                  </label>
-                </div>
+                    {/* Enable Email Notifications */}
+                    <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={enableEmailNotifications}
+                        onChange={(e) => setEnableEmailNotifications(e.target.checked)}
+                        disabled={loading}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 cursor-pointer mt-0.5"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Enable Email Notifications</p>
+                        <p className="text-xs text-slate-600">
+                          Get email alerts for critical updates (optional)
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 

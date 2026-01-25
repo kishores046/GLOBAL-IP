@@ -204,11 +204,11 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${EXPIRATION}
+  expiration: 1000
   issuer: ${ISSUER}
   audience : ${AUDIENCE}
 server:
-  port: ${TEST_SERVER_PORT}
+  port: 0
 
 
 patent-analytics:
@@ -222,6 +222,14 @@ services:
     base-url: http://localhost:9090
     service-api-key: ${TRADEMARK_SERVICE_API_KEY}
 
+epo:
+  base-url: ${EPO_BASE_URL}
+  consumer-key: ${EPO_CONSUMER_KEY}
+  consumer-secret: ${EPO_CONSUMER_SECRET}
+
+patentsview:
+  api-key: ${PATENTS_VIEW_API_KEY}
+  api-url: ${PATENTS_VIEW_API_URL}
 
 # ---------------------------------- PROD PROFILE ----------------------------------
 ---

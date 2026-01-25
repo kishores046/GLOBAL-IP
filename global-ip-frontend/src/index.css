@@ -3409,3 +3409,205 @@ html {
     opacity: .5;
   }
 }
+
+/* ============================================
+   DARK THEME STYLES
+   ============================================ */
+
+/* Dark theme root */
+html.dark {
+  color-scheme: dark;
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Dark theme backgrounds */
+html.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Cards in dark mode */
+html.dark .card,
+html.dark [class*="bg-white"] {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+/* Headers in dark mode */
+html.dark header {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+/* Sidebars in dark mode */
+html.dark aside {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+/* Text colors */
+html.dark .text-slate-900 { color: #e2e8f0; }
+html.dark .text-slate-700 { color: #cbd5e1; }
+html.dark .text-slate-600 { color: #94a3b8; }
+html.dark .text-gray-900 { color: #e2e8f0; }
+
+/* Backgrounds */
+html.dark .bg-white { background-color: #1e293b; }
+html.dark .bg-slate-50 { background-color: #0f172a; }
+html.dark .bg-slate-100 { background-color: #1e293b; }
+html.dark .bg-slate-200 { background-color: #334155; }
+html.dark .bg-gray-50 { background-color: #0f172a; }
+html.dark .bg-gray-100 { background-color: #1e293b; }
+
+/* Borders */
+html.dark .border-slate-200 { border-color: #334155; }
+html.dark .border-slate-300 { border-color: #475569; }
+html.dark .border-gray-200 { border-color: #334155; }
+html.dark .border-gray-300 { border-color: #475569; }
+
+/* Input fields */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: #3b82f6;
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Buttons */
+html.dark button:not([class*="bg-"]) {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark button:hover:not([class*="bg-"]) {
+  background-color: #334155;
+}
+
+/* Hover states */
+html.dark .hover\:bg-slate-50:hover { background-color: #1e293b; }
+html.dark .hover\:bg-slate-100:hover { background-color: #334155; }
+html.dark .hover\:bg-gray-50:hover { background-color: #1e293b; }
+
+/* Specific component overrides */
+html.dark .bg-blue-50 { background-color: #0c2340; }
+html.dark .bg-green-50 { background-color: #0f3f2f; }
+html.dark .bg-red-50 { background-color: #3f0f0f; }
+html.dark .bg-amber-50 { background-color: #3f2810; }
+
+/* Dark theme dropdown/popover */
+html.dark [role="listbox"],
+html.dark [role="option"],
+html.dark .popover {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+/* Dark theme modal/dialog */
+html.dark .modal,
+html.dark [role="dialog"] {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Scrollbar styling for dark mode */
+html.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 5px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Chart styling for dark mode */
+html.dark .recharts-wrapper {
+  background-color: #1e293b;
+}
+
+html.dark .recharts-text {
+  fill: #94a3b8;
+}
+
+html.dark .recharts-tooltip {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+}
+
+/* Tables */
+html.dark table {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+html.dark th {
+  background-color: #0f172a;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+html.dark td {
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark tbody tr:hover {
+  background-color: #334155;
+}
+
+/* Code blocks */
+html.dark code {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark pre {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+/* Badges */
+html.dark .badge {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+/* Loading skeleton */
+html.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1e293b 0%,
+    #334155 50%,
+    #1e293b 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Smooth transitions */
+html.dark * {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}

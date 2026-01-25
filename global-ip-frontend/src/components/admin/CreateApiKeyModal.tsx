@@ -205,10 +205,10 @@ export function CreateApiKeyModal({
 
                 {/* Copy Instructions */}
                 <p className="text-xs text-slate-600">
-                  Use this key in Authorization headers:
+                  Use this key in API requests:
                 </p>
                 <div className="bg-slate-50 p-3 rounded-lg text-xs font-mono text-slate-700 border border-slate-200">
-                  Authorization: Bearer {apiKey.substring(0, 20)}...
+                  X-API-KEY: {apiKey.substring(0, 20)}...
                 </div>
               </div>
 

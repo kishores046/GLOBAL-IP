@@ -23,9 +23,12 @@ public class PatentsViewSearchProvider implements PatentSearchProvider {
 
     @Override
     public boolean supportsJurisdiction(String jurisdiction) {
-        return jurisdiction == null
-                || jurisdiction.equalsIgnoreCase("ALL")
-                || jurisdiction.equalsIgnoreCase("US");
+
+        if (jurisdiction == null || jurisdiction.isBlank() || "ALL".equalsIgnoreCase(jurisdiction)) {
+            return true;  // Participate in "ALL" searches
+        }
+        
+        return "US".equalsIgnoreCase(jurisdiction);
     }
 
     @Override

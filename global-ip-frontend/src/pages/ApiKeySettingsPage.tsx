@@ -6,7 +6,8 @@
 import { useEffect, useState } from 'react';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { Sidebar } from '../components/dashboard/Sidebar';
-import { AlertCircle, Key } from 'lucide-react';
+import { AnalystSidebar } from '../components/dashboard/AnalystSidebar';
+import { Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import apiKeyService from '../services/apiKeyService';
@@ -18,7 +19,7 @@ import { toast } from 'sonner';
 import { ROLES } from '../routes/routeConfig';
 
 export function ApiKeySettingsPage() {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, getRole } = useAuth();
   const { isActive: hasActiveSubscription } = useSubscription();
 
   const [apiKeys, setApiKeys] = useState<ApiKeyResponse[]>([]);
@@ -33,6 +34,14 @@ export function ApiKeySettingsPage() {
 
   // Check if user is admin
   const isAdmin = hasRole([ROLES.ADMIN]);
+  
+  // Check if user is analyst - with fallback checks
+  const userRole = getRole()?.toUpperCase();
+  const allRoles = user?.roles?.map(r => typeof r === 'string' ? r.toUpperCase() : r?.roleType?.toUpperCase()).filter(Boolean) || [];
+  const isAnalyst = userRole === ROLES.ANALYST || allRoles.includes(ROLES.ANALYST);
+  
+  // Debug logging
+  console.log('ApiKeySettingsPage - Role Check:', { userRole, allRoles, isAnalyst, ROLES_ANALYST: ROLES.ANALYST });
 
   // Load API keys on mount
   useEffect(() => {
@@ -92,7 +101,7 @@ export function ApiKeySettingsPage() {
       <DashboardHeader userName={user?.username || 'User'} />
 
       <div className="flex">
-        <Sidebar />
+        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
 
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">
@@ -115,28 +124,12 @@ export function ApiKeySettingsPage() {
               </div>
             </div>
 
-            {/* Subscription Warning Banner */}
-            {!hasActiveSubscription && (
-              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-amber-900">
-                    Subscription Required
-                  </p>
-                  <p className="text-sm text-amber-800 mt-1">
-                    An active subscription is required to use API keys. Please activate a subscription to enable API access.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Create Button */}
             <div className="mb-6">
               <button
                 onClick={() => setShowCreateModal(true)}
-                disabled={!hasActiveSubscription}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                title={!hasActiveSubscription ? 'Activate a subscription to create API keys' : 'Create a new API key'}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2"
+                title="Create a new API key for programmatic access"
               >
                 <Key className="w-4 h-4" />
                 Create API Key
@@ -161,10 +154,10 @@ export function ApiKeySettingsPage() {
                   How to Use Your API Key
                 </h3>
                 <p className="text-sm text-blue-800">
-                  Include your API key in the Authorization header for all API requests:
+                  Include your API key in the X-API-KEY header for all API requests:
                 </p>
                 <pre className="mt-3 bg-blue-900 text-blue-100 p-3 rounded text-xs overflow-x-auto">
-                  {`Authorization: Bearer YOUR_API_KEY_HERE`}
+                  {`X-API-KEY: YOUR_API_KEY_HERE`}
                 </pre>
               </div>
             )}

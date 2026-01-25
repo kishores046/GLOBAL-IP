@@ -1,7 +1,6 @@
 import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
 import { Features } from "../components/Features";
-import { WorldMap } from "../components/WorldMap";
 
 export function HomePage() {
   return (
@@ -9,7 +8,6 @@ export function HomePage() {
       <Navbar />
       <Hero />
       <Features />
-      <WorldMap />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -17,6 +17,8 @@ import {
   Radio,
 } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
+import { useAuth } from "../context/AuthContext";
 import { patentDetailAPI, GlobalPatentDetailDto } from "../services/api";
 import { CitationSummary } from "../components/CitationSummary";
 import { trackingApi } from "../services/trackingAPI";
@@ -28,6 +30,11 @@ import { toast } from "sonner";
 export function PatentDetailPage() {
   const { publicationNumber } = useParams<{ publicationNumber: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { hasRole } = useAuth();
+  
+  // Determine if user is an analyst
+  const isAnalyst = hasRole(['ANALYST', 'ADMIN']) || location.pathname.includes("/analyst");
 
   const [patent, setPatent] = useState<GlobalPatentDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -256,7 +263,7 @@ export function PatentDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
         <div className="flex">
-          <Sidebar />
+          {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
           <main className="flex-1 p-8">
             <div className="max-w-4xl mx-auto">
               <button
@@ -281,7 +288,7 @@ export function PatentDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <div className="flex">
-        <Sidebar />
+        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
         
         <main className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-5xl mx-auto space-y-6">

@@ -4,6 +4,7 @@ import { useNavigate} from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ROUTES, ROLES } from "../../routes/routeConfig";
 import { useLocation } from "react-router-dom";
+import { ThemeToggle } from "../ThemeToggle";
 
 interface DashboardHeaderProps {
   readonly userName: string;
@@ -95,6 +96,9 @@ export function DashboardHeader({ userName }: DashboardHeaderProps) {
           <div className="hidden md:block text-slate-600">
             Welcome, <span className="text-blue-900">{userName}</span>
           </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Notification Bell */}
           <div className="relative" ref={notificationRef}>

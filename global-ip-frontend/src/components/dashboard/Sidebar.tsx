@@ -41,7 +41,8 @@ export function Sidebar() {
     'trademark-lifecycle': ['/analyst/lifecycle/trademarks'],
     'competitor-analytics': ['/competitors/analytics'],
     'competitor-management': ['/competitors'],
-    'create-subscription': ['/user/subscriptions/create'],
+    'create-subscription': ['/user/subscriptions/create', '/analyst/subscriptions/create'],
+    'subscriptions': ['/user/subscriptions', '/analyst/subscriptions'],
     'tracker': ['/user/filing-tracker'],
     'profile': ['/user/profile'],
     'api-keys': ['/settings/api-keys'],
@@ -139,10 +140,28 @@ export function Sidebar() {
         navigate(ROUTES.API_KEYS_SETTINGS);
         break;
       case "create-subscription":
-        navigate(ROUTES.CREATE_SUBSCRIPTION);
+        // For analysts, navigate to analyst-specific subscription create page
+        if (isAnalyst) {
+          navigate(ROUTES.ANALYST_CREATE_SUBSCRIPTION);
+        } else {
+          navigate(ROUTES.CREATE_SUBSCRIPTION);
+        }
+        break;
+      case "subscriptions":
+        // Navigate to analyst subscriptions if analyst, user subscriptions if regular user
+        if (isAnalyst) {
+          navigate(ROUTES.ANALYST_SUBSCRIPTIONS);
+        } else {
+          navigate(ROUTES.SUBSCRIPTIONS);
+        }
         break;
       case "alerts":
-        navigate(ROUTES.ALERTS);
+        // Navigate to analyst alerts if analyst, user alerts if regular user
+        if (isAnalyst) {
+          navigate(ROUTES.ANALYST_ALERTS);
+        } else {
+          navigate(ROUTES.ALERTS);
+        }
         break;
         // Stay on current page
         break;
@@ -155,6 +174,7 @@ export function Sidebar() {
     { id: "search", label: "Global IP Search", icon: Search },
     { id: "alerts", label: "Alerts", icon: Bell },
     { id: "create-subscription", label: "Create Subscription", icon: Plus },
+    { id: "subscriptions", label: "My Subscriptions", icon: Radio },
     { id: "tracked-patents", label: "Tracked Patents", icon: Radio },
     { id: "profile", label: "Profile", icon: User },
     // Show API Keys if user has allowed roles
@@ -189,21 +209,38 @@ export function Sidebar() {
   const menuItems = isAnalyst ? analystMenuItems : userMenuItems;
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-[#1e3a5f] via-[#1a2f4d] to-[#1e3a5f] border-r border-blue-900/30 h-screen sticky top-0 flex flex-col shadow-2xl">
+    <>
+      <style>{`
+        .user-sidebar-dark {
+          background-color: #1e3a8a;
+          color: #dbeafe;
+        }
+        .user-sidebar-dark nav {
+          background-color: #1e3a8a;
+        }
+        .user-sidebar-dark button:not(.active-item) {
+          color: #bfdbfe;
+        }
+        .user-sidebar-dark button.active-item {
+          background-color: #0c2340;
+          color: #ffffff;
+        }
+      `}</style>
+      <aside className="user-sidebar-dark w-64 h-screen flex flex-col overflow-hidden shadow-sm" style={{ backgroundColor: '#1e3a8a', color: '#dbeafe' }}>
       {/* Logo Section */}
-      <div className="p-6 border-b border-blue-800/30">
+      <div className="p-6 border-b" style={{ backgroundColor: '#1e3a8a', borderColor: '#1e40af' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/50">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, #1e40af, #1e3a8a)' }}>
             <span className="text-white text-xl font-bold">IP</span>
           </div>
           <div>
             <h1 className="text-white text-lg font-bold leading-tight">IPIntel</h1>
-            <p className="text-blue-300 text-xs">Intelligence Platform</p>
+            <p className="text-xs" style={{ color: '#bfdbfe' }}>Intelligence Platform</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-transparent">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ backgroundColor: '#1e3a8a' }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeItem === item.id;
@@ -212,11 +249,11 @@ export function Sidebar() {
             <button
               key={item.id}
               onClick={() => handleNavigation(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left group ${
-                isActive
-                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30"
-                  : "text-blue-300/70 hover:bg-blue-900/40 hover:text-white"
-              }`}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left group"
+              style={{
+                backgroundColor: isActive ? '#0c2340' : 'transparent',
+                color: isActive ? '#ffffff' : '#bfdbfe'
+              }}
             >
               <Icon className={`w-5 h-5 transition-transform ${isActive ? "" : "group-hover:scale-110"}`} />
               <span className="text-sm font-medium">{item.label}</span>
@@ -226,16 +263,18 @@ export function Sidebar() {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-blue-800/30">
+      <div className="p-4" style={{ borderTop: '1px solid #1e40af', backgroundColor: '#1e3a8a' }}>
         <button 
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-300 hover:bg-red-900/30 hover:text-red-200 rounded-lg transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ color: '#fca5a5' }}
         >
           <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="text-sm font-medium">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </aside>
+    </>
   );
 }

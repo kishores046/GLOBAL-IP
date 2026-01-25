@@ -21,12 +21,15 @@ export const ROUTES = {
   
   // Analyst routes
   ANALYST_DASHBOARD: '/dashboard/analyst',
+  ANALYST_SUBSCRIPTIONS: '/analyst/subscriptions',
+  ANALYST_CREATE_SUBSCRIPTION: '/analyst/subscriptions/create',
   COMPETITORS: '/competitors',
   COMPETITOR_DETAIL: '/competitors/:id',
   COMPETITOR_FILINGS: '/competitors/filings',
   COMPETITOR_SYNC: '/competitors/sync',
   COMPETITOR_ANALYTICS: '/competitors/analytics',
   ADVANCED_SEARCH: '/analyst/advanced-search',
+  ANALYST_ALERTS: '/analyst/alerts',
   VISUALIZATION_ENGINE: '/analyst/visualization',
   EXPORT_TOOLS: '/analyst/export-tools',
   PATENT_TRENDS: '/analyst/trends/patents',

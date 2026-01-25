@@ -1,8 +1,14 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
+import { useAuth } from "../context/AuthContext";
+import { ROLES } from "../routes/routeConfig";
 import { User, Settings as SettingsIcon, Bell } from "lucide-react";
 
 export function SettingsPage() {
+  const { getRole } = useAuth();
+  const userRole = getRole()?.toUpperCase();
+  const isAnalyst = userRole === ROLES.ANALYST;
   const settingsCards = [
     {
       icon: User,
@@ -26,7 +32,7 @@ export function SettingsPage() {
       <DashboardHeader userName="User" />
       
       <div className="flex">
-        <Sidebar />
+        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">

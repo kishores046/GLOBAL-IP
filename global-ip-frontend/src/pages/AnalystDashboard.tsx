@@ -1,5 +1,5 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { Sidebar } from "../components/dashboard/Sidebar";
+import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
 import { Search, Network, Flag, Star, Eye, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -161,7 +161,7 @@ export function AnalystDashboard() {
       <DashboardHeader userName="Analyst" />
       
       <div className="flex">
-        <Sidebar />
+        <AnalystSidebar />
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">

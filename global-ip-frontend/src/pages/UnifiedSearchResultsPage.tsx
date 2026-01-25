@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { Search, Users, Calendar, MapPin, Eye, Building, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
+import { useAuth } from "../context/AuthContext";
 import { PatentDocument, TrademarkResultDto } from "../services/api";
 import { mapTrademarkStatus } from "../utils/trademarkUtils";
 
@@ -25,6 +27,10 @@ const getTrademarkId = (trademark: TrademarkResultDto): string => {
 export function UnifiedSearchResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
+  
+  // Determine if user is an analyst
+  const isAnalyst = hasRole(['ANALYST', 'ADMIN']) || location.pathname.includes("/analyst");
   
   // Get search results from navigation state
   const { patents = [], trademarks = [] } = location.state ?? {};
@@ -135,7 +141,7 @@ export function UnifiedSearchResultsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <div className="flex">
-        <Sidebar />
+        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
         
         <main className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto space-y-6">
