@@ -110,23 +110,15 @@ export const trademarkTrendAPI = {
    * Shows business sectors with highest branding activity
    */
   getTopClasses: async (filters?: TrademarkTrendFilterOptions): Promise<ClassificationTrendsResponse> => {
-    const cacheKey = generateCacheKey('topClasses', filters);
-    const cached = getCachedData(cacheKey) as ClassificationTrendsResponse | null;
-    if (cached) {
-      console.log('📊 Using cached trademark classes data');
-      return cached;
-    }
-
+    // Always fetch fresh data (bypass cache)
     try {
-      console.log('🔄 Fetching top trademark classes...');
+      console.log('🔄 Fetching top trademark classes (no cache)...');
       const response = await trademarkTrendApi.get<any>('/classes/top', {
         params: filters,
       });
-      // Backend returns array directly, wrap it
       const wrappedResponse: ClassificationTrendsResponse = {
         data: Array.isArray(response.data) ? response.data : [],
       };
-      setCacheData(cacheKey, wrappedResponse);
       return wrappedResponse;
     } catch (error) {
       console.error('❌ Error fetching trademark classes:', error);
@@ -139,23 +131,15 @@ export const trademarkTrendAPI = {
    * Shows geographic concentration of brand ownership
    */
   getTopCountries: async (filters?: TrademarkTrendFilterOptions): Promise<GeographicTrendsResponse> => {
-    const cacheKey = generateCacheKey('topCountries', filters);
-    const cached = getCachedData(cacheKey) as GeographicTrendsResponse | null;
-    if (cached) {
-      console.log('📊 Using cached trademark countries data');
-      return cached;
-    }
-
+    // Always fetch fresh data (bypass cache)
     try {
-      console.log('🔄 Fetching top trademark countries...');
+      console.log('🔄 Fetching top trademark countries (no cache)...');
       const response = await trademarkTrendApi.get<any>('/countries/top', {
         params: filters,
       });
-      // Backend returns array directly, wrap it
       const wrappedResponse: GeographicTrendsResponse = {
         data: Array.isArray(response.data) ? response.data : [],
       };
-      setCacheData(cacheKey, wrappedResponse);
       return wrappedResponse;
     } catch (error) {
       console.error('❌ Error fetching trademark countries:', error);

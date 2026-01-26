@@ -3,6 +3,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Alert, AlertDescription } from '../ui/alert';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { CodeDistributionDto, SimpleCountDto } from '../../types/trademark-trends';
+// Status code to English mapping
+const STATUS_CODE_MAP: Record<string | number, string> = {
+  973: 'Registered',
+  819: 'Pending Examination',
+  809: 'Published',
+  807: 'Opposed',
+  802: 'Withdrawn',
+  800: 'Application Filed',
+  794: 'Expired',
+  774: 'Abandoned',
+  760: 'Refused',
+  748: 'Accepted',
+  734: 'Cancelled',
+  733: 'Under Review',
+  732: 'Awaiting Assignment',
+  731: 'Awaiting Documents',
+  730: 'Awaiting Payment',
+  710: 'Suspended',
+  709: 'Rejected',
+  708: 'Deferred',
+  707: 'Incomplete',
+  706: 'Awaiting Response',
+  705: 'Awaiting Approval',
+  702: 'Under Appeal',
+  701: 'Awaiting Publication',
+  700: 'Live',
+  688: 'Dead',
+  686: 'Pending',
+  681: 'Under Examination',
+  680: 'Registered',
+  666: 'Not in Use',
+  665: 'Not Renewed',
+  661: 'Awaiting Renewal',
+  660: 'Lapsed',
+  656: 'Surrendered',
+  654: 'Awaiting Grant',
+  653: 'Awaiting Certificate',
+  651: 'Awaiting Dispatch',
+  649: 'Awaiting Correction',
+  647: 'Awaiting Clarification',
+  645: 'Awaiting Hearing',
+  643: 'Awaiting Action',
+  641: 'Other',
+  640: 'Awaiting Assignment',
+  638: 'Awaiting Response',
+  630: 'Pending',
+  616: 'Awaiting Payment',
+  612: 'Awaiting Documents',
+  606: 'Awaiting Approval',
+  605: 'Awaiting Publication',
+  602: 'Awaiting Examination',
+  601: 'Awaiting Filing',
+};
 
 interface DataTableProps {
   title: string;
@@ -234,12 +287,37 @@ export const StatusDistributionTable: React.FC<{
   error?: Error | null;
   onRefresh?: () => void;
 }> = ({ data, loading, error, onRefresh }) => {
-  const total = data?.reduce((sum, item) => sum + item.count, 0) ?? 0;
+  // Aggregate by label (some responses may include duplicate labels like "Unknown Status")
+  // and support numeric status codes returned as labels.
+  const aggregatedMap: Record<string, number> = {};
 
-  const dataWithPercentage = data?.map((item) => ({
-    ...item,
-    percentage: ((item.count / total) * 100).toFixed(1),
-  })) ?? [];
+  (data || []).forEach((item) => {
+    const key = String(item.label || 'Unknown Status').trim();
+    if (!aggregatedMap[key]) aggregatedMap[key] = 0;
+    aggregatedMap[key] += item.count || 0;
+  });
+
+  const aggregated = Object.keys(aggregatedMap).map((key) => ({
+    label: key,
+    count: aggregatedMap[key],
+  }));
+
+  const total = aggregated.reduce((sum, item) => sum + item.count, 0) || 0;
+
+  const dataWithPercentage = aggregated.map((item) => {
+    // If the label is actually a numeric status code, map it to a friendly label
+    const numericCode = parseInt(item.label as string, 10);
+    const friendlyLabel = !Number.isNaN(numericCode)
+      ? (STATUS_CODE_MAP[numericCode] || item.label)
+      : (STATUS_CODE_MAP[item.label] || item.label);
+
+    return {
+      ...item,
+      label: friendlyLabel,
+      // Keep percentage as a string with one decimal place; the DataTable formatter will add '%'
+      percentage: total > 0 ? ((item.count / total) * 100).toFixed(1) : '0.0',
+    };
+  });
 
   return (
     <DataTable

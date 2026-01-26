@@ -1,13 +1,16 @@
 package com.mock.mocktrademarkapi.mapper;
 
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.mock.mocktrademarkapi.model.dto.CaseFile;
 import com.mock.mocktrademarkapi.model.main.TradeMarkEntity;
 import com.mock.mocktrademarkapi.repository.TrademarkRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -20,20 +23,16 @@ import java.nio.file.Paths;
 
 @Component
 @Slf4j
+@Profile("ingest")
+@RequiredArgsConstructor
 public class XMLFileProcessor {
 
     private final TrademarkMapper trademarkMapper;
-    private final XmlMapper xmlMapper;
+    private final XmlMapper xmlMapper=new XmlMapper();
     private final TrademarkRepository trademarkRepository;
+    private final IngestPropertiesConfig ingestPropertiesConfig;
 
-    public XMLFileProcessor(TrademarkMapper mapper, XmlMapper xmlMapper,TrademarkRepository trademarkRepository){
-        this.trademarkMapper = mapper;
-        this.xmlMapper= (XmlMapper) xmlMapper.configure(
-                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                false
-        );
-        this.trademarkRepository=trademarkRepository;
-    }
+
 
     public void xmlFileRead(){
         XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -41,7 +40,7 @@ public class XMLFileProcessor {
         log.info("Reading is initialising...");
 
         try (InputStream is = Files.newInputStream(
-                Paths.get("C:\\Users\\Kishore\\mocktmview\\src\\main\\resources\\mockTrademarkData.xml"))) {
+                Paths.get(ingestPropertiesConfig.getFilePath()))) {
 
             XMLStreamReader reader =
                     factory.createXMLStreamReader(is);

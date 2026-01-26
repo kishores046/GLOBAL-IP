@@ -5,6 +5,7 @@ import { AlertCircle, X, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { getClassName } from '../../utils/classMapping';
 import { CodeDistributionDto, SimpleCountDto } from '../../types/trademark-trends';
+import { StatusDistributionTable } from './DataTable';
 
 interface TrademarkViewerProps {
   cardId: string;
@@ -117,6 +118,11 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
         {cardId === 'summary' && <SummaryView data={data} />}
         {cardId === 'top-classes' && <TopClassesView data={data} />}
         {cardId === 'top-countries' && <TopCountriesView data={data} />}
+        {cardId === 'status-distribution' && (
+          <div className="py-4">
+            <StatusDistributionTable data={Array.isArray(data) ? data : []} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -124,17 +130,21 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
 
 const SummaryView: React.FC<{ data: any }> = ({ data }) => {
   if (!data || typeof data !== 'object') {
-    return <div className="text-slate-600 font-medium">📊 No summary data available</div>;
+    return <div className="text-slate-300 font-medium">📊 No summary data available</div>;
   }
 
   // Separate filingsByYear from other data
   const filingsByYear = data.filingsByYear;
-  const otherData = Object.entries(data).filter(([key]) => key !== 'filingsByYear');
+  const otherData = Object.entries(data).filter(
+    ([key]) => key !== 'filingsByYear' && key !== 'statusDistribution'
+  );
 
-  // Find max count for scaling the chart
+  // Find max count for scaling the chart and total for percentages
   let maxYearCount = 0;
+  let totalFilings = 0;
   if (Array.isArray(filingsByYear)) {
     maxYearCount = Math.max(...filingsByYear.map((item: any) => item.count || 0));
+    totalFilings = filingsByYear.reduce((s: number, i: any) => s + (Number(i.count || 0)), 0);
   }
 
   return (
@@ -143,9 +153,9 @@ const SummaryView: React.FC<{ data: any }> = ({ data }) => {
       {otherData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {otherData.map(([key, value]) => (
-            <div key={key} className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-300 rounded-lg hover:shadow-md transition-shadow">
-              <p className="text-sm font-semibold text-slate-700 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
+            <div key={key} className="p-5 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
+              <p className="text-sm font-semibold text-slate-200 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+              <p className="text-3xl font-bold text-white mt-2">
                 {typeof value === 'number' ? value.toLocaleString() : String(value)}
               </p>
             </div>
@@ -153,30 +163,35 @@ const SummaryView: React.FC<{ data: any }> = ({ data }) => {
         </div>
       )}
 
-      {/* Filings By Year Chart */}
+      {/* Filings By Year Chart - styled like Top Classes/Countries */}
       {Array.isArray(filingsByYear) && filingsByYear.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <span className="text-2xl">📈</span>Filings By Year
           </h3>
-          <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 border border-blue-300 rounded-lg space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-4 max-h-96 overflow-y-auto">
             {filingsByYear.map((item: any) => {
-              const barWidth = maxYearCount > 0 ? (item.count / maxYearCount) * 100 : 0;
+              const count = Number(item.count || 0);
+              const percentOfTotal = totalFilings > 0 ? (count / totalFilings) * 100 : 0;
+              const barWidth = maxYearCount > 0 ? (count / maxYearCount) * 100 : 0;
+
               return (
-                <div key={`year-${item.year}`} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-slate-700">{item.year}</span>
-                    <span className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">{item.count?.toLocaleString() || 0}</span>
-                  </div>
-                  <div className="w-full bg-slate-300 rounded-full h-7 shadow-sm">
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-blue-400 h-7 rounded-full transition-all duration-300 flex items-center justify-end pr-3 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-blue-500"
-                      style={{ width: `${barWidth}%`, minWidth: barWidth > 0 ? '35px' : '0' }}
-                    >
-                      {barWidth > 12 && (
-                        <span className="text-xs font-bold text-white">{barWidth.toFixed(0)}%</span>
-                      )}
+                <div key={`year-${item.year}`} className="p-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-white">{item.year}</p>
+                      <p className="text-sm text-slate-200 mt-1">Filings</p>
                     </div>
+                    <div className="text-right">
+                      <p className="font-bold text-white">{count.toLocaleString()}</p>
+                      <p className="text-sm text-slate-200 font-medium">{percentOfTotal.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-slate-600 rounded-full h-3 mt-3">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-300 shadow-md"
+                      style={{ width: `${barWidth}%` }}
+                    />
                   </div>
                 </div>
               );
@@ -202,11 +217,11 @@ const TopClassesView: React.FC<{ data: CodeDistributionDto[] }> = ({ data }) => 
     return <div className="text-slate-600 font-medium">📋 No class data available</div>;
   }
 
-  // Filter out [object Object] strings and normalize
+  // Filter out zero/empty counts and normalize
   const normalizedData = classData
-    .filter((item) => item && typeof item === 'object' && (item.code || item.class) && String(item) !== '[object Object]')
+    .filter((item) => item && typeof item === 'object' && (item.code || item.class || item.label || item.name) && Number(item.count || item.value || 0) > 0)
     .map((item) => ({
-      code: (item.code || item.class || 'Unknown') as string,
+      code: (item.code || item.class || item.label || item.name || 'Unknown') as string,
       count: Number(item.count || item.value || 0),
       percentage: Number(item.percentage || 0),
     }));
@@ -225,18 +240,18 @@ const TopClassesView: React.FC<{ data: CodeDistributionDto[] }> = ({ data }) => 
         const className = getClassName(item.code);
 
         return (
-          <div key={item.code} className="space-y-2 p-4 bg-gradient-to-r from-blue-50 to-slate-50 rounded-lg border border-blue-200 hover:shadow-md transition-shadow">
+          <div key={item.code} className="space-y-2 p-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <p className="font-bold text-slate-900">Class {item.code}</p>
-                <p className="text-sm text-slate-600 mt-1">{className}</p>
+                <p className="font-bold text-white">Class {item.code}</p>
+                <p className="text-sm text-slate-200 mt-1">{className}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-blue-600">{item.count.toLocaleString()}</p>
-                <p className="text-sm text-slate-600 font-medium">{item.percentage.toFixed(1)}%</p>
+                <p className="font-bold text-white">{item.count.toLocaleString()}</p>
+                <p className="text-sm text-slate-200 font-medium">{item.percentage.toFixed(1)}%</p>
               </div>
             </div>
-            <div className="w-full bg-slate-300 rounded-full h-3">
+            <div className="w-full bg-slate-600 rounded-full h-3">
               <div
                 className="bg-gradient-to-r from-purple-500 to-purple-400 h-3 rounded-full transition-all duration-300 shadow-md"
                 style={{ width: `${barWidth}%` }}
@@ -263,9 +278,9 @@ const TopCountriesView: React.FC<{ data: SimpleCountDto[] }> = ({ data }) => {
     return <div className="text-slate-600 font-medium">🌍 No country data available</div>;
   }
 
-  // Filter out [object Object] strings and normalize
+  // Accept country codes as valid labels, filter out zero/empty counts
   const normalizedData = countryData
-    .filter((item) => item && typeof item === 'object' && item.label && String(item) !== '[object Object]')
+    .filter((item) => item && typeof item === 'object' && (typeof item.label === 'string' || typeof item.name === 'string') && Number(item.count || item.value || 0) > 0)
     .map((item) => ({
       label: (item.label || item.name || 'Unknown') as string,
       count: Number(item.count || item.value || 0),
@@ -284,12 +299,12 @@ const TopCountriesView: React.FC<{ data: SimpleCountDto[] }> = ({ data }) => {
         const barWidth = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
 
         return (
-          <div key={item.label} className="space-y-2 p-4 bg-gradient-to-r from-green-50 to-slate-50 rounded-lg border border-green-300 hover:shadow-md transition-shadow">
+          <div key={item.label} className="space-y-2 p-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
             <div className="flex justify-between items-center">
-              <p className="font-bold text-slate-900">🏛️ {item.label}</p>
-              <p className="font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full">{item.count.toLocaleString()}</p>
+              <p className="font-bold text-white">🏛️ {item.label}</p>
+              <p className="font-bold text-white bg-slate-700 px-3 py-1 rounded-full">{item.count.toLocaleString()}</p>
             </div>
-            <div className="w-full bg-slate-300 rounded-full h-3">
+            <div className="w-full bg-slate-600 rounded-full h-3">
               <div
                 className="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-300 shadow-md"
                 style={{ width: `${barWidth}%` }}

@@ -6,6 +6,7 @@ import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "motion/react";
 import { unifiedSearchAPI } from "../services/api";
+import { getSortedJurisdictions, getJurisdictionLabel } from "../constants/jurisdictions";
 
 export function GlobalIPSearchPage() {
   const navigate = useNavigate();
@@ -19,15 +20,9 @@ export function GlobalIPSearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const jurisdictions = [
-    { value: "ALL", label: "All Jurisdictions" },
-    { value: "EP", label: "European Patent Office" },
-    { value: "US", label: "US Patent & Trademark Office" },
-    { value: "JP", label: "Japan Patent Office" },
-    { value: "WO", label: "World Intellectual Property Organization" },
-    { value: "GB", label: "UK Intellectual Property Office" },
-    { value: "IN", label: "India Patent Office" },
-  ];
+  // Use canonical jurisdiction lists from constants so user search
+  // mirrors the analyst advanced search without missing entries.
+  const sorted = getSortedJurisdictions();
 
   const handleSearch = async () => {
     // Validation: keyword is required
@@ -148,11 +143,21 @@ export function GlobalIPSearchPage() {
                   disabled={isLoading}
                   className="px-4 py-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-slate-900 disabled:opacity-50"
                 >
-                  {jurisdictions.map((j) => (
-                    <option key={j.value} value={j.value}>
-                      {j.label}
-                    </option>
-                  ))}
+                  <option value="ALL">🌍 All Jurisdictions</option>
+                  <optgroup label="━━━ Regional Patent Offices ━━━">
+                    {sorted.regionalOffices.map((code) => (
+                      <option key={code} value={code}>
+                        🌐 {getJurisdictionLabel(code)}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="━━━ Individual Countries ━━━">
+                    {sorted.individualCountries.map((code) => (
+                      <option key={code} value={code}>
+                        🏛️ {getJurisdictionLabel(code)}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
                 <button
                   onClick={handleSearch}

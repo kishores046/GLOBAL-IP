@@ -14,11 +14,12 @@ public class TrademarkTrendRepository {
 
     public List<Object[]> totalByYear() {
         return em.createNativeQuery("""
-            SELECT YEAR(filing_date) AS year, COUNT(*) 
-            FROM trademark
-            GROUP BY YEAR(filing_date)
-            ORDER BY year
-        """).getResultList();
+        SELECT YEAR(filing_date) AS year, COUNT(*) 
+        FROM trademark
+        WHERE filing_date IS NOT NULL
+        GROUP BY YEAR(filing_date)
+        ORDER BY year
+    """).getResultList();
     }
 
     public List<Object> statusDistribution() {

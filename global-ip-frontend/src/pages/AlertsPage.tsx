@@ -232,6 +232,25 @@ export function AlertsPage() {
     return true;
   });
 
+  // Dynamic styling for alerts container and badge based on active filter
+  const wsContainerClasses = `bg-white/70 backdrop-blur-xl rounded-2xl p-6 transition-all shadow-xl mb-8 ${
+    activeFilter === 'patents'
+      ? 'border border-green-200/50 hover:border-green-300/50'
+      : activeFilter === 'competitors'
+      ? 'border border-purple-200/50 hover:border-purple-300/50'
+      : 'border border-green-200/50 hover:border-green-300/50'
+  }`;
+
+  const countBadgeClass = `${
+    activeFilter === 'patents'
+      ? 'ml-auto text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full'
+      : activeFilter === 'competitors'
+      ? 'ml-auto text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full'
+      : 'ml-auto text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full'
+  }`;
+
+  const iconBgClass = `${activeFilter === 'competitors' ? 'from-purple-500 to-purple-600' : 'from-green-500 to-green-600'}`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <div className="flex">
@@ -338,16 +357,16 @@ export function AlertsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-green-200/50 hover:border-green-300/50 transition-all shadow-xl mb-8"
+                  className={wsContainerClasses}
                 >
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${iconBgClass} rounded-lg flex items-center justify-center`}>
                       <Zap className="w-5 h-5 text-white" />
                     </div>
-                    <h2 className="text-2xl text-slate-900 font-semibold">Real-time WebSocket Alerts</h2>
-                    <span className="ml-auto text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                      {filteredAlerts.length} {activeFilter === 'all' ? 'incoming' : activeFilter}
-                    </span>
+                      <h2 className="text-2xl text-slate-900 font-semibold">Real-time WebSocket Alerts</h2>
+                      <span className={countBadgeClass}>
+                        {filteredAlerts.length} {activeFilter === 'all' ? 'incoming' : activeFilter}
+                      </span>
                   </div>
 
                   <div className="space-y-3 max-h-96 overflow-y-auto">

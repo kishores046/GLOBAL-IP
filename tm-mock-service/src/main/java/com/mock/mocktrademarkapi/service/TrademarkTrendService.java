@@ -1,5 +1,6 @@
 package com.mock.mocktrademarkapi.service;
 
+import com.mock.mocktrademarkapi.domain.TrademarkStatus;
 import com.mock.mocktrademarkapi.dto.trend.*;
 import com.mock.mocktrademarkapi.repository.TrademarkTrendRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class TrademarkTrendService {
     public List<YearCountDto> filingsByYear() {
         return repository.totalByYear()
                 .stream()
+                .filter(r -> r[0] != null)
                 .map(r -> new YearCountDto(
                         ((Number) r[0]).intValue(),
                         ((Number) r[1]).longValue()
@@ -32,16 +34,22 @@ public class TrademarkTrendService {
                 .toList();
     }
 
+
     /* ===================== STATUS ===================== */
 
     public List<SimpleCountDto> statusDistribution() {
         return repository.statusDistribution()
                 .stream()
                 .map(r -> (Object[]) r)
-                .map(r -> new SimpleCountDto(
-                        (String) r[0],
-                        ((Number) r[1]).longValue()
-                ))
+                .map(r -> {
+                    String code = String.valueOf(r[0]);
+                    TrademarkStatus status = TrademarkStatus.fromCode(code);
+
+                    return new SimpleCountDto(
+                            status.description(),
+                            ((Number) r[1]).longValue()
+                    );
+                })
                 .toList();
     }
 
