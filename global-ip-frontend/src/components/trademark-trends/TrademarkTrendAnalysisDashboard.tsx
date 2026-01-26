@@ -89,8 +89,8 @@ export const TrademarkTrendAnalysisDashboard: React.FC<TrademarkTrendAnalysisDas
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+          <p className="text-gray-700 dark:text-gray-200 mt-1 font-medium">
             Business-ready intelligence for IP analysts and legal teams
           </p>
         </div>
@@ -121,7 +121,7 @@ export const TrademarkTrendAnalysisDashboard: React.FC<TrademarkTrendAnalysisDas
           <CardContent className="pt-6">
             <div className="flex items-center justify-center gap-3">
               <div className="h-8 w-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-              <p className="text-gray-600">Analyzing trademark trends...</p>
+              <p className="text-gray-700 font-medium">Analyzing trademark trends...</p>
             </div>
           </CardContent>
         </Card>
@@ -129,23 +129,23 @@ export const TrademarkTrendAnalysisDashboard: React.FC<TrademarkTrendAnalysisDas
 
       {/* Metadata */}
       {analysisReport && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-800 text-gray-900 dark:text-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between text-sm">
               <div>
                 <span className="font-semibold text-gray-700">Analysis Period:</span>
-                <span className="text-gray-600 ml-2">{analysisReport.period.timeRange}</span>
+                <span className="text-gray-700 dark:text-gray-200 ml-2">{analysisReport.period.timeRange}</span>
               </div>
               <div>
                 <span className="font-semibold text-gray-700">Generated:</span>
-                <span className="text-gray-600 ml-2">
+                <span className="text-gray-600 dark:text-gray-200 ml-2">
                   {new Date(analysisReport.period.generatedAt).toLocaleString()}
                 </span>
               </div>
               {aggregatedData && (
                 <div>
                   <span className="font-semibold text-gray-700">Total Applications:</span>
-                  <span className="text-gray-600 ml-2">
+                    <span className="text-gray-600 dark:text-gray-200 ml-2">
                     {aggregatedData.summary.totalApplications.toLocaleString()}
                   </span>
                 </div>
