@@ -117,4 +117,18 @@ export const trackingApi = {
       throw error;
     }
   }
+  ,
+  /**
+   * Get total tracked patents for the current user
+   */
+  async getTotalTrackedPatents(): Promise<number> {
+    try {
+      const API_BASE = getApiBase();
+      const response = await api.get(`${API_BASE}/total`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching total tracked patents:', error);
+      throw error;
+    }
+  }
 };

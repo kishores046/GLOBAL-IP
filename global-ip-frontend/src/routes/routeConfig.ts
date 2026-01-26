@@ -21,6 +21,8 @@ export const ROUTES = {
   
   // Analyst routes
   ANALYST_DASHBOARD: '/dashboard/analyst',
+  ANALYST_PROFILE: '/analyst/profile',
+  ANALYST_API_KEYS_SETTINGS: '/analyst/settings/api-keys',
   ANALYST_SUBSCRIPTIONS: '/analyst/subscriptions',
   ANALYST_CREATE_SUBSCRIPTION: '/analyst/subscriptions/create',
   COMPETITORS: '/competitors',

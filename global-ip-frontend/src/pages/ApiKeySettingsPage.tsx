@@ -3,10 +3,10 @@
  * Page for managing API keys with subscription awareness
  */
 
-import { useEffect, useState } from 'react';
-import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { useEffect, useState, useContext } from 'react';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { AnalystSidebar } from '../components/dashboard/AnalystSidebar';
+import { AnalystLayoutContext } from '../components/dashboard/AnalystLayout';
 import { Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -39,6 +39,7 @@ export function ApiKeySettingsPage() {
   const userRole = getRole()?.toUpperCase();
   const allRoles = user?.roles?.map(r => typeof r === 'string' ? r.toUpperCase() : r?.roleType?.toUpperCase()).filter(Boolean) || [];
   const isAnalyst = userRole === ROLES.ANALYST || allRoles.includes(ROLES.ANALYST);
+  const isInAnalystLayout = useContext(AnalystLayoutContext);
   
   // Debug logging
   console.log('ApiKeySettingsPage - Role Check:', { userRole, allRoles, isAnalyst, ROLES_ANALYST: ROLES.ANALYST });
@@ -98,10 +99,8 @@ export function ApiKeySettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      <DashboardHeader userName={user?.username || 'User'} />
-
       <div className="flex">
-        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
+        {!isInAnalystLayout && (isAnalyst ? <AnalystSidebar /> : <Sidebar />)}
 
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">

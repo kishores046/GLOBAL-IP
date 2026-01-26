@@ -7,6 +7,7 @@ import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferences;
 import com.teamb.globalipbackend1.model.tracking.UserTrackingPreferencesId;
 import com.teamb.globalipbackend1.repository.subscription.MonitoringSubscriptionRepository;
 import com.teamb.globalipbackend1.repository.tracking.UserTrackingPreferencesRepository;
+import com.teamb.globalipbackend1.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class TrackingPreferencesService {
 
     private final UserTrackingPreferencesRepository repository;
     private final MonitoringSubscriptionRepository subscriptionRepository;
+    private final SecurityUtil securityUtil;
 
     /**
      * Save or update tracking preferences for a patent
@@ -123,4 +125,11 @@ public class TrackingPreferencesService {
                 entity.getEnableEmailNotifications()
         );
     }
+
+    public long getTotalTrackedPatents() {
+        String userId= securityUtil.getUserId();;
+        log.info("Fetching total tracked patents for user={}", userId);
+        return repository.countByIdUserId(userId);
+    }
+
 }

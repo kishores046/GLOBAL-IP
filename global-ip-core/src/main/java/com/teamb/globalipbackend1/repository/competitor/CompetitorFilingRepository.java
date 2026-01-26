@@ -138,7 +138,9 @@ public interface CompetitorFilingRepository extends JpaRepository<@NonNull Compe
     );
 
 
-
-    @Query("SELECT COUNT(cf) FROM CompetitorFiling cf")
-    long getTotalCompetitorTrackingCount();
+    @Query("""
+    SELECT COUNT(DISTINCT cf.competitorId)
+    FROM CompetitorFiling cf
+""")
+    long getTotalTrackedCompetitors();
 }

@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
+import { AnalystLayoutContext } from "../components/dashboard/AnalystLayout";
 import { Camera, Mail, Phone, MapPin, Briefcase, Edit2, Save, X, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +14,7 @@ export function ProfilePage() {
   const { user: authUser, getRole } = useAuth();
   const userRole = getRole()?.toUpperCase();
   const isAnalyst = userRole === ROLES.ANALYST;
+  const isInAnalystLayout = useContext(AnalystLayoutContext);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const hasLoadedRef = useRef(false);
@@ -194,9 +195,8 @@ export function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-        <DashboardHeader userName="User" />
         <div className="flex">
-          {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
+          {!isInAnalystLayout && (isAnalyst ? <AnalystSidebar /> : <Sidebar />)}
           <main className="flex-1 p-8 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
@@ -210,10 +210,8 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      <DashboardHeader userName={profileData.username || "User"} />
-      
       <div className="flex">
-        {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
+        {!isInAnalystLayout && (isAnalyst ? <AnalystSidebar /> : <Sidebar />)}
         
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-y-auto">

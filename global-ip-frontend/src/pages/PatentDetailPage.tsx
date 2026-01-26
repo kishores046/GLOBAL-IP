@@ -47,10 +47,19 @@ export function PatentDetailPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const { isActive, checkLimit, getLimitDisplay, tierLimits, usage, refreshSubscription } = useSubscription();
+  // LocalStorage key to remember that the user selected a subscription option
+  // for legal-status tracking so we don't repeatedly show the modal.
+  const LEGAL_STATUS_SUB_CHOICE_KEY = 'legalStatusSubscriptionChosen';
 
   const handleSubscriptionSuccess = async () => {
     // Refresh subscription state after user creates/upgrades subscription
     await refreshSubscription();
+    // Remember that user chose a subscription option for legal-status tracking
+    try {
+      localStorage.setItem(LEGAL_STATUS_SUB_CHOICE_KEY, 'true');
+    } catch (e) {
+      // Ignore localStorage failures (e.g., private mode)
+    }
     // Try to enable tracking again
     if (patent) {
       try {
@@ -166,6 +175,47 @@ export function PatentDetailPage() {
 
     // Check subscription by calling the API directly
     if (!isTracking) {
+      // If the user previously selected a subscription option specifically
+      // for legal-status tracking, avoid showing the modal again and try
+      // to enable tracking directly. If enabling fails with a subscription
+      // error, fall back to showing the modal.
+      const alreadyHandled = (() => {
+        try {
+          return localStorage.getItem(LEGAL_STATUS_SUB_CHOICE_KEY) === 'true';
+        } catch (e) {
+          return false;
+        }
+      })();
+
+      if (alreadyHandled) {
+        setTrackingLoading(true);
+        try {
+          await trackingApi.savePreferences({
+            patentId: patent.publicationNumber,
+            trackLifecycleEvents: true,
+            trackStatusChanges: true,
+            trackRenewalsExpiry: true,
+            enableDashboardAlerts: true,
+            enableEmailNotifications: false
+          });
+
+          setIsTracking(true);
+          navigate(`/patents/${patent.publicationNumber}/track`);
+          return;
+        } catch (err: any) {
+          console.error('Error enabling tracking (post-choice):', err);
+          if (err.isSubscriptionError || err.response?.status === 403) {
+            setShowUpgradeModal(true);
+            return;
+          }
+          const errorMessage = err.response?.data?.message || err.message || 'Failed to enable tracking';
+          toast.error(`Failed to enable tracking: ${errorMessage}`);
+          return;
+        } finally {
+          setTrackingLoading(false);
+        }
+      }
+
       try {
         const subscription = await subscriptionApi.getActiveSubscription();
         

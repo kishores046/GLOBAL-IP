@@ -123,7 +123,7 @@ export const TrendDashboard: React.FC = () => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold text-slate-900">📊 Trend Analysis Dashboard</h1>
-              <p className="text-slate-600 mt-2 text-base">
+              <p className="text-slate-700 mt-2 text-base font-medium dark:text-slate-200">
                 Explore comprehensive trend insights. Click any card to dive into detailed analysis with interactive visualizations.
               </p>
             </div>
@@ -257,7 +257,7 @@ export const TrendDashboard: React.FC = () => {
               <RefreshCw className="h-12 w-12 mx-auto" />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">📈 No Trend Selected</h3>
-            <p className="text-slate-600">
+            <p className="text-slate-700 font-medium dark:text-slate-200">
               Click on any card above to explore detailed trend analysis with interactive charts.
             </p>
           </Card>

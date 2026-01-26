@@ -36,4 +36,6 @@ public interface UserTrackingPreferencesRepository extends JpaRepository<@NonNul
      * Delete tracking preferences for a user and patent
      */
     void deleteByIdUserIdAndIdPatentId(String userId, String patentId);
+
+    long countByIdUserId(String userId);
 }

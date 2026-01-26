@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { PrivateRoute } from '../components/PrivateRoute';
 import { RoleRoute } from '../components/RoleRoute';
 import { ROUTES, ROLES } from './routeConfig';
+import AnalystLayout from '../components/dashboard/AnalystLayout';
 
 // Lazy load pages for better performance
 // Public Pages
@@ -131,75 +132,33 @@ export function AppRoutes() {
           element={<RoleRoute roles={[ROLES.ADMIN]} element={<AdminSettingsPage />} />} 
         />
 
-        {/* ==================== ANALYST ROUTES (ANALYST + ADMIN) ==================== */}
-        <Route 
-          path={ROUTES.ANALYST_DASHBOARD} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AnalystDashboard />} />} 
-        />
+        {/* ==================== ANALYST ROUTES (ANALYST + ADMIN) - single layout wrapper ==================== */}
+        <Route element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AnalystLayout />} />}>
+          <Route path={ROUTES.ANALYST_DASHBOARD} element={<AnalystDashboard />} />
 
-        {/* Competitor Tracking Routes */}
-        <Route 
-          path={ROUTES.COMPETITORS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_ANALYTICS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorAnalyticsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_DETAIL} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorDetailPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_FILINGS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorFilingsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.COMPETITOR_SYNC} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<CompetitorSyncPage />} />} 
-        />
+          {/* Competitor Tracking Routes */}
+          <Route path={ROUTES.COMPETITORS} element={<CompetitorsPage />} />
+          <Route path={ROUTES.COMPETITOR_ANALYTICS} element={<CompetitorAnalyticsPage />} />
+          <Route path={ROUTES.COMPETITOR_DETAIL} element={<CompetitorDetailPage />} />
+          <Route path={ROUTES.COMPETITOR_FILINGS} element={<CompetitorFilingsPage />} />
+          <Route path={ROUTES.COMPETITOR_SYNC} element={<CompetitorSyncPage />} />
 
-        <Route 
-          path={ROUTES.ADVANCED_SEARCH} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AdvancedSearchPage />} />} 
-        />
-        {/* Visualization Engine - Available to all authenticated users for citation graphs */}
-        <Route 
-          path={ROUTES.VISUALIZATION_ENGINE} 
-          element={<PrivateRoute><VisualizationEnginePage /></PrivateRoute>} 
-        />
-        <Route 
-          path={ROUTES.EXPORT_TOOLS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<ExportToolsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.PATENT_TRENDS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<PatentTrendAnalysisPage />} />} 
-        />
-        <Route 
-          path={ROUTES.TRADEMARK_TRENDS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrademarkTrendAnalysisPage />} />} 
-        />
-        <Route 
-          path={ROUTES.PATENT_LIFECYCLE} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<PatentLifecyclePage />} />} 
-        />
-        <Route 
-          path={ROUTES.TRADEMARK_LIFECYCLE} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrademarkLifecyclePage />} />} 
-        />
-        <Route 
-          path={ROUTES.TRACKED_PATENTS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<TrackedPatentsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.ANALYST_ALERTS} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<AlertsPage />} />} 
-        />
-        <Route 
-          path={ROUTES.MONITORING} 
-          element={<RoleRoute roles={[ROLES.ANALYST, ROLES.ADMIN]} element={<MonitoringPage />} />} 
-        />
+          <Route path={ROUTES.ADVANCED_SEARCH} element={<AdvancedSearchPage />} />
+          <Route path={ROUTES.VISUALIZATION_ENGINE} element={<VisualizationEnginePage />} />
+          <Route path={ROUTES.EXPORT_TOOLS} element={<ExportToolsPage />} />
+          <Route path={ROUTES.ANALYST_PROFILE} element={<ProfilePage />} />
+          <Route path={ROUTES.ANALYST_API_KEYS_SETTINGS} element={<ApiKeySettingsPage />} />
+          <Route path={ROUTES.PATENT_TRENDS} element={<PatentTrendAnalysisPage />} />
+          <Route path={ROUTES.TRADEMARK_TRENDS} element={<TrademarkTrendAnalysisPage />} />
+          <Route path={ROUTES.PATENT_LIFECYCLE} element={<PatentLifecyclePage />} />
+          <Route path={ROUTES.TRADEMARK_LIFECYCLE} element={<TrademarkLifecyclePage />} />
+          <Route path={ROUTES.TRACKED_PATENTS} element={<TrackedPatentsPage />} />
+          <Route path={ROUTES.ANALYST_ALERTS} element={<AlertsPage />} />
+          <Route path={ROUTES.MONITORING} element={<MonitoringPage />} />
+
+          <Route path={ROUTES.ANALYST_SUBSCRIPTIONS} element={<AnalystSubscriptionsPage />} />
+          <Route path={ROUTES.ANALYST_CREATE_SUBSCRIPTION} element={<CreateSubscriptionPage />} />
+        </Route>
 
         {/* ==================== USER ROUTES (ALL authenticated users) ==================== */}
         <Route 

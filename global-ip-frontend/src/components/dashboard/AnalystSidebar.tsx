@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, LineChart, BarChart3, Network, Eye, LogOut, FileText, AlertTriangle, Key, Plus, User, Radio } from "lucide-react";
+import { LayoutDashboard, Search, LineChart, BarChart3, Network, Eye, LogOut, FileText, AlertTriangle, Key, Plus, User, Radio, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +22,8 @@ export function AnalystSidebar() {
     if (location.pathname === ROUTES.PATENT_LIFECYCLE) return "analytics-patent-lifecycle";
     if (location.pathname === ROUTES.TRADEMARK_LIFECYCLE) return "analytics-trademark-lifecycle";
     if (location.pathname === ROUTES.COMPETITOR_ANALYTICS) return "competitor-analytics";
+    // If path includes /competitors (but isn't the analytics sub-route) treat as competitor management
+    if (location.pathname.startsWith('/competitors') && location.pathname !== ROUTES.COMPETITOR_ANALYTICS) return "competitor-management";
     if (location.pathname === ROUTES.VISUALIZATION_ENGINE) return "visualization";
     if (location.pathname === ROUTES.TRACKED_PATENTS) return "tracked-patents";
     if (location.pathname === ROUTES.API_KEYS_SETTINGS) return "api-keys";
@@ -84,6 +86,9 @@ export function AnalystSidebar() {
       case "competitor-analytics":
         navigate(ROUTES.COMPETITOR_ANALYTICS);
         break;
+      case "competitor-management":
+        navigate(ROUTES.COMPETITORS);
+        break;
       case "visualization":
         navigate(ROUTES.VISUALIZATION_ENGINE);
         break;
@@ -97,10 +102,10 @@ export function AnalystSidebar() {
         navigate(ROUTES.ANALYST_CREATE_SUBSCRIPTION);
         break;
       case "api-keys":
-        navigate(ROUTES.API_KEYS_SETTINGS);
+        navigate(ROUTES.ANALYST_API_KEYS_SETTINGS);
         break;
       case "profile":
-        navigate(ROUTES.PROFILE);
+        navigate(ROUTES.ANALYST_PROFILE);
         break;
       default:
         break;
@@ -131,6 +136,7 @@ export function AnalystSidebar() {
       ]
     },
     { id: "competitor-analytics", label: "Competitor Analytics", icon: Network },
+    { id: "competitor-management", label: "Competitor Management", icon: Users },
     { id: "visualization", label: "Visualization Engine", icon: Eye },
     { id: "tracked-patents", label: "Tracked Patents", icon: Plus },
     { id: "subscriptions", label: "My Subscriptions", icon: Radio },
@@ -157,7 +163,7 @@ export function AnalystSidebar() {
           color: #ffffff;
         }
       `}</style>
-      <aside className="analyst-sidebar-dark w-72 h-screen flex flex-col overflow-hidden" style={{ backgroundColor: '#1e3a8a', color: '#dbeafe' }}>
+      <aside className="user-sidebar-dark w-64 h-screen flex flex-col overflow-hidden shadow-sm" style={{ backgroundColor: '#1e3a8a', color: '#dbeafe' }}>
       {/* Logo Section */}
       <div className="p-6 border-b" style={{ backgroundColor: '#1e3a8a', borderColor: '#1e40af' }}>
         <div className="flex items-center gap-3">
@@ -186,7 +192,7 @@ export function AnalystSidebar() {
               <div key={item.id} className="space-y-1">
                 <button
                   onClick={() => toggleMenuExpand(item.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-left"
+                  className="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-all text-left group"
                   style={{
                     backgroundColor: hasActiveSubmenu ? '#0c2340' : 'transparent',
                     color: hasActiveSubmenu ? '#ffffff' : '#bfdbfe'
@@ -198,19 +204,19 @@ export function AnalystSidebar() {
                   </div>
                   <span className={`text-xs transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
                 </button>
-                
+
                 {/* Submenu Items */}
                 {isExpanded && (
                   <div className="ml-4 space-y-1 pl-2" style={{ borderLeft: '2px solid #1e40af' }}>
                     {item.submenu?.map((subItem) => {
                       const SubIcon = subItem.icon;
                       const isSubActive = activeItem === subItem.id;
-                      
+
                       return (
                         <button
                           key={subItem.id}
                           onClick={() => handleNavigation(subItem.id)}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left"
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left group"
                           style={{
                             backgroundColor: isSubActive ? '#0c2340' : 'transparent',
                             color: isSubActive ? '#ffffff' : '#bfdbfe'
@@ -232,13 +238,13 @@ export function AnalystSidebar() {
             <button
               key={item.id}
               onClick={() => handleNavigation(item.id)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left group"
               style={{
                 backgroundColor: isActive ? '#0c2340' : 'transparent',
                 color: isActive ? '#ffffff' : '#bfdbfe'
               }}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className={`w-5 h-5 transition-transform ${isActive ? '' : 'group-hover:scale-110'}`} />
               <span className="text-sm font-semibold">{item.label}</span>
             </button>
           );

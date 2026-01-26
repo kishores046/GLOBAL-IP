@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Bell, Lock, Clock, Zap, FileText, Users, AlertTriangle, AlertCircle, CheckCircle } from "lucide-react";
 import { Sidebar } from "../components/dashboard/Sidebar";
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
+import { AnalystLayoutContext } from "../components/dashboard/AnalystLayout";
 import { motion } from "motion/react";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useWebSocket } from "../hooks/useWebSocket";
@@ -177,7 +177,7 @@ export function AlertsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
         <div className="flex">
-          <Sidebar />
+          {!useContext(AnalystLayoutContext) && <Sidebar />}
           <main className="flex-1 overflow-auto">
             <div className="p-8">
               <div className="max-w-2xl mx-auto mt-16">
@@ -254,7 +254,7 @@ export function AlertsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <div className="flex">
-        <Sidebar />
+        {!useContext(AnalystLayoutContext) && <Sidebar />}
         
         <main className="flex-1 overflow-auto">
           <div className="p-8">

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { monitoringApi, MonitoringAsset } from '../services/monitoringApi';
 import { Loader2, AlertCircle, Trash2, Plus, CheckCircle, Radio, Crown } from 'lucide-react';
+import { AnalystLayoutContext } from '../components/dashboard/AnalystLayout';
 
 export function MonitoringPage() {
   const [monitoringList, setMonitoringList] = useState<MonitoringAsset[]>([]);
@@ -208,13 +209,12 @@ export function MonitoringPage() {
     );
   };
 
-  return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className="flex-1">
-        <DashboardHeader userName="Analyst" />
-        
-        <main className="p-8">
+  const inAnalystLayout = useContext(AnalystLayoutContext);
+
+  const inner = (
+    <>
+      <DashboardHeader userName="Analyst" />
+      <main className="p-8">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
@@ -289,7 +289,24 @@ export function MonitoringPage() {
 
             {renderContent()}
           </div>
-        </main>
+      </main>
+    </>
+  );
+
+  if (inAnalystLayout) {
+    return (
+      <div className="flex-1">
+        {inner}
+        {/* Toast Notification */}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-slate-50">
+      <Sidebar />
+      <div className="flex-1">
+        {inner}
       </div>
 
       {/* Toast Notification */}

@@ -199,6 +199,19 @@ public class UnifiedPatentTrackingController {
         ));
     }
 
+    @Operation(
+            summary = "Get total tracked patents count",
+            description = "Returns the total number of patents currently tracked by the logged-in user.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Total tracking count returned")
+            }
+    )
+    @GetMapping("/total")
+    public ResponseEntity<Long> getTotalTrackedPatents() {
+        long total = trackingPreferencesService.getTotalTrackedPatents();
+        return ResponseEntity.ok(total);
+    }
+
 
     /**
      * DTO for patent source info

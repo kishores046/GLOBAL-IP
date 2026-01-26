@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../routes/routeConfig";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { bookmarkAPI, patentDetailAPI, trademarkDetailAPI, BookmarkedPatent, BookmarkedTrademark, dashboardAPI } from "../services/api";
+import { trackingApi } from "../services/trackingAPI";
 
 export function UserDashboard() {
   const navigate = useNavigate();
@@ -21,11 +22,14 @@ export function UserDashboard() {
   const [loadingBookmarks, setLoadingBookmarks] = useState(true);
   const [searchCount, setSearchCount] = useState<number>(0);
   const [loadingSearchCount, setLoadingSearchCount] = useState(true);
+  const [trackedTotal, setTrackedTotal] = useState<number | null>(null);
+  const [loadingTrackedTotal, setLoadingTrackedTotal] = useState<boolean>(true);
   
   // Load bookmarked patents and trademarks
   useEffect(() => {
     loadBookmarks();
     loadSearchCount();
+    loadTrackedTotal();
   }, []);
   
   const loadSearchCount = async () => {
@@ -36,6 +40,18 @@ export function UserDashboard() {
       console.error("Error loading search count:", error);
     } finally {
       setLoadingSearchCount(false);
+    }
+  };
+
+  const loadTrackedTotal = async () => {
+    try {
+      const total = await trackingApi.getTotalTrackedPatents();
+      setTrackedTotal(total ?? 0);
+    } catch (error) {
+      console.error("Error loading tracked total:", error);
+      setTrackedTotal(0);
+    } finally {
+      setLoadingTrackedTotal(false);
     }
   };
   
@@ -248,8 +264,8 @@ export function UserDashboard() {
                 delay={0}
               />
               <StatCard
-                title="Tracked Trademarks"
-                value="0"
+                title="Tracked Patents"
+                value={loadingTrackedTotal ? "..." : String(trackedTotal ?? 0)}
                 icon={Award}
                 gradient="from-blue-500 to-blue-600"
                 delay={100}

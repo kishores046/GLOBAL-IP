@@ -63,12 +63,7 @@ export function Sidebar() {
   
   const [activeItem, setActiveItem] = useState(getActiveItem());
 
-  // Store the current dashboard path when on a dashboard page
-  useEffect(() => {
-    if (location.pathname.includes("/dashboard/")) {
-      localStorage.setItem("lastDashboard", location.pathname);
-    }
-  }, [location.pathname]);
+  
 
   const handleLogout = async () => {
     try {

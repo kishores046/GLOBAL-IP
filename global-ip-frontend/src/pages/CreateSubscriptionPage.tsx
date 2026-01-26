@@ -3,11 +3,12 @@
  * Allows users to create new subscriptions
  */
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { AnalystSidebar } from '../components/dashboard/AnalystSidebar';
+import { AnalystLayoutContext } from '../components/dashboard/AnalystLayout';
 import { ArrowLeft, Plus, Zap, AlertCircle } from 'lucide-react';
 import subscriptionApi from '../services/subscriptionApi';
 import { ROLES, ROUTES } from '../routes/routeConfig';
@@ -135,13 +136,10 @@ export function CreateSubscriptionPage() {
 
   const selectedType = SUBSCRIPTION_TYPES.find((t) => t.id === formData.type);
   const selectedTier = TIER_OPTIONS.find((t) => t.id === formData.tier);
+  const inAnalystLayout = useContext(AnalystLayoutContext);
 
-  return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
-
-      <main className="flex-1 p-8 overflow-y-auto dark:bg-slate-900">
-        <div className="max-w-4xl mx-auto">
+  const inner = (
+    <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <button
@@ -384,8 +382,19 @@ export function CreateSubscriptionPage() {
               </button>
             </div>
           </form>
-        </div>
-      </main>
+    </div>
+  );
+
+  if (inAnalystLayout) {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-slate-900">{inner}</main>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {isAnalyst ? <AnalystSidebar /> : <Sidebar />}
+      <main className="flex-1 p-8 overflow-y-auto dark:bg-slate-900">{inner}</main>
     </div>
   );
 }
