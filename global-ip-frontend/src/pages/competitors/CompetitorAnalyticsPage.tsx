@@ -164,9 +164,9 @@ export function CompetitorAnalyticsPage() {
         <div className="max-w-2xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-destructive flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-foreground mb-1">Failed to Load Competitors</h3>
+                <h3 className="font-semibold text-red-900 mb-1">Failed to Load Competitors</h3>
                 <p className="text-red-800 text-sm mb-4">
                   {competitorsError instanceof Error ? competitorsError.message : 'Unknown error'}
                 </p>

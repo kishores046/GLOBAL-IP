@@ -342,10 +342,10 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 bg-card border-border rounded-lg">
+      <div className="flex items-center justify-center h-96 bg-card border-muted rounded-lg card-frost">
         <div className="text-center p-6">
-          <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-          <p className="text-secondary font-semibold">Loading trend data...</p>
+          <Loader2 className="w-8 h-8 text-[var(--color-primary)] animate-spin mx-auto mb-3" />
+          <p className="text-secondary">Loading trend data...</p>
         </div>
       </div>
     );
@@ -353,11 +353,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
 
   if (error) {
     return (
-      <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-semibold text-primary">Error Loading Trend</p>
-          <p className="text-sm text-secondary mt-1">{error.message}</p>
+          <p className="font-medium text-red-900">Error Loading Trend</p>
+          <p className="text-sm text-red-800 mt-1">{error.message}</p>
         </div>
       </div>
     );
@@ -366,10 +366,10 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   if (!transformedData || transformedData.length === 0) {
     console.warn(`[EnhancedTrendViewer] No data available for trend: ${trendId}`);
     return (
-      <div className="flex items-center justify-center h-96 bg-card border-border rounded-lg">
+      <div className="flex items-center justify-center h-96 bg-card border-muted rounded-lg card-frost">
         <div className="text-center p-6">
-          <AlertCircle className="w-8 h-8 text-warning mx-auto mb-2" />
-          <p className="text-primary font-semibold">No data available</p>
+          <AlertCircle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+          <p className="text-primary font-medium">No data available</p>
           <p className="text-secondary text-sm mt-1">No {trendId.replace(/-/g, ' ')} data available for selected range</p>
         </div>
       </div>
@@ -599,33 +599,33 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header Section */}
-      <div className="bg-primary rounded-lg p-8 shadow-lg border border-primary/50">
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg p-8 shadow-lg border border-yellow-400/40">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-3xl font-extrabold mb-2 tracking-tight text-primary">{metadata.title}</h1>
-            <p className="text-primary text-sm mb-4 font-semibold">{metadata.subtitle}</p>
-            <div className="flex items-start gap-2 bg-primary/20 dark:bg-primary/30 rounded-lg p-4 border border-primary/40 w-fit">
-              <div className="w-2 h-full bg-primary-foreground/60 rounded-full mt-0.5"></div>
+            <h1 className="text-3xl font-bold mb-2 tracking-tight text-yellow-300">{metadata.title}</h1>
+            <p className="text-yellow-200 text-sm mb-4 font-bold">{metadata.subtitle}</p>
+            <div className="flex items-start gap-2 bg-yellow-900/40 rounded-lg p-4 border border-yellow-400 w-fit">
+              <div className="w-2 h-full bg-yellow-400 rounded-full mt-0.5"></div>
               <div>
-                <p className="text-xs font-semibold text-primary uppercase tracking-wide">Key Insight</p>
-                <p className="text-sm text-primary mt-2 font-semibold">{metadata.insight}</p>
+                <p className="text-xs font-bold text-yellow-300 uppercase tracking-wide">Key Insight</p>
+                <p className="text-sm text-yellow-100 mt-2 font-bold">{metadata.insight}</p>
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-primary/80 font-semibold uppercase tracking-wide">Data Points</div>
-            <div className="text-3xl font-extrabold text-primary mt-1">{transformedData.length.toLocaleString()}</div>
+            <div className="text-sm text-yellow-400 font-bold uppercase tracking-wide">Data Points</div>
+            <div className="text-3xl font-bold text-yellow-300 mt-1">{transformedData.length.toLocaleString()}</div>
           </div>
         </div>
       </div>
 
       {/* Chart Container */}
-      <div className="bg-card border-border rounded-lg shadow-sm p-8">
+      <div className="bg-card border-muted rounded-lg shadow-sm p-8 card-frost">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-primary">Visualization</h2>
           <p className="text-sm text-secondary mt-1">Interactive chart showing trend patterns and relationships</p>
         </div>
-        <div className="w-full bg-popover rounded-lg p-6">
+        <div className="w-full bg-popover rounded-lg p-6 card-frost">
           {renderChart()}
         </div>
       </div>
@@ -647,8 +647,8 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
         }
 
         return (
-          <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-border bg-muted/50">
+          <div className="bg-card rounded-lg border border-muted shadow-sm overflow-hidden card-frost">
+            <div className="p-6 border-b border-muted bg-accent">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-primary">Data Preview</h2>
@@ -658,31 +658,31 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
                 </div>
                 <div className="text-right">
                   <div className="text-xs font-semibold text-secondary uppercase tracking-wide">Columns</div>
-                  <div className="text-2xl font-extrabold text-primary mt-1">{relevantColumns.length}</div>
+                  <div className="text-2xl font-bold text-primary mt-1">{relevantColumns.length}</div>
                 </div>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-muted/50 border-b border-border">
+                  <tr className="bg-accent border-b border-muted">
                     {relevantColumns.length > 0 ? (
                       relevantColumns.map((key) => (
                         <th
                           key={key}
-                          className="px-6 py-3 text-left font-semibold text-primary whitespace-nowrap text-xs uppercase tracking-wide"
+                          className="px-6 py-3 text-left font-semibold text-slate-700 whitespace-nowrap text-xs uppercase tracking-wide"
                         >
                           {key.replace(/([A-Z])/g, ' $1').trim()}
                         </th>
                       ))
                     ) : (
-                      <th className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wide">Data</th>
+                      <th className="px-6 py-3 text-left font-semibold text-slate-700 text-xs uppercase tracking-wide">Data</th>
                     )}
                   </tr>
                 </thead>
                 <tbody>
                   {transformedData.slice(0, 10).map((row: any, idx: number) => (
-                      <tr key={`row-${trendId}-${idx}`} className="border-b border-border hover:bg-muted/30 transition-colors">
+                      <tr key={`row-${trendId}-${idx}`} className="border-b border-muted hover:bg-[rgba(255,255,255,0.02)] transition-colors">
                       {relevantColumns.length > 0 ? (
                         relevantColumns.map((key) => {
                           const value = row[key];
@@ -708,13 +708,13 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
                           }
                           
                           return (
-                            <td key={`cell-${key}-${idx}`} className="px-6 py-4 text-foreground font-medium font-mono text-sm">
+                            <td key={`cell-${key}-${idx}`} className="px-6 py-4 text-primary font-medium font-mono text-sm">
                               {displayValue}
                             </td>
                           );
                         })
                       ) : (
-                        <td className="px-6 py-4 text-muted-foreground font-mono text-sm">
+                        <td className="px-6 py-4 text-secondary font-mono text-sm">
                           {JSON.stringify(row).substring(0, 100)}...
                         </td>
                       )}
@@ -728,19 +728,19 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       })()}
 
       {/* Footer with Trust Signals */}
-      <div className="bg-muted/30 border border-border rounded-lg p-6">
+      <div className="bg-accent border border-muted rounded-lg p-6 card-frost">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold text-foreground text-sm mb-2">Data Source</h4>
-            <p className="text-xs text-muted-foreground">USPTO, EPO, PatentsView, WIPO</p>
+            <h4 className="font-semibold text-primary text-sm mb-2">Data Source</h4>
+            <p className="text-xs text-secondary">USPTO, EPO, PatentsView, WIPO</p>
           </div>
           <div>
-            <h4 className="font-semibold text-foreground text-sm mb-2">Generated</h4>
-            <p className="text-xs text-muted-foreground">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+            <h4 className="font-semibold text-primary text-sm mb-2">Generated</h4>
+            <p className="text-xs text-secondary">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
           </div>
           <div>
-            <h4 className="font-semibold text-foreground text-sm mb-2">Records</h4>
-            <p className="text-xs text-muted-foreground">{transformedData.length.toLocaleString()} total data points</p>
+            <h4 className="font-semibold text-primary text-sm mb-2">Records</h4>
+            <p className="text-xs text-secondary">{transformedData.length.toLocaleString()} total data points</p>
           </div>
         </div>
       </div>
@@ -749,14 +749,14 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       <div className="flex gap-3 justify-end">
         <button
           onClick={handleExportChart}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors font-semibold text-sm border border-border"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-[rgba(255,255,255,0.04)] text-secondary rounded-lg transition-colors font-semibold text-sm border border-muted"
         >
           <Download className="w-4 h-4" />
           Export CSV
         </button>
         <button
           onClick={handleDownloadChart}
-          className="inline-flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-semibold text-sm shadow-sm"
+          className="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-semibold text-sm shadow-sm"
         >
           <Download className="w-4 h-4" />
           Download Chart

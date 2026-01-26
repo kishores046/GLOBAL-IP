@@ -25,10 +25,9 @@ export const TrademarkCardView: React.FC<TrademarkCardViewProps> = ({
   return (
     <Card
       onClick={onClick}
-      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105
-        ${isActive ? 'ring-2 ring-blue-500 bg-slate-900 dark:bg-slate-900 dark:ring-blue-400' : ''}
-        ${hasError ? 'ring-2 ring-red-500 bg-slate-900 dark:bg-slate-900 dark:ring-red-400' : ''}
-      `}
+      className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+        isActive ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900 dark:ring-blue-400' : ''
+      } ${hasError ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-900 dark:ring-red-400' : ''}`}
     >
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -37,14 +36,14 @@ export const TrademarkCardView: React.FC<TrademarkCardViewProps> = ({
           {hasError && <span className="text-red-500 text-lg">⚠️</span>}
         </div>
 
-        <h3 className="font-bold text-lg text-primary dark:text-slate-100 mb-2">{card.title}</h3>
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-400">{card.description}</p>
+        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{card.title}</h3>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{card.description}</p>
 
         {isLoading && (
-          <div className="mt-4 text-xs text-blue-500 dark:text-blue-400 font-medium">Loading...</div>
+          <div className="mt-4 text-xs text-blue-600 font-medium">Loading...</div>
         )}
         {hasError && (
-          <div className="mt-4 text-xs text-red-500 dark:text-red-400 font-medium">Error loading data</div>
+          <div className="mt-4 text-xs text-red-600 font-medium">Error loading data</div>
         )}
       </div>
     </Card>
