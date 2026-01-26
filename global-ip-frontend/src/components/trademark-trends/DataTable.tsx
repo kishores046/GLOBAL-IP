@@ -110,10 +110,10 @@ export const DataTable: React.FC<DataTableProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
-            ))}
-          </div>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-8 bg-accent rounded animate-pulse" />
+              ))}
+            </div>
         </CardContent>
       </Card>
     );
@@ -180,12 +180,12 @@ export const DataTable: React.FC<DataTableProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
+              <tr className="border-b border-muted bg-accent">
                 {columns.map((col) => (
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
-                    className="px-4 py-3 text-left font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="px-4 py-3 text-left font-semibold text-secondary cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       {col.label}
@@ -201,9 +201,9 @@ export const DataTable: React.FC<DataTableProps> = ({
             </thead>
             <tbody>
               {sortedData.map((row) => (
-                <tr key={`${row[sortKey]}-${JSON.stringify(row)}`} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                <tr key={`${row[sortKey]}-${JSON.stringify(row)}`} className="border-b border-muted hover:bg-[rgba(255,255,255,0.02)] transition-colors">
                   {columns.map((col) => (
-                    <td key={col.key} className="px-4 py-3 text-gray-700">
+                    <td key={col.key} className="px-4 py-3 text-primary">
                       {col.format ? col.format(row[col.key]) : row[col.key]}
                     </td>
                   ))}
@@ -213,7 +213,7 @@ export const DataTable: React.FC<DataTableProps> = ({
           </table>
         </div>
 
-        <div className="mt-4 text-xs text-gray-500">
+        <div className="mt-4 text-xs text-secondary">
           Showing {sortedData.length} items
         </div>
       </CardContent>
@@ -375,11 +375,11 @@ export const StatusDistributionTable: React.FC<StatusDistributionTableProps> = (
       <div className="mb-4 flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex items-center gap-2">
           <label htmlFor="status-top-select" className="text-sm font-medium">Top</label>
-          <select
+            <select
             id="status-top-select"
             value={topN}
             onChange={(e) => setTopN(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value, 10) || 'ALL')}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+            className="px-3 py-2 bg-card border-muted rounded-lg text-sm text-primary"
           >
             <option value="ALL">All</option>
             <option value={5}>Top 5</option>
@@ -394,7 +394,7 @@ export const StatusDistributionTable: React.FC<StatusDistributionTableProps> = (
             placeholder="Filter status labels..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+            className="w-full px-3 py-2 bg-card border-muted rounded-lg text-sm text-primary"
           />
         </div>
 
