@@ -342,10 +342,10 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 bg-card border-muted rounded-lg card-frost">
-        <div className="text-center p-6">
-          <Loader2 className="w-8 h-8 text-[var(--color-primary)] animate-spin mx-auto mb-3" />
-          <p className="text-secondary">Loading trend data...</p>
+      <div className="flex items-center justify-center h-96 bg-white rounded-lg border border-slate-200">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
+          <p className="text-slate-600">Loading trend data...</p>
         </div>
       </div>
     );
@@ -366,11 +366,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   if (!transformedData || transformedData.length === 0) {
     console.warn(`[EnhancedTrendViewer] No data available for trend: ${trendId}`);
     return (
-      <div className="flex items-center justify-center h-96 bg-card border-muted rounded-lg card-frost">
-        <div className="text-center p-6">
-          <AlertCircle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-          <p className="text-primary font-medium">No data available</p>
-          <p className="text-secondary text-sm mt-1">No {trendId.replace(/-/g, ' ')} data available for selected range</p>
+      <div className="flex items-center justify-center h-96 bg-white rounded-lg border border-slate-200">
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+          <p className="text-slate-700 font-medium">No data available</p>
+          <p className="text-slate-500 text-sm mt-1">No {trendId.replace(/-/g, ' ')} data available for selected range</p>
         </div>
       </div>
     );
@@ -620,12 +620,12 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       </div>
 
       {/* Chart Container */}
-      <div className="bg-card border-muted rounded-lg shadow-sm p-8 card-frost">
+      <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm p-8">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-primary">Visualization</h2>
-          <p className="text-sm text-secondary mt-1">Interactive chart showing trend patterns and relationships</p>
+          <h2 className="text-lg font-semibold text-slate-900">Visualization</h2>
+          <p className="text-sm text-slate-500 mt-1">Interactive chart showing trend patterns and relationships</p>
         </div>
-        <div className="w-full bg-popover rounded-lg p-6 card-frost">
+        <div className="w-full bg-slate-50/50 rounded-lg p-6">
           {renderChart()}
         </div>
       </div>
@@ -647,25 +647,25 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
         }
 
         return (
-          <div className="bg-card rounded-lg border border-muted shadow-sm overflow-hidden card-frost">
-            <div className="p-6 border-b border-muted bg-accent">
+          <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-primary">Data Preview</h2>
-                  <p className="text-sm text-secondary mt-1">
+                  <h2 className="text-lg font-semibold text-slate-900">Data Preview</h2>
+                  <p className="text-sm text-slate-600 mt-1">
                     Sample of {Math.min(10, transformedData.length)} rows from {transformedData.length.toLocaleString()} total
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-semibold text-secondary uppercase tracking-wide">Columns</div>
-                  <div className="text-2xl font-bold text-primary mt-1">{relevantColumns.length}</div>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Columns</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-1">{relevantColumns.length}</div>
                 </div>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-accent border-b border-muted">
+                  <tr className="bg-slate-100 border-b border-slate-200/80">
                     {relevantColumns.length > 0 ? (
                       relevantColumns.map((key) => (
                         <th
@@ -682,7 +682,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
                 </thead>
                 <tbody>
                   {transformedData.slice(0, 10).map((row: any, idx: number) => (
-                      <tr key={`row-${trendId}-${idx}`} className="border-b border-muted hover:bg-[rgba(255,255,255,0.02)] transition-colors">
+                    <tr key={`row-${trendId}-${idx}`} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                       {relevantColumns.length > 0 ? (
                         relevantColumns.map((key) => {
                           const value = row[key];
@@ -708,13 +708,13 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
                           }
                           
                           return (
-                            <td key={`cell-${key}-${idx}`} className="px-6 py-4 text-primary font-medium font-mono text-sm">
+                            <td key={`cell-${key}-${idx}`} className="px-6 py-4 text-slate-700 font-medium font-mono text-sm">
                               {displayValue}
                             </td>
                           );
                         })
                       ) : (
-                        <td className="px-6 py-4 text-secondary font-mono text-sm">
+                        <td className="px-6 py-4 text-slate-600 font-mono text-sm">
                           {JSON.stringify(row).substring(0, 100)}...
                         </td>
                       )}
@@ -728,19 +728,19 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       })()}
 
       {/* Footer with Trust Signals */}
-      <div className="bg-accent border border-muted rounded-lg p-6 card-frost">
+      <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold text-primary text-sm mb-2">Data Source</h4>
-            <p className="text-xs text-secondary">USPTO, EPO, PatentsView, WIPO</p>
+            <h4 className="font-semibold text-slate-900 text-sm mb-2">Data Source</h4>
+            <p className="text-xs text-slate-600">USPTO, EPO, PatentsView, WIPO</p>
           </div>
           <div>
-            <h4 className="font-semibold text-primary text-sm mb-2">Generated</h4>
-            <p className="text-xs text-secondary">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+            <h4 className="font-semibold text-slate-900 text-sm mb-2">Generated</h4>
+            <p className="text-xs text-slate-600">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
           </div>
           <div>
-            <h4 className="font-semibold text-primary text-sm mb-2">Records</h4>
-            <p className="text-xs text-secondary">{transformedData.length.toLocaleString()} total data points</p>
+            <h4 className="font-semibold text-slate-900 text-sm mb-2">Records</h4>
+            <p className="text-xs text-slate-600">{transformedData.length.toLocaleString()} total data points</p>
           </div>
         </div>
       </div>
@@ -749,7 +749,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       <div className="flex gap-3 justify-end">
         <button
           onClick={handleExportChart}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-[rgba(255,255,255,0.04)] text-secondary rounded-lg transition-colors font-semibold text-sm border border-muted"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-semibold text-sm border border-slate-200/50"
         >
           <Download className="w-4 h-4" />
           Export CSV

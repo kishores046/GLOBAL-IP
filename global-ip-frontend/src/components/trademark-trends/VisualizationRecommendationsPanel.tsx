@@ -135,14 +135,14 @@ export const VisualizationRecommendationsPanel: React.FC<VisualizationRecommenda
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h4 className="font-semibold text-sm text-gray-900">{rec.title}</h4>
-                    <span className="text-xs font-medium bg-accent px-2 py-1 rounded whitespace-nowrap text-secondary">
+                    <span className="text-xs font-medium bg-white bg-opacity-70 px-2 py-1 rounded whitespace-nowrap">
                       {getChartTypeLabel(rec.type)}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2 leading-relaxed">
                     {rec.description}
                   </p>
-                  <div className="text-xs text-secondary bg-accent px-2 py-1 rounded inline-block">
+                  <div className="text-xs text-gray-600 bg-white bg-opacity-50 px-2 py-1 rounded inline-block">
                     Data source: {getDataSourceDescription(rec.dataSource)}
                   </div>
                 </div>

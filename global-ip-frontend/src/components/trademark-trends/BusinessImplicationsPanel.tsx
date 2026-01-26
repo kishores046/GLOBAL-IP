@@ -110,7 +110,7 @@ export const BusinessImplicationsPanel: React.FC<BusinessImplicationsPanelProps>
               </p>
 
               {implication.recommendation && (
-                <div className="bg-accent p-3 rounded border border-muted card-frost">
+                <div className="bg-white bg-opacity-50 p-3 rounded border border-gray-200">
                   <p className="text-xs font-semibold text-gray-600 mb-1">Recommendation:</p>
                   <p className="text-sm text-gray-700">{implication.recommendation}</p>
                 </div>
