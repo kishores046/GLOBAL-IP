@@ -24,7 +24,7 @@ integrated inside a single monorepo.
 
 -**Security-first** role management (no role escalation at registration)
 -**Backend-driven** authorization (RBAC enforced server-side)
--**API normalization** for future IP data sources (USPTO, EPO, PatentsView)
+-**API normalization** for IP data sources (USPTO, EPO, PatentsView)
 -**Clean separation** of concerns between authentication, authorization, and business logic
 -**Clear separation** of auth, business logic, analytics, and tracking
 -**Cache-heavy, compute-light** architecture for analytics
