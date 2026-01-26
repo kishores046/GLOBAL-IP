@@ -116,23 +116,23 @@ export const TrendDashboard: React.FC = () => {
   const activeTrendCard = TREND_CARDS.find((card) => card.id === activeTrend?.trendId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 p-6 md:p-8">
+    <div className="min-h-screen bg-page p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-                  <div className="flex items-start justify-between mb-6">
+          <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">📊 Trend Analysis Dashboard</h1>
-              <p className="text-slate-700 mt-2 text-base font-medium dark:text-slate-200">
-                Explore comprehensive trend insights. Click any card to dive into detailed analysis with interactive visualizations.
+              <h1 className="text-4xl font-extrabold text-primary">Trend Analysis Dashboard</h1>
+              <p className="text-secondary mt-2 font-semibold">
+                Click any card to explore detailed trend analysis. Data loads on-demand to optimize performance.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-                      <Button
+            <div className="flex items-center gap-2">
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50 font-medium"
+                className="gap-2"
               >
                 <Filter className="h-4 w-4" />
                 Filters
@@ -142,7 +142,7 @@ export const TrendDashboard: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleExport}
-                          className="gap-2 border-muted text-primary hover:bg-[rgba(255,255,255,0.03)] font-medium"
+                  className="gap-2"
                 >
                   <Download className="h-4 w-4" />
                   Export
@@ -153,11 +153,11 @@ export const TrendDashboard: React.FC = () => {
 
           {/* Filter Panel */}
           {showFilters && (
-            <Card className="p-6 mb-6 bg-card border-muted shadow-lg card-frost">
+            <Card className="p-6 mb-6 bg-slate-900 dark:bg-slate-900 border-border">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label htmlFor="start-year" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📅 Start Year
+                  <label htmlFor="start-year" className="block text-sm font-medium text-secondary mb-2">
+                    Start Year
                   </label>
                   <input
                     id="start-year"
@@ -166,12 +166,12 @@ export const TrendDashboard: React.FC = () => {
                     onChange={(e) =>
                       setFilters({ ...filters, startYear: parseInt(e.target.value) })
                     }
-                    className="w-full px-3 py-2 border-2 border-muted rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-accent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
                 </div>
                 <div>
-                  <label htmlFor="end-year" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📅 End Year
+                  <label htmlFor="end-year" className="block text-sm font-medium text-secondary mb-2">
+                    End Year
                   </label>
                   <input
                     id="end-year"
@@ -180,12 +180,12 @@ export const TrendDashboard: React.FC = () => {
                     onChange={(e) =>
                       setFilters({ ...filters, endYear: parseInt(e.target.value) })
                     }
-                    className="w-full px-3 py-2 border-2 border-muted rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-accent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
                 </div>
                 <div>
-                  <label htmlFor="limit" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📊 Result Limit (1-100)
+                  <label htmlFor="limit" className="block text-sm font-medium text-secondary mb-2">
+                    Result Limit (1-100)
                   </label>
                   <input
                     id="limit"
@@ -194,7 +194,7 @@ export const TrendDashboard: React.FC = () => {
                     max="100"
                     value={limit}
                     onChange={(e) => setLimit(Math.min(100, Math.max(1, parseInt(e.target.value) || 10)))}
-                    className="w-full px-3 py-2 border-2 border-muted rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-accent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
                 </div>
                 <div className="flex items-end">
@@ -228,17 +228,17 @@ export const TrendDashboard: React.FC = () => {
 
         {/* Trend Viewer Panel */}
         {activeTrend && activeTrendCard && (
-          <div className="mb-8">
-            <div className="mb-4 flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 p-4 rounded-lg shadow-md">
+            <div className="mb-8">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-white" />
-                <h2 className="text-2xl font-bold text-white">{activeTrendCard.title}</h2>
+                <TrendingUp className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-semibold text-foreground">{activeTrendCard.title}</h2>
               </div>
               <button
                 onClick={handleCloseTrendViewer}
-                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-all duration-200 font-semibold text-sm shadow-sm hover:shadow-md"
+                className="px-4 py-2 text-secondary bg-card border border-border rounded-lg hover:bg-muted transition-colors font-medium text-sm"
               >
-                ✕ Close
+                Close
               </button>
             </div>
             <EnhancedTrendViewer
@@ -252,13 +252,13 @@ export const TrendDashboard: React.FC = () => {
 
         {/* Empty State */}
         {!activeTrend && (
-          <Card className="p-12 text-center bg-gradient-to-br from-blue-50 to-white border border-blue-200 shadow-lg">
-            <div className="text-blue-300 mb-4">
-              <RefreshCw className="h-12 w-12 mx-auto" />
+          <Card className="p-12 text-center bg-slate-900 dark:bg-slate-900 border-border">
+            <div className="text-secondary mb-4">
+              <RefreshCw className="h-12 w-12 mx-auto opacity-60 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">📈 No Trend Selected</h3>
-            <p className="text-primary font-medium">
-              Click on any card above to explore detailed trend analysis with interactive charts.
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Trend Selected</h3>
+            <p className="text-secondary">
+              Click on any card above to load and view detailed trend analysis.
             </p>
           </Card>
         )}

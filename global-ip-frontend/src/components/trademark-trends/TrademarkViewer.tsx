@@ -26,22 +26,22 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
 }) => {
   if (error) {
     return (
-      <Card className="border-2 border-red-300 bg-gradient-to-br from-red-50 to-white shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg -m-4 p-4 mb-4">
-          <CardTitle className="text-white font-bold">{title}</CardTitle>
+      <Card className="border-destructive bg-card shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-card rounded-t-lg -m-4 p-4 mb-4">
+          <CardTitle className="text-primary font-semibold">{title}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-6 w-6 p-0 text-white hover:bg-red-700"
+            className="h-6 w-6 p-0 text-secondary hover:bg-destructive/10"
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
-          <Alert className="bg-red-100 border-red-400">
-            <AlertCircle className="h-5 w-5 text-red-600" />
-            <AlertDescription className="text-red-700 font-medium">
+          <Alert className="bg-accent border-muted">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <AlertDescription className="text-secondary font-medium">
               {error.message || 'Failed to load trademark data'}
             </AlertDescription>
           </Alert>
@@ -52,22 +52,22 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
 
   if (loading) {
     return (
-      <Card className="border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-white shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg -m-4 p-4 mb-4">
-          <CardTitle className="text-white font-bold">{title}</CardTitle>
+      <Card className="border-border bg-card shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-card rounded-t-lg -m-4 p-4 mb-4">
+          <CardTitle className="text-primary font-semibold">{title}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-6 w-6 p-0 text-white hover:bg-blue-700"
+            className="h-6 w-6 p-0 text-secondary hover:bg-primary/10"
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-3 text-slate-600 font-medium">Loading {title}...</span>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-secondary font-semibold">Loading {title}...</span>
           </div>
         </CardContent>
       </Card>
@@ -76,22 +76,22 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
 
   if (!data) {
     return (
-      <Card className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-t-lg -m-4 p-4 mb-4">
-          <CardTitle className="text-white font-bold">{title}</CardTitle>
+      <Card className="border-border bg-card shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-card rounded-t-lg -m-4 p-4 mb-4">
+          <CardTitle className="text-primary font-semibold">{title}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-6 w-6 p-0 text-white hover:bg-amber-700"
+            className="h-6 w-6 p-0 text-secondary hover:bg-primary/10"
           >
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
-          <Alert>
-            <AlertCircle className="h-5 w-5 text-amber-600" />
-            <AlertDescription className="text-amber-700 font-medium">No data available</AlertDescription>
+          <Alert className="bg-accent border-muted">
+            <AlertCircle className="h-5 w-5 text-warning" />
+            <AlertDescription className="text-secondary font-medium">No data available</AlertDescription>
           </Alert>
         </CardContent>
       </Card>
@@ -99,17 +99,17 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
   }
 
   return (
-    <Card className="border-2 border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg -m-4 p-4 mb-4">
+    <Card className="bg-card border-border shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-card rounded-t-lg -m-4 p-4 mb-4">
         <div>
-          <CardTitle className="text-white font-bold text-lg">{title}</CardTitle>
-          <CardDescription className="text-blue-100">Detailed trademark analysis</CardDescription>
+          <CardTitle className="text-primary font-bold text-lg">{title}</CardTitle>
+          <CardDescription className="text-secondary">Detailed trademark analysis</CardDescription>
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="h-6 w-6 p-0 text-white hover:bg-blue-700"
+          className="h-6 w-6 p-0 text-secondary hover:bg-primary/10"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -130,7 +130,7 @@ export const TrademarkViewer: React.FC<TrademarkViewerProps> = ({
 
 const SummaryView: React.FC<{ data: any }> = ({ data }) => {
   if (!data || typeof data !== 'object') {
-    return <div className="text-slate-300 font-medium">📊 No summary data available</div>;
+    return <div className="text-secondary font-medium">📊 No summary data available</div>;
   }
 
   // Separate filingsByYear from other data
@@ -153,9 +153,9 @@ const SummaryView: React.FC<{ data: any }> = ({ data }) => {
       {otherData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {otherData.map(([key, value]) => (
-            <div key={key} className="p-5 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
-              <p className="text-sm font-semibold text-slate-200 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-              <p className="text-3xl font-bold text-white mt-2">
+            <div key={key} className="p-5 bg-muted rounded-lg border border-border hover:shadow-lg transition-shadow text-foreground">
+              <p className="text-sm font-semibold text-secondary capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+              <p className="text-3xl font-bold text-primary mt-2">
                 {typeof value === 'number' ? value.toLocaleString() : String(value)}
               </p>
             </div>
@@ -166,7 +166,7 @@ const SummaryView: React.FC<{ data: any }> = ({ data }) => {
       {/* Filings By Year Chart - styled like Top Classes/Countries */}
       {Array.isArray(filingsByYear) && filingsByYear.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary flex items-center gap-2">
             <span className="text-2xl">📈</span>Filings By Year
           </h3>
           <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -176,18 +176,18 @@ const SummaryView: React.FC<{ data: any }> = ({ data }) => {
               const barWidth = maxYearCount > 0 ? (count / maxYearCount) * 100 : 0;
 
               return (
-                <div key={`year-${item.year}`} className="p-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-lg border border-slate-700 hover:shadow-lg transition-shadow text-white">
+                <div key={`year-${item.year}`} className="p-4 bg-muted rounded-lg border border-border hover:shadow-lg transition-shadow text-foreground">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-bold text-white">{item.year}</p>
-                      <p className="text-sm text-slate-200 mt-1">Filings</p>
+                      <p className="font-bold text-primary">{item.year}</p>
+                      <p className="text-sm text-secondary mt-1">Filings</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-white">{count.toLocaleString()}</p>
-                      <p className="text-sm text-slate-200 font-medium">{percentOfTotal.toFixed(1)}%</p>
+                      <p className="font-bold text-primary">{count.toLocaleString()}</p>
+                      <p className="text-sm text-secondary font-medium">{percentOfTotal.toFixed(1)}%</p>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-600 rounded-full h-3 mt-3">
+                  <div className="w-full bg-muted/60 rounded-full h-3 mt-3">
                     <div
                       className="bg-gradient-to-r from-blue-500 to-blue-400 h-3 rounded-full transition-all duration-300 shadow-md"
                       style={{ width: `${barWidth}%` }}
@@ -313,8 +313,6 @@ const TopCountriesView: React.FC<{ data: SimpleCountDto[] }> = ({ data }) => {
           </div>
         );
       })}
-    </div>
-  );
+    </div>);
 };
-
 export default TrademarkViewer;

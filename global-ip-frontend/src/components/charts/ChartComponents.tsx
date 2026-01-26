@@ -28,7 +28,25 @@ export interface ChartProps {
   subtitle?: string;
 }
 
-// Enterprise Color Palette (Muted, Professional)
+// Helper to get theme-aware colors
+const getThemeColors = () => {
+  const isDark = document.documentElement.classList.contains('dark');
+  return {
+    primary: isDark ? '#60a5fa' : '#1E40AF',      // Primary color (theme-aware)
+    secondary: isDark ? '#4ade80' : '#0369A1',    // Secondary color
+    tertiary: isDark ? '#a78bfa' : '#7C3AED',     // Tertiary color
+    success: isDark ? '#4ade80' : '#059669',       // Success color
+    warning: isDark ? '#fbbf24' : '#D97706',      // Warning color
+    danger: isDark ? '#f87171' : '#DC2626',       // Danger color
+    neutral: isDark ? '#94a3b8' : '#64748B',       // Neutral (axis labels)
+    light: isDark ? '#475569' : '#E2E8F0',        // Light (gridlines)
+    background: isDark ? '#1e293b' : '#ffffff',   // Tooltip background
+    foreground: isDark ? '#e2e8f0' : '#111827',    // Tooltip text
+    border: isDark ? '#334155' : '#e5e7eb',       // Border color
+  };
+};
+
+// Enterprise Color Palette (Muted, Professional) - fallback
 const ENTERPRISE_COLORS = {
   primary: '#1E40AF',      // Indigo-900 (main charts)
   secondary: '#0369A1',    // Cyan-900 (secondary)
@@ -64,54 +82,57 @@ export const LineChartComponent: React.FC<ChartProps & { dataKey: string; nameKe
   nameKey = 'name',
   name,
   className,
-}) => (
-  <ResponsiveContainer width="100%" height={height} className={className}>
-    <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
-      <CartesianGrid strokeDasharray="0" stroke={ENTERPRISE_COLORS.light} vertical={false} opacity={0.3} />
-      <XAxis 
-        dataKey={nameKey} 
-        stroke={ENTERPRISE_COLORS.neutral} 
-        style={{ fontSize: '12px', fill: ENTERPRISE_COLORS.neutral }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-      />
-      <YAxis 
-        stroke={ENTERPRISE_COLORS.neutral}
-        style={{ fontSize: '12px', fill: ENTERPRISE_COLORS.neutral }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-        tickFormatter={formatTooltipValue}
-      />
-      <Tooltip
-        contentStyle={{
-          backgroundColor: '#1F2937',
-          border: `1px solid ${ENTERPRISE_COLORS.light}`,
-          borderRadius: '8px',
-          padding: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-        labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
-        formatter={(value: any) => [formatTooltipValue(value), name || dataKey]}
-        cursor={{ stroke: ENTERPRISE_COLORS.light, strokeWidth: 1 }}
-      />
-      <Legend 
-        verticalAlign="top"
-        height={36}
-        wrapperStyle={{ paddingBottom: '16px' }}
-        iconType="line"
-      />
-      <Line
-        type="natural"
-        dataKey={dataKey}
-        name={name || dataKey}
-        stroke={ENTERPRISE_COLORS.primary}
-        strokeWidth={2.5}
-        dot={false}
-        activeDot={{ r: 6, fill: ENTERPRISE_COLORS.primary }}
-        isAnimationActive={true}
-        animationDuration={1000}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-);
+}) => {
+  const colors = getThemeColors();
+  return (
+    <ResponsiveContainer width="100%" height={height} className={className}>
+      <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+        <CartesianGrid strokeDasharray="0" stroke={colors.light} vertical={false} opacity={0.3} />
+        <XAxis 
+          dataKey={nameKey} 
+          stroke={colors.neutral} 
+          style={{ fontSize: '12px', fill: colors.neutral }}
+          tick={{ fill: colors.neutral }}
+        />
+        <YAxis 
+          stroke={colors.neutral}
+          style={{ fontSize: '12px', fill: colors.neutral }}
+          tick={{ fill: colors.neutral }}
+          tickFormatter={formatTooltipValue}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
+          formatter={(value: any) => [formatTooltipValue(value), name || dataKey]}
+          cursor={{ stroke: colors.light, strokeWidth: 1 }}
+        />
+        <Legend 
+          verticalAlign="top"
+          height={36}
+          wrapperStyle={{ paddingBottom: '16px', color: colors.foreground }}
+          iconType="line"
+        />
+        <Line
+          type="natural"
+          dataKey={dataKey}
+          name={name || dataKey}
+          stroke={colors.primary}
+          strokeWidth={2.5}
+          dot={false}
+          activeDot={{ r: 6, fill: colors.primary }}
+          isAnimationActive={true}
+          animationDuration={1000}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
 
 export const AreaChartComponent: React.FC<ChartProps & { dataKey: string; nameKey?: string; benchmark?: number }> = ({
   data,
@@ -120,60 +141,63 @@ export const AreaChartComponent: React.FC<ChartProps & { dataKey: string; nameKe
   nameKey = 'name',
   benchmark,
   className,
-}) => (
-  <ResponsiveContainer width="100%" height={height} className={className}>
-    <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
-      <defs>
-        <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor={ENTERPRISE_COLORS.primary} stopOpacity={0.3} />
-          <stop offset="95%" stopColor={ENTERPRISE_COLORS.primary} stopOpacity={0.01} />
-        </linearGradient>
-      </defs>
-      <CartesianGrid strokeDasharray="0" stroke={ENTERPRISE_COLORS.light} vertical={false} opacity={0.3} />
-      <XAxis 
-        dataKey={nameKey}
-        stroke={ENTERPRISE_COLORS.neutral}
-        style={{ fontSize: '12px' }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-      />
-      <YAxis 
-        stroke={ENTERPRISE_COLORS.neutral}
-        style={{ fontSize: '12px' }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-        tickFormatter={formatTooltipValue}
-      />
-      {benchmark && (
-        <ReferenceLine 
-          y={benchmark}
-          stroke={ENTERPRISE_COLORS.warning}
-          strokeDasharray="5 5"
-          label={{ value: `Benchmark: ${formatTooltipValue(benchmark)}`, position: 'insideTopLeft', offset: -10, fill: ENTERPRISE_COLORS.warning, fontSize: 12 }}
+}) => {
+  const colors = getThemeColors();
+  return (
+    <ResponsiveContainer width="100%" height={height} className={className}>
+      <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+        <defs>
+          <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={colors.primary} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={colors.primary} stopOpacity={0.01} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="0" stroke={colors.light} vertical={false} opacity={0.3} />
+        <XAxis 
+          dataKey={nameKey}
+          stroke={colors.neutral}
+          style={{ fontSize: '12px' }}
+          tick={{ fill: colors.neutral }}
         />
-      )}
-      <Tooltip
-        contentStyle={{
-          backgroundColor: '#1F2937',
-          border: `1px solid ${ENTERPRISE_COLORS.light}`,
-          borderRadius: '8px',
-          padding: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-        labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
-        formatter={(value: any) => [formatTooltipValue(value), dataKey]}
-        cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-      />
-      <Area
-        type="natural"
-        dataKey={dataKey}
-        fill="url(#fillGradient)"
-        stroke={ENTERPRISE_COLORS.primary}
-        strokeWidth={2}
-        isAnimationActive={true}
-        animationDuration={1000}
-      />
-    </AreaChart>
-  </ResponsiveContainer>
-);
+        <YAxis 
+          stroke={colors.neutral}
+          style={{ fontSize: '12px' }}
+          tick={{ fill: colors.neutral }}
+          tickFormatter={formatTooltipValue}
+        />
+        {benchmark && (
+          <ReferenceLine 
+            y={benchmark}
+            stroke={colors.warning}
+            strokeDasharray="5 5"
+            label={{ value: `Benchmark: ${formatTooltipValue(benchmark)}`, position: 'insideTopLeft', offset: -10, fill: colors.warning, fontSize: 12 }}
+          />
+        )}
+        <Tooltip
+          contentStyle={{
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
+          formatter={(value: any) => [formatTooltipValue(value), dataKey]}
+          cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+        />
+        <Area
+          type="natural"
+          dataKey={dataKey}
+          fill="url(#fillGradient)"
+          stroke={colors.primary}
+          strokeWidth={2}
+          isAnimationActive={true}
+          animationDuration={1000}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+};
 
 export const BarChartComponent: React.FC<ChartProps & { dataKey: string; nameKey?: string; horizontal?: boolean; ranked?: boolean }> = ({
   data,
@@ -184,6 +208,7 @@ export const BarChartComponent: React.FC<ChartProps & { dataKey: string; nameKey
   ranked = false,
   className,
 }) => {
+  const colors = getThemeColors();
   // Add ranking to data if requested
   const rankedData = ranked ? data.map((item, idx) => ({ ...item, rank: idx + 1 })) : data;
   
@@ -194,22 +219,22 @@ export const BarChartComponent: React.FC<ChartProps & { dataKey: string; nameKey
         layout={horizontal ? 'vertical' : 'horizontal'}
         margin={horizontal ? { top: 20, right: 30, left: 220, bottom: 40 } : { top: 20, right: 30, left: 0, bottom: 40 }}
       >
-        <CartesianGrid strokeDasharray="0" stroke={ENTERPRISE_COLORS.light} vertical={!horizontal} opacity={0.3} />
+        <CartesianGrid strokeDasharray="0" stroke={colors.light} vertical={!horizontal} opacity={0.3} />
         {horizontal ? (
           <>
             <XAxis 
               type="number" 
-              stroke={ENTERPRISE_COLORS.neutral}
+              stroke={colors.neutral}
               style={{ fontSize: '12px' }}
-              tick={{ fill: ENTERPRISE_COLORS.neutral }}
+              tick={{ fill: colors.neutral }}
               tickFormatter={formatTooltipValue}
             />
             <YAxis 
               type="category" 
               dataKey={nameKey}
-              stroke={ENTERPRISE_COLORS.neutral}
+              stroke={colors.neutral}
               style={{ fontSize: '11px' }}
-              tick={{ fill: ENTERPRISE_COLORS.neutral }}
+              tick={{ fill: colors.neutral }}
               width={200}
             />
           </>
@@ -217,38 +242,38 @@ export const BarChartComponent: React.FC<ChartProps & { dataKey: string; nameKey
           <>
             <XAxis 
               dataKey={nameKey}
-              stroke={ENTERPRISE_COLORS.neutral}
+              stroke={colors.neutral}
               style={{ fontSize: '12px' }}
-              tick={{ fill: ENTERPRISE_COLORS.neutral }}
+              tick={{ fill: colors.neutral }}
             />
             <YAxis 
-              stroke={ENTERPRISE_COLORS.neutral}
+              stroke={colors.neutral}
               style={{ fontSize: '12px' }}
-              tick={{ fill: ENTERPRISE_COLORS.neutral }}
+              tick={{ fill: colors.neutral }}
               tickFormatter={formatTooltipValue}
             />
           </>
         )}
         <Tooltip
           contentStyle={{
-            backgroundColor: '#1F2937',
-            border: `1px solid ${ENTERPRISE_COLORS.light}`,
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           }}
-          labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
           formatter={(value: any) => [formatTooltipValue(value), dataKey]}
           cursor={{ fill: 'rgba(0,0,0,0.05)' }}
         />
         <Legend 
           verticalAlign="top"
           height={36}
-          wrapperStyle={{ paddingBottom: '16px' }}
+          wrapperStyle={{ paddingBottom: '16px', color: colors.foreground }}
         />
         <Bar 
           dataKey={dataKey} 
-          fill={ENTERPRISE_COLORS.primary}
+          fill={colors.primary}
           radius={[4, 4, 0, 0]}
           isAnimationActive={true}
           animationDuration={800}
@@ -265,6 +290,7 @@ export const DonutChartComponent: React.FC<ChartProps & { dataKey: string; nameK
   nameKey = 'name',
   className,
 }) => {
+  const colors = getThemeColors();
   const total = data.reduce((sum, item) => sum + (item[dataKey] || 0), 0);
   
   return (
@@ -281,7 +307,7 @@ export const DonutChartComponent: React.FC<ChartProps & { dataKey: string; nameK
           }}
           innerRadius={90}
           outerRadius={160}
-          fill={ENTERPRISE_COLORS.primary}
+          fill={colors.primary}
           dataKey={dataKey}
           nameKey={nameKey}
           startAngle={90}
@@ -294,26 +320,26 @@ export const DonutChartComponent: React.FC<ChartProps & { dataKey: string; nameK
         <Tooltip
           formatter={(value: any) => [formatTooltipValue(value), 'Count']}
           contentStyle={{
-            backgroundColor: '#1F2937',
-            border: `1px solid ${ENTERPRISE_COLORS.light}`,
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
           }}
-          labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
         />
         <Legend 
           verticalAlign="bottom"
           height={36}
-          wrapperStyle={{ paddingTop: '24px', maxHeight: '120px', overflow: 'auto' }}
+          wrapperStyle={{ paddingTop: '24px', maxHeight: '120px', overflow: 'auto', color: colors.foreground }}
           layout="vertical"
           align="right"
         />
       </PieChart>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="text-center">
-          <div className="text-4xl font-bold text-slate-900">{formatTooltipValue(total)}</div>
-          <div className="text-sm text-slate-500 mt-2">Total</div>
+          <div className="text-4xl font-bold" style={{ color: colors.foreground }}>{formatTooltipValue(total)}</div>
+          <div className="text-sm mt-2" style={{ color: colors.neutral }}>Total</div>
         </div>
       </div>
     </ResponsiveContainer>
@@ -326,106 +352,112 @@ export const PieChartComponent: React.FC<ChartProps & { dataKey: string; nameKey
   dataKey,
   nameKey = 'name',
   className,
-}) => (
-  <ResponsiveContainer width="100%" height={height} className={className}>
-    <PieChart>
-      <Pie
-        data={data}
-        cx="45%"
-        cy="50%"
-        labelLine={true}
-        label={(entry) => {
-          const percent = (entry[dataKey] / data.reduce((sum, item) => sum + (item[dataKey] || 0), 0)) * 100;
-          return percent >= 2 ? `${(percent).toFixed(0)}%` : '';
-        }}
-        outerRadius={160}
-        fill={ENTERPRISE_COLORS.primary}
-        dataKey={dataKey}
-        nameKey={nameKey}
-        startAngle={90}
-        endAngle={-270}
-      >
-        {data.map((_, index) => (
-          <Cell key={`cell-${index}`} fill={RANKING_COLORS[index % RANKING_COLORS.length]} />
-        ))}
-      </Pie>
-      <Tooltip
-        formatter={(value: any) => [formatTooltipValue(value), 'Count']}
-        contentStyle={{
-          backgroundColor: '#1F2937',
-          border: `1px solid ${ENTERPRISE_COLORS.light}`,
-          borderRadius: '8px',
-          padding: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-        labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
-      />
-      <Legend
-        verticalAlign="bottom"
-        height={36}
-        wrapperStyle={{ paddingTop: '24px', maxHeight: '120px', overflow: 'auto' }}
-        layout="vertical"
-        align="right"
-      />
-    </PieChart>
-  </ResponsiveContainer>
-);
+}) => {
+  const colors = getThemeColors();
+  return (
+    <ResponsiveContainer width="100%" height={height} className={className}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="45%"
+          cy="50%"
+          labelLine={true}
+          label={(entry) => {
+            const percent = (entry[dataKey] / data.reduce((sum, item) => sum + (item[dataKey] || 0), 0)) * 100;
+            return percent >= 2 ? `${(percent).toFixed(0)}%` : '';
+          }}
+          outerRadius={160}
+          fill={colors.primary}
+          dataKey={dataKey}
+          nameKey={nameKey}
+          startAngle={90}
+          endAngle={-270}
+        >
+          {data.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={RANKING_COLORS[index % RANKING_COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: any) => [formatTooltipValue(value), 'Count']}
+          contentStyle={{
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
+        />
+        <Legend
+          verticalAlign="bottom"
+          height={36}
+          wrapperStyle={{ paddingTop: '24px', maxHeight: '120px', overflow: 'auto', color: colors.foreground }}
+          layout="vertical"
+          align="right"
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
 
 export const MultiLineChartComponent: React.FC<ChartProps & { dataKeys: string[] }> = ({
   data,
   height = 380,
   dataKeys,
   className,
-}) => (
-  <ResponsiveContainer width="100%" height={height} className={className}>
-    <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
-      <CartesianGrid strokeDasharray="0" stroke={ENTERPRISE_COLORS.light} vertical={false} opacity={0.3} />
-      <XAxis 
-        dataKey="name" 
-        stroke={ENTERPRISE_COLORS.neutral}
-        style={{ fontSize: '12px' }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-      />
-      <YAxis 
-        stroke={ENTERPRISE_COLORS.neutral}
-        style={{ fontSize: '12px' }}
-        tick={{ fill: ENTERPRISE_COLORS.neutral }}
-        tickFormatter={formatTooltipValue}
-      />
-      <Tooltip
-        contentStyle={{
-          backgroundColor: '#1F2937',
-          border: `1px solid ${ENTERPRISE_COLORS.light}`,
-          borderRadius: '8px',
-          padding: '12px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        }}
-        labelStyle={{ color: '#FFFFFF', marginBottom: '8px', fontWeight: 600 }}
-        formatter={(value: any) => formatTooltipValue(value)}
-        cursor={{ stroke: ENTERPRISE_COLORS.light, strokeWidth: 1 }}
-      />
-      <Legend 
-        verticalAlign="top"
-        height={36}
-        wrapperStyle={{ paddingBottom: '16px' }}
-        iconType="line"
-      />
-      {dataKeys.map((key, index) => (
-        <Line
-          key={key}
-          type="natural"
-          dataKey={key}
-          name={key.replace(/([A-Z])/g, ' $1').trim()}
-          stroke={RANKING_COLORS[index % RANKING_COLORS.length]}
-          strokeWidth={2.5}
-          dot={false}
-          activeDot={{ r: 6 }}
-          isAnimationActive={true}
-          animationDuration={1000}
+}) => {
+  const colors = getThemeColors();
+  return (
+    <ResponsiveContainer width="100%" height={height} className={className}>
+      <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+        <CartesianGrid strokeDasharray="0" stroke={colors.light} vertical={false} opacity={0.3} />
+        <XAxis 
+          dataKey="name" 
+          stroke={colors.neutral}
+          style={{ fontSize: '12px' }}
+          tick={{ fill: colors.neutral }}
         />
-      ))}
-    </LineChart>
-  </ResponsiveContainer>
-);
+        <YAxis 
+          stroke={colors.neutral}
+          style={{ fontSize: '12px' }}
+          tick={{ fill: colors.neutral }}
+          tickFormatter={formatTooltipValue}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: colors.background,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          }}
+          labelStyle={{ color: colors.foreground, marginBottom: '8px', fontWeight: 600 }}
+          formatter={(value: any) => formatTooltipValue(value)}
+          cursor={{ stroke: colors.light, strokeWidth: 1 }}
+        />
+        <Legend 
+          verticalAlign="top"
+          height={36}
+          wrapperStyle={{ paddingBottom: '16px', color: colors.foreground }}
+          iconType="line"
+        />
+        {dataKeys.map((key, index) => (
+          <Line
+            key={key}
+            type="natural"
+            dataKey={key}
+            name={key.replace(/([A-Z])/g, ' $1').trim()}
+            stroke={RANKING_COLORS[index % RANKING_COLORS.length]}
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ r: 6 }}
+            isAnimationActive={true}
+            animationDuration={1000}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
 
 export { ENTERPRISE_COLORS, RANKING_COLORS };
