@@ -57,10 +57,16 @@ const STATUS_CODE_MAP: Record<string | number, string> = {
   601: 'Awaiting Filing',
 };
 
+interface Column {
+  key: string;
+  label: string;
+  format?: (value: any) => string;
+}
+
 interface DataTableProps {
   title: string;
   description?: string;
-  columns: Array<{ key: string; label: string; format?: (value: any) => string }>;
+  columns: Column[];
   data: Array<Record<string, any>>;
   loading?: boolean;
   error?: Error | null;
@@ -131,7 +137,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   }
 
   // Sort data
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData: Array<Record<string, any>> = [...data].sort((a, b) => {
     const aVal = a[sortKey];
     const bVal = b[sortKey];
 
@@ -281,66 +287,145 @@ export const TopCountriesTable: React.FC<{
 /**
  * Status Distribution Table
  */
-export const StatusDistributionTable: React.FC<{
+export interface TopClassesTableProps {
+  data: CodeDistributionDto[];
+  loading?: boolean;
+  error?: Error | null;
+  onRefresh?: () => void;
+}
+
+export interface TopCountriesTableProps {
   data: SimpleCountDto[];
   loading?: boolean;
   error?: Error | null;
   onRefresh?: () => void;
-}> = ({ data, loading, error, onRefresh }) => {
+}
+
+interface StatusDistributionTableProps {
+  data: SimpleCountDto[];
+  loading?: boolean;
+  error?: Error | null;
+  onRefresh?: () => void;
+}
+
+interface AggregatedItem {
+  label: string;
+  count: number;
+}
+
+interface PercentageItem {
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export const StatusDistributionTable: React.FC<StatusDistributionTableProps> = ({ data, loading, error, onRefresh }) => {
   // Aggregate by label (some responses may include duplicate labels like "Unknown Status")
   // and support numeric status codes returned as labels.
   const aggregatedMap: Record<string, number> = {};
 
-  (data || []).forEach((item) => {
-    const key = String(item.label || 'Unknown Status').trim();
+  (data ?? []).forEach((item: SimpleCountDto) => {
+    const key: string = String(item.label || 'Unknown Status').trim();
     if (!aggregatedMap[key]) aggregatedMap[key] = 0;
     aggregatedMap[key] += item.count || 0;
   });
 
-  const aggregated = Object.keys(aggregatedMap).map((key) => ({
+  const aggregated: AggregatedItem[] = Object.keys(aggregatedMap).map((key) => ({
     label: key,
     count: aggregatedMap[key],
   }));
 
-  const total = aggregated.reduce((sum, item) => sum + item.count, 0) || 0;
+  const total: number = aggregated.reduce((sum, item) => sum + item.count, 0) || 0;
 
-  const dataWithPercentage = aggregated.map((item) => {
-    // If the label is actually a numeric status code, map it to a friendly label
-    const numericCode = parseInt(item.label as string, 10);
-    const friendlyLabel = !Number.isNaN(numericCode)
-      ? (STATUS_CODE_MAP[numericCode] || item.label)
-      : (STATUS_CODE_MAP[item.label] || item.label);
+    const dataWithPercentage: PercentageItem[] = aggregated.map((item) => {
+      // If the label is actually a numeric status code, map it to a friendly label
+      const numericCode = parseInt(item.label, 10);
+      const friendlyLabel = !Number.isNaN(numericCode)
+        ? (STATUS_CODE_MAP[numericCode] || item.label)
+        : (STATUS_CODE_MAP[item.label] || item.label);
 
-    return {
-      ...item,
-      label: friendlyLabel,
-      // Keep percentage as a string with one decimal place; the DataTable formatter will add '%'
-      percentage: total > 0 ? ((item.count / total) * 100).toFixed(1) : '0.0',
-    };
-  });
+      return {
+        label: friendlyLabel,
+        count: item.count,
+        // keep percentage as a number (to match PercentageItem) with one decimal place
+        percentage: total > 0 ? parseFloat(((item.count / total) * 100).toFixed(1)) : 0,
+      };
+    });
+
+  // UI state for simple filtering options
+  const [topN, setTopN] = useState<number | 'ALL'>('ALL');
+  const [query, setQuery] = useState<string>('');
+  const [hideUnknown, setHideUnknown] = useState<boolean>(false);
+
+  // Apply text filter, hide-unknown, then sort by count desc and apply topN
+  const processed: PercentageItem[] = dataWithPercentage
+    .filter((item) => {
+      // Filter by query text if provided
+      if (query && !String(item.label).toLowerCase().includes(query.toLowerCase())) return false;
+      // Optionally hide unknown statuses
+      if (hideUnknown && String(item.label).toLowerCase().includes('unknown')) return false;
+      return true;
+    })
+    .sort((a, b) => b.count - a.count);
+
+  const finalData: PercentageItem[] = topN === 'ALL' ? processed : processed.slice(0, Number(topN));
 
   return (
-    <DataTable
-      title="Trademark Status Distribution"
-      description="Active vs inactive trademark portfolio health indicator"
-      columns={[
-        { key: 'label', label: 'Status' },
-        {
-          key: 'count',
-          label: 'Count',
-          format: (val) => val.toLocaleString(),
-        },
-        {
-          key: 'percentage',
-          label: 'Percentage',
-          format: (val) => `${val}%`,
-        },
-      ]}
-      data={dataWithPercentage}
-      loading={loading}
-      error={error}
-      onRefresh={onRefresh}
-    />
+    <div>
+      <div className="mb-4 flex flex-col md:flex-row md:items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label htmlFor="status-top-select" className="text-sm font-medium">Top</label>
+          <select
+            id="status-top-select"
+            value={topN}
+            onChange={(e) => setTopN(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value, 10) || 'ALL')}
+            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+          >
+            <option value="ALL">All</option>
+            <option value={5}>Top 5</option>
+            <option value={10}>Top 10</option>
+            <option value={20}>Top 20</option>
+          </select>
+        </div>
+
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Filter status labels..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+          />
+        </div>
+
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={hideUnknown} onChange={(e) => setHideUnknown(e.target.checked)} />
+          <span className="text-sm">Hide unknown statuses</span>
+        </label>
+      </div>
+
+      <DataTable
+        title="Trademark Status Distribution"
+        description="Active vs inactive trademark portfolio health indicator"
+        columns={[
+          { key: 'label', label: 'Status' },
+          {
+            key: 'count',
+            label: 'Count',
+            format: (val) => val.toLocaleString(),
+          },
+          {
+            key: 'percentage',
+            label: 'Percentage',
+            format: (val) => `${val}%`,
+          },
+        ]}
+        data={finalData}
+        loading={loading}
+        error={error}
+        onRefresh={onRefresh}
+      />
+    </div>
   );
 };
 
