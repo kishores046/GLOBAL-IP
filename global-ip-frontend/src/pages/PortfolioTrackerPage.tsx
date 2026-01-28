@@ -1,5 +1,7 @@
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { useContext } from 'react';
+import { AnalystLayoutContext } from '../components/dashboard/AnalystLayout';
 import { TrendingUp, AlertTriangle, Activity } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -19,9 +21,11 @@ const portfolioGrowthData = [
 ];
 
 export function PortfolioTrackerPage() {
+  const inAnalystLayout = useContext(AnalystLayoutContext);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      <DashboardHeader userName="Analyst" />
+      {!inAnalystLayout && <DashboardHeader userName="Analyst" />}
       
       <div className="flex">
         <Sidebar />

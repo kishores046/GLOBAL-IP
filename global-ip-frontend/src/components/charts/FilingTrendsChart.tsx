@@ -14,14 +14,15 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: TooltipPayload[];
   label?: string;
+  isDark?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, label, isDark = false }: CustomTooltipProps) => {
   if (!active || !payload || !payload.length) return null;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-4">
-      <p className="font-semibold text-slate-900 mb-2">{label}</p>
+    <div style={{ backgroundColor: isDark ? '#0b1220' : '#ffffff' }} className={"border rounded-lg shadow-lg p-4"}>
+      <p style={{ color: isDark ? '#f8fafc' : '#0f172a' }} className="font-semibold mb-2">{label}</p>
       {payload.map((entry, index) => (
         <p key={index} className="text-sm" style={{ color: entry.color }}>
           {entry.name}: {entry.value.toLocaleString()}
@@ -31,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   );
 };
 
-export function FilingTrendsChart() {
+export function FilingTrendsChart({ isDark = false }: { isDark?: boolean }) {
   const [data, setData] = useState<FilingTrendData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,18 +125,18 @@ export function FilingTrendsChart() {
           data={data}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
           <XAxis
             dataKey="year"
-            stroke="#64748b"
+            stroke={isDark ? '#CBD5E1' : '#64748b'}
             style={{ fontSize: '12px' }}
           />
           <YAxis
-            stroke="#64748b"
+            stroke={isDark ? '#CBD5E1' : '#64748b'}
             style={{ fontSize: '12px' }}
             tickFormatter={(value) => value.toLocaleString()}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip isDark={isDark} />} />
           <Legend
             onClick={(e) => handleLegendClick(e.dataKey as string)}
             wrapperStyle={{ cursor: 'pointer', paddingTop: '20px' }}

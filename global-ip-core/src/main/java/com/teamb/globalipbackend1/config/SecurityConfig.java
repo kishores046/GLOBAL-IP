@@ -106,6 +106,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/trends/trademarks/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/monitoring/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/subscription/**").hasAnyRole("ANALYST", "ADMIN")
+                        .requestMatchers("/actuator").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 

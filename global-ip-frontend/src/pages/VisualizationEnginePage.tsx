@@ -56,9 +56,9 @@ export function VisualizationEnginePage() {
           </motion.div>
 
           {/* Citation Graph */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 shadow-lg">
-            <EnhancedCitationGraph publicationNumber={patentId} source="PATENTSVIEW" title={`Citation Network for ${patentId}`} />
-          </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 shadow-lg">
+              <EnhancedCitationGraph patentId={patentId || ''} source="PATENTSVIEW" currentPatentTitle={`Citation Network for ${patentId}`} />
+            </motion.div>
         </>
       ) : (
         <>
@@ -71,17 +71,18 @@ export function VisualizationEnginePage() {
                 <h1 className="text-3xl font-bold text-blue-900 mb-2">Visualization Engine</h1>
                 <p className="text-slate-600">Explore patent data through interactive visualizations</p>
               </div>
+                <div className="ml-auto" />
             </div>
           </motion.div>
 
           {/* Filing Trends Chart */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 shadow-lg">
-            <FilingTrendsChart />
+              <FilingTrendsChart />
           </motion.div>
 
           {/* Global Distribution Map */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/50 shadow-lg">
-            <GlobalChoroplethMap />
+              <GlobalChoroplethMap />
           </motion.div>
 
           {/* Info Box */}

@@ -343,8 +343,8 @@ export function AlertsPage() {
                   onClick={() => setActiveFilter('competitors')}
                   className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                     activeFilter === 'competitors'
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'bg-white/70 text-slate-700 border border-purple-200/50 hover:border-purple-300/50 hover:bg-white/90'
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white/70 text-slate-700 border border-blue-200/50 hover:border-blue-300/50 hover:bg-white/90'
                   }`}
                 >
                   Competitors ({webSocketAlerts.filter(a => a.type === 'COMPETITOR_EVENT').length})

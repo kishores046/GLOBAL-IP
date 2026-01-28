@@ -21,18 +21,21 @@ export function OAuthSuccessPage() {
         .then((user) => {
           // Refresh auth context with new user data
           refreshUser().catch(console.error);
-          
-          // Navigate to appropriate dashboard based on user role
+
+          // Determine dashboard and persist lastDashboard
           const firstRole = user?.roles?.[0];
           const primaryRole = (typeof firstRole === 'string' ? firstRole : firstRole?.roleType)?.toLowerCase() || 'user';
-            
-          if (primaryRole === 'admin') {
-            navigate('/dashboard/admin', { replace: true });
-          } else if (primaryRole === 'analyst') {
-            navigate('/dashboard/analyst', { replace: true });
-          } else {
-            navigate('/dashboard/user', { replace: true });
+          let dashboardRoute = '/dashboard/user';
+          if (primaryRole === 'admin') dashboardRoute = '/dashboard/admin';
+          else if (primaryRole === 'analyst') dashboardRoute = '/dashboard/analyst';
+
+          try {
+            localStorage.setItem('lastDashboard', dashboardRoute);
+          } catch (e) {
+            console.warn('Unable to persist lastDashboard to localStorage', e);
           }
+
+          navigate(dashboardRoute, { replace: true });
         })
         .catch((error) => {
           console.error('Failed to fetch user profile:', error);

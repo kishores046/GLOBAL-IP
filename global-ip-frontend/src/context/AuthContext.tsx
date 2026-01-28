@@ -90,12 +90,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Login function
   const login = async (email: string, password: string) => {
     try {
-      await authService.login({ email, password });
+      const response = await authService.login({ email, password });
+
+      // If password change is required, return the response for the caller to handle
+      if (response?.passwordChangeRequired === true) {
+        return response as unknown as void;
+      }
+
       const userData = await authService.getUserProfile();
       const newToken = authService.getToken();
-      
+
       setToken(newToken);
       setUser({ ...userData, username: userData.username || userData.email });
+
+      return response as unknown as void;
     } catch (error) {
       console.error('AuthContext: Login failed:', error);
       throw error;
@@ -145,6 +153,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const userData = await authService.getUserProfile();
       setUser({ ...userData, username: userData.username || userData.email });
+      // Persist lastDashboard based on primary role so Dashboard button points correctly
+      try {
+        const firstRole = userData?.roles?.[0];
+        const roleStr = typeof firstRole === 'string' ? firstRole : firstRole?.roleType;
+        const primaryRole = roleStr?.replace(/^ROLE_/, '').toLowerCase();
+        let dashboardRoute = '/dashboard/user';
+        if (primaryRole === 'admin') dashboardRoute = '/dashboard/admin';
+        else if (primaryRole === 'analyst') dashboardRoute = '/dashboard/analyst';
+        localStorage.setItem('lastDashboard', dashboardRoute);
+      } catch (e) {
+        // ignore localStorage failures
+      }
     } catch (error) {
       console.error('AuthContext: Failed to refresh user:', error);
       throw error;

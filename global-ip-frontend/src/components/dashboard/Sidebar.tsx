@@ -11,22 +11,14 @@ export function Sidebar() {
   const { hasRole, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
-  // Determine if user is an analyst - check localStorage first, then pathname
-  const [isAnalyst, setIsAnalyst] = useState(() => {
-    const storedRole = localStorage.getItem("userRole");
-    return storedRole === "analyst" || location.pathname.includes("/analyst") || location.pathname.includes("/dashboard/analyst");
-  });
+  // Determine if user is an analyst using auth roles (preferred) or fall back to pathname
+  const [isAnalyst, setIsAnalyst] = useState(() => hasRole([ROLES.ANALYST, ROLES.ADMIN]) || location.pathname.includes("/analyst") || location.pathname.includes("/dashboard/analyst"));
 
-  // Update isAnalyst state and localStorage when on analyst dashboard
+  // Keep isAnalyst in sync with auth roles and pathname changes
   useEffect(() => {
-    if (location.pathname.includes("/dashboard/analyst")) {
-      setIsAnalyst(true);
-      localStorage.setItem("userRole", "analyst");
-    } else if (location.pathname.includes("/dashboard/user")) {
-      setIsAnalyst(false);
-      localStorage.setItem("userRole", "user");
-    }
-  }, [location.pathname]);
+    const derived = hasRole([ROLES.ANALYST, ROLES.ADMIN]) || location.pathname.includes("/analyst") || location.pathname.includes("/dashboard/analyst");
+    setIsAnalyst(derived);
+  }, [location.pathname, hasRole]);
   
   // Route matching helper
   const matchRoute = (pathname: string, pattern: string): boolean => pathname.includes(pattern);
@@ -88,7 +80,8 @@ export function Sidebar() {
     
     // Get the last dashboard from localStorage, default to user dashboard
     const lastDashboard = localStorage.getItem("lastDashboard") || ROUTES.USER_DASHBOARD;
-    const isUserRole = !isAnalyst && !hasRole([ROLES.ANALYST, ROLES.ADMIN]);
+    // Determine userness from auth roles (prefer authoritative source)
+    const isUserRole = !hasRole([ROLES.ANALYST, ROLES.ADMIN]);
     
     // Navigate to the appropriate route using ROUTES constants
     switch (itemId) {
@@ -136,7 +129,7 @@ export function Sidebar() {
         break;
       case "create-subscription":
         // For analysts, navigate to analyst-specific subscription create page
-        if (isAnalyst) {
+        if (!isUserRole) {
           navigate(ROUTES.ANALYST_CREATE_SUBSCRIPTION);
         } else {
           navigate(ROUTES.CREATE_SUBSCRIPTION);
@@ -144,7 +137,7 @@ export function Sidebar() {
         break;
       case "subscriptions":
         // Navigate to analyst subscriptions if analyst, user subscriptions if regular user
-        if (isAnalyst) {
+        if (!isUserRole) {
           navigate(ROUTES.ANALYST_SUBSCRIPTIONS);
         } else {
           navigate(ROUTES.SUBSCRIPTIONS);

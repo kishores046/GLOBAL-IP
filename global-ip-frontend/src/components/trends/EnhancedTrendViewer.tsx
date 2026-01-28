@@ -15,6 +15,7 @@ interface EnhancedTrendViewerProps {
   data: any;
   loading: boolean;
   error: Error | null;
+  isDark?: boolean;
 }
 
 /**
@@ -319,6 +320,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   data,
   loading,
   error,
+  isDark = false,
 }) => {
   const transformedData = useMemo(() => {
     return formatChartData(trendId, data);
@@ -454,6 +456,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="year"
             name="Filing Count"
             height={400}
+            isDark={isDark}
           />
         );
       case 'grant-trends':
@@ -464,6 +467,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="year"
             name="Grant Count"
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -475,6 +479,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="cpcGroup"
             horizontal={true}
             height={400}
+            isDark={isDark}
           />
         );
       case 'top-assignees':
@@ -485,6 +490,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="assigneeName"
             horizontal={true}
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -495,6 +501,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="patentCount"
             nameKey="countryName"
             height={300}
+            isDark={isDark}
           />
         );
 
@@ -506,6 +513,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="patentId"
             horizontal={false}
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -517,6 +525,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             nameKey="patentId"
             horizontal={true}
             height={350}
+            isDark={isDark}
           />
         );
 
@@ -527,6 +536,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="count"
             nameKey="type"
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -537,6 +547,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="count"
             nameKey="patentType"
             height={600}
+            isDark={isDark}
           />
         );
 
@@ -546,6 +557,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             data={transformedData}
             dataKeys={['avgClaims', 'medianClaims']}
             height={300}
+            isDark={isDark}
           />
         );
 
@@ -556,6 +568,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="avgYearsToGrant"
             nameKey="name"
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -566,6 +579,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="totalCount"
             name="Total Count"
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -576,6 +590,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             dataKey="familyCount"
             nameKey="name"
             height={400}
+            isDark={isDark}
           />
         );
 
@@ -585,6 +600,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
             data={transformedData}
             dataKey="count"
             height={400}
+            isDark={isDark}
           />
         );
     }

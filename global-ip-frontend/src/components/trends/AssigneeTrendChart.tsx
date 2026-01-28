@@ -47,10 +47,10 @@ export const AssigneeTrendChart: React.FC<AssigneeTrendChartProps> = ({
   });
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-slate-900 dark:bg-slate-900 border-border">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>Leading companies by patent portfolio size</CardDescription>
+        <CardTitle className="text-primary">{title}</CardTitle>
+        <CardDescription className="text-secondary">Leading companies by patent portfolio size</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -62,43 +62,43 @@ export const AssigneeTrendChart: React.FC<AssigneeTrendChartProps> = ({
               <div key={assignee.assigneeId} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="font-bold text-sm text-gray-600 min-w-6 text-center">
+                    <span className="font-bold text-sm text-secondary min-w-6 text-center">
                       #{rank}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate text-gray-900">
+                      <p className="text-sm font-semibold truncate text-foreground">
                         {assignee.assigneeName}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 ml-4">
-                    <span className="text-sm font-semibold text-right whitespace-nowrap">
+                    <span className="text-sm font-semibold text-right whitespace-nowrap text-foreground">
                       {assignee.patentCount.toLocaleString()}
                     </span>
-                    <span className="text-xs font-medium text-gray-500 min-w-14 text-right">
+                    <span className="text-xs font-medium text-secondary min-w-14 text-right">
                       {assignee.share.toFixed(1)}%
                     </span>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-blue-500 h-full transition-all duration-300"
-                      style={{ width: `${barWidth}%` }}
+                      className="h-full transition-all duration-300"
+                      style={{ width: `${barWidth}%`, backgroundColor: 'var(--primary)' }}
                       title={`${assignee.patentCount} patents (${assignee.share.toFixed(1)}%)`}
                     />
                   </div>
-                  <div className="w-20 bg-gray-200 rounded-full h-2 overflow-hidden" title="Cumulative share">
+                  <div className="w-20 bg-muted rounded-full h-2 overflow-hidden" title="Cumulative share">
                     <div
-                      className="bg-purple-500 h-full transition-all duration-300"
-                      style={{ width: `${Math.min(assignee.cumulativeShare, 100)}%` }}
+                      className="h-full transition-all duration-300"
+                      style={{ width: `${Math.min(assignee.cumulativeShare, 100)}%`, backgroundColor: 'var(--chart-4)' }}
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-4 text-xs text-gray-500 pl-9">
+                <div className="flex gap-4 text-xs text-secondary pl-9">
                   <span>Individual: {assignee.share.toFixed(1)}%</span>
                   <span>Cumulative: {assignee.cumulativeShare.toFixed(1)}%</span>
                 </div>
@@ -107,25 +107,25 @@ export const AssigneeTrendChart: React.FC<AssigneeTrendChartProps> = ({
           })}
 
           {/* Market Concentration Analysis */}
-          <div className="pt-4 border-t space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900">Market Concentration</h4>
+          <div className="pt-4 border-t border-border space-y-3">
+            <h4 className="text-sm font-semibold text-foreground">Market Concentration</h4>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Top 1</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs text-muted-foreground">Top 1</p>
+                <p className="text-lg font-semibold text-foreground">
                   {assigneesWithShare[0]?.share.toFixed(1)}%
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Top 3</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs text-muted-foreground">Top 3</p>
+                <p className="text-lg font-semibold text-foreground">
                   {assigneesWithShare.slice(0, 3).reduce((sum: number, a: any) => sum + a.share, 0).toFixed(1)}%
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Top 5</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs text-muted-foreground">Top 5</p>
+                <p className="text-lg font-semibold text-foreground">
                   {assigneesWithShare.slice(0, 5).reduce((sum: number, a: any) => sum + a.share, 0).toFixed(1)}%
                 </p>
               </div>
@@ -134,8 +134,8 @@ export const AssigneeTrendChart: React.FC<AssigneeTrendChartProps> = ({
             {/* Concentration level indicator */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-600">Market Concentration Index:</span>
-                <span className="font-semibold">
+                <span className="text-muted-foreground">Market Concentration Index:</span>
+                <span className="font-semibold text-foreground">
                   {assigneesWithShare[0]?.share > 25
                     ? '🔴 High (>25%)'
                     : assigneesWithShare[0]?.share > 15
@@ -143,7 +143,7 @@ export const AssigneeTrendChart: React.FC<AssigneeTrendChartProps> = ({
                       : '🟢 Low (<15%)'}
                 </span>
               </div>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 {assigneesWithShare[0]?.share > 25
                   ? 'Market shows significant concentration with dominant player'
                   : assigneesWithShare[0]?.share > 15

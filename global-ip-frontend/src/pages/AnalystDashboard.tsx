@@ -1,4 +1,3 @@
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { AnalystSidebar } from "../components/dashboard/AnalystSidebar";
 import { Search, Network, Flag, Star, Eye, Trash2, Calendar } from "lucide-react";
 import { useState, useEffect, useContext } from "react";
@@ -147,7 +146,6 @@ export function AnalystDashboard() {
 
   const inner = (
     <>
-      <DashboardHeader userName="Analyst" />
       <div className="max-w-7xl mx-auto space-y-8">
       <div className="mb-8">
         <h1 className="text-4xl text-blue-900 mb-2">Analyst Dashboard</h1>

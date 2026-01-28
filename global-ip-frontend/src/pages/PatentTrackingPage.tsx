@@ -4,6 +4,8 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Loader2, AlertCircle, Save, Trash2 } from 'lucide-react';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { useContext } from 'react';
+import { AnalystLayoutContext } from '../components/dashboard/AnalystLayout';
 import { trackingApi} from '../services/trackingAPI';
 
 /**
@@ -126,10 +128,12 @@ export function PatentTrackingPage() {
     }));
   };
 
+  const inAnalystLayout = useContext(AnalystLayoutContext);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-        <DashboardHeader userName="Analyst" />
+        {!inAnalystLayout && <DashboardHeader userName="Analyst" />}
         <div className="flex">
           <Sidebar />
           <main className="flex-1 p-8 flex items-center justify-center">
@@ -145,7 +149,7 @@ export function PatentTrackingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      <DashboardHeader userName="Analyst" />
+      {!inAnalystLayout && <DashboardHeader userName="Analyst" />}
 
       <div className="flex">
         <Sidebar />

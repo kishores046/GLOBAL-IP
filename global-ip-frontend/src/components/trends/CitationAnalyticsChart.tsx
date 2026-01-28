@@ -63,12 +63,12 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
           {/* Most Cited Patents */}
           {hasCitedData && (
           <div className="space-y-4">
-            <div className="border-b pb-3">
-              <h3 className="font-semibold text-green-700">Foundational Patents (Most Cited)</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Patents that represent core technologies other inventions build upon
-              </p>
-            </div>
+              <div className="border-b border-border pb-3">
+                <h3 className="font-semibold text-primary">Foundational Patents (Most Cited)</h3>
+                <p className="text-xs text-secondary mt-1">
+                  Patents that represent core technologies other inventions build upon
+                </p>
+              </div>
 
             {citedData.length > 0 ? (
               <div className="space-y-3">
@@ -80,40 +80,40 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="inline-block w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold text-center flex items-center justify-center">
+                            <span className="inline-block w-6 h-6 rounded-full bg-muted text-primary text-xs font-bold text-center flex items-center justify-center">
                               {idx + 1}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold truncate text-gray-900">
+                              <p className="text-sm font-semibold truncate text-foreground">
                                 {patent.patentId}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">
+                              <p className="text-xs text-muted-foreground truncate">
                                 {patent.assignee}
                               </p>
                             </div>
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-green-600 whitespace-nowrap">
+                        <span className="text-sm font-bold text-primary whitespace-nowrap">
                           {patent.citationCount}
                         </span>
                       </div>
 
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
+                        <div className="flex-1 bg-muted rounded h-2 overflow-hidden">
                           <div
-                            className="bg-green-500 h-full transition-all duration-300"
-                            style={{ width: `${barWidth}%` }}
+                            className="h-full transition-all duration-300"
+                            style={{ width: `${barWidth}%`, backgroundColor: 'var(--chart-2)' }}
                           />
                         </div>
                         {patent.claimComplexity && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-secondary">
                             Complexity: {patent.claimComplexity}
                           </div>
                         )}
                       </div>
 
                       {patent.technologicalField && (
-                        <p className="text-xs text-blue-600">{patent.technologicalField}</p>
+                        <p className="text-xs text-primary">{patent.technologicalField}</p>
                       )}
                     </div>
                   );
@@ -131,9 +131,9 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
           {/* Most Citing Patents */}
           {hasCitingData && (
           <div className="space-y-4">
-            <div className="border-b pb-3">
-              <h3 className="font-semibold text-blue-700">Innovative Patents (Most Citing)</h3>
-              <p className="text-xs text-gray-500 mt-1">
+            <div className="border-b border-border pb-3">
+              <h3 className="font-semibold text-primary">Innovative Patents (Most Citing)</h3>
+              <p className="text-xs text-secondary mt-1">
                 Patents that actively reference others, indicating derivative innovation
               </p>
             </div>
@@ -148,40 +148,40 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="inline-block w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold text-center flex items-center justify-center">
+                            <span className="inline-block w-6 h-6 rounded-full bg-muted text-primary text-xs font-bold text-center flex items-center justify-center">
                               {idx + 1}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold truncate text-gray-900">
+                              <p className="text-sm font-semibold truncate text-foreground">
                                 {patent.patentId}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">
+                              <p className="text-xs text-muted-foreground truncate">
                                 {patent.assignee}
                               </p>
                             </div>
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-blue-600 whitespace-nowrap">
+                        <span className="text-sm font-bold text-primary whitespace-nowrap">
                           {patent.citationCount ?? 0}
                         </span>
                       </div>
 
                       <div className="flex gap-2">
-                        <div className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
+                        <div className="flex-1 bg-muted rounded h-2 overflow-hidden">
                           <div
-                            className="bg-blue-500 h-full transition-all duration-300"
-                            style={{ width: `${barWidth}%` }}
+                            className="h-full transition-all duration-300"
+                            style={{ width: `${barWidth}%`, backgroundColor: 'var(--primary)' }}
                           />
                         </div>
                         {patent.claimComplexity && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-secondary">
                             Complexity: {patent.claimComplexity}
                           </div>
                         )}
                       </div>
 
                       {patent.technologicalField && (
-                        <p className="text-xs text-blue-600">{patent.technologicalField}</p>
+                        <p className="text-xs text-primary">{patent.technologicalField}</p>
                       )}
                     </div>
                   );
@@ -199,32 +199,32 @@ export const CitationAnalyticsChart: React.FC<CitationAnalyticsChartProps> = ({
 
         {/* Summary Analysis */}
         {(hasCitedData || hasCitingData) && (
-        <div className="pt-4 border-t mt-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${hasCitedData && hasCitingData ? 4 : 2}, minmax(0, 1fr))` }}>
+        <div className="pt-4 border-t border-border mt-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${hasCitedData && hasCitingData ? 4 : 2}, minmax(0, 1fr))` }}>
           {hasCitedData && (
             <>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Avg Citations (Cited)</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs text-muted-foreground">Avg Citations (Cited)</p>
+                <p className="text-lg font-semibold text-foreground">
                   {(citedData.reduce((sum: number, p: CitedPatentData) => sum + p.citationCount, 0) / citedData.length).toFixed(0)}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Most Cited</p>
-                <p className="text-lg font-semibold">{citedData[0]?.citationCount ?? 'N/A'}</p>
+                <p className="text-xs text-muted-foreground">Most Cited</p>
+                <p className="text-lg font-semibold text-foreground">{citedData[0]?.citationCount ?? 'N/A'}</p>
               </div>
             </>
           )}
           {hasCitingData && (
             <>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Avg Citations (Citing)</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs text-muted-foreground">Avg Citations (Citing)</p>
+                <p className="text-lg font-semibold text-foreground">
                   {(citingData.reduce((sum: number, p: CitedPatentData) => sum + (p.citationCount ?? 0), 0) / citingData.length).toFixed(0)}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-gray-500">Most Citing</p>
-                <p className="text-lg font-semibold">{citingData[0]?.citationCount ?? 'N/A'}</p>
+                <p className="text-xs text-muted-foreground">Most Citing</p>
+                <p className="text-lg font-semibold text-foreground">{citingData[0]?.citationCount ?? 'N/A'}</p>
               </div>
             </>
           )}

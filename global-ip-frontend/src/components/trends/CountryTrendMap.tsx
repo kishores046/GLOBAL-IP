@@ -39,10 +39,10 @@ export const CountryTrendMap: React.FC<CountryTrendMapProps> = ({
   const totalPatents = sortedData.reduce((sum: number, d: CountryTrendData) => sum + d.patentCount, 0);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-card border-border">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>Patent activity concentration by country</CardDescription>
+        <CardTitle className="text-primary">{title}</CardTitle>
+        <CardDescription className="text-secondary">Patent activity concentration by country</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -55,41 +55,40 @@ export const CountryTrendMap: React.FC<CountryTrendMapProps> = ({
               <div key={country.countryCode} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="font-bold text-sm text-gray-600 min-w-6 text-center">
+                    <span className="font-bold text-sm text-secondary min-w-6 text-center">
                       #{rank}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-semibold text-blue-600 min-w-12">
+                        <span className="font-mono text-sm font-semibold text-primary min-w-12">
                           {country.countryCode}
                         </span>
-                        <span className="text-sm font-medium truncate">
+                        <span className="text-sm font-medium truncate text-foreground">
                           {country.countryName}
                         </span>
                       </div>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3 ml-4">
-                    <span className="text-sm font-semibold text-right whitespace-nowrap">
+                    <span className="text-sm font-semibold text-right whitespace-nowrap text-foreground">
                       {country.patentCount.toLocaleString()}
                     </span>
-                    <span className="text-xs font-medium text-gray-500 min-w-10 text-right">
+                    <span className="text-xs font-medium text-secondary min-w-10 text-right">
                       {percentage}%
                     </span>
                   </div>
                 </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-full transition-all duration-300"
-                    style={{ width: `${barWidth}%` }}
+                    className="h-full transition-all duration-300"
+                    style={{ width: `${barWidth}%`, backgroundColor: 'var(--primary)' }}
                     title={`${country.patentCount} patents (${percentage}%)`}
                   />
                 </div>
 
                 {/* Filing vs Grant comparison */}
-                <div className="flex gap-4 text-xs text-gray-500 pl-9">
+                <div className="flex gap-4 text-xs text-secondary pl-9">
                   <span>Filings: {country.filingCount}</span>
                   <span>Grants: {country.grantCount}</span>
                 </div>
@@ -98,22 +97,22 @@ export const CountryTrendMap: React.FC<CountryTrendMapProps> = ({
           })}
 
           {/* Summary Stats */}
-          <div className="pt-4 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="pt-4 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Total Countries</p>
-              <p className="text-lg font-semibold">{data.length}</p>
+              <p className="text-xs text-muted-foreground">Total Countries</p>
+              <p className="text-lg font-semibold text-foreground">{data.length}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Total Patents</p>
-              <p className="text-lg font-semibold">{totalPatents.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Total Patents</p>
+              <p className="text-lg font-semibold text-foreground">{totalPatents.toLocaleString()}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Top Country</p>
-              <p className="text-lg font-semibold">{sortedData[0]?.countryName}</p>
+              <p className="text-xs text-muted-foreground">Top Country</p>
+              <p className="text-lg font-semibold text-foreground">{sortedData[0]?.countryName}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-gray-500">Concentration (Top 3)</p>
-              <p className="text-lg font-semibold">
+              <p className="text-xs text-muted-foreground">Concentration (Top 3)</p>
+              <p className="text-lg font-semibold text-foreground">
                 {((sortedData.slice(0, 3).reduce((sum: number, c: CountryTrendData) => sum + c.patentCount, 0) / totalPatents) * 100).toFixed(1)}%
               </p>
             </div>

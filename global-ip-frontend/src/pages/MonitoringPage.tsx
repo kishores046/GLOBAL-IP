@@ -213,7 +213,7 @@ export function MonitoringPage() {
 
   const inner = (
     <>
-      <DashboardHeader userName="Analyst" />
+      {!inAnalystLayout && <DashboardHeader userName="Analyst" />}
       <main className="p-8">
           {/* Page Header */}
           <div className="mb-8">

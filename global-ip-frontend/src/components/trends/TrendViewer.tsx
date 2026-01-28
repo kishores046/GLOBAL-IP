@@ -45,9 +45,9 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
 
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-destructive bg-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-red-900">{title}</CardTitle>
+          <CardTitle className="text-primary">{title}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
@@ -58,9 +58,9 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
           </Button>
         </CardHeader>
         <CardContent>
-          <Alert className="bg-red-100 border-red-300">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700">
+          <Alert className="bg-accent border-muted">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-secondary">
               {error.message || 'Failed to load trend data'}
             </AlertDescription>
           </Alert>
@@ -73,7 +73,7 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="text-primary">{title}</CardTitle>
           <Button
             variant="ghost"
             size="sm"
@@ -85,8 +85,8 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">Loading {title}...</span>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-secondary">Loading {title}...</span>
           </div>
         </CardContent>
       </Card>
@@ -126,8 +126,8 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <div>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>Detailed trend analysis</CardDescription>
+          <CardTitle className="text-primary">{title}</CardTitle>
+          <CardDescription className="text-secondary">Detailed trend analysis</CardDescription>
         </div>
         <Button
           variant="ghost"
@@ -150,7 +150,7 @@ export const TrendViewer: React.FC<TrendViewerProps> = ({
           }
           return <ChartComponent data={transformedData} />;
         })() : (
-          <div className="py-8 text-center text-gray-600">
+          <div className="py-8 text-center text-secondary">
             Chart component not found for this trend
           </div>
         )}

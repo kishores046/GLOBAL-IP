@@ -100,34 +100,106 @@ springdoc:
 
   # API Groups
   group-configs:
+    # ================= AUTH & SECURITY =================
     - group: authentication
+      display-name: Authentication & Login
       paths-to-match: /api/auth/**
-      display-name: Authentication API
 
-    - group: search
-      paths-to-match: /api/search/**
-      display-name: Search API
+    - group: api-keys
+      display-name: API Key Management
+      paths-to-match: /api/settings/api-keys/**
 
-    - group: patents
-      paths-to-match: /api/patents/**
-      display-name: Patents API
-
-    - group: trademarks
-      paths-to-match: /api/trademarks/**
-      display-name: Trademarks API
-
+    # ================= USER =================
     - group: user
+      display-name: User Management
       paths-to-match: /api/user/**
-      display-name: User Management API
 
+    # ================= ADMIN =================
     - group: admin
+      display-name: Admin Operations
       paths-to-match: /api/admin/**
-      display-name: Admin API
 
+    # ================= SEARCH =================
+    - group: search
+      display-name: Patent & Trademark Search
+      paths-to-match: /api/search/**
+
+    # ================= PATENTS =================
+    - group: patents
+      display-name: Patent Core APIs
+      paths-to-match: /api/patents/**
+
+    # ================= PATENT CITATIONS =================
+    - group: patent-citations
+      display-name: Patent Citation Analytics
+      paths-to-match: /api/patents/*/citations/**
+
+    # ================= PATENT TRACKING =================
+    - group: patent-tracking
+      display-name: Patent Tracking Preferences
+      paths-to-match: /api/tracking/**
+
+    # ================= PATENT LIFECYCLE =================
+    - group: patent-lifecycle
+      display-name: Patent Lifecycle Analytics
+      paths-to-match: /api/analyst/patents/**
+
+    # ================= TRADEMARKS =================
+    - group: trademarks
+      display-name: Trademark Core APIs
+      paths-to-match: /api/trademarks/**
+
+    # ================= TRADEMARK LIFECYCLE =================
+    - group: trademark-lifecycle
+      display-name: Trademark Lifecycle Analytics
+      paths-to-match: /api/analyst/trademarks/**
+
+    # ================= TRADEMARK TRENDS =================
+    - group: trademark-trends
+      display-name: Trademark Trends & Analytics
+      paths-to-match: /api/trends/trademarks/**
+
+    # ================= ANALYST CORE =================
     - group: analyst
+      display-name: Analyst Core APIs
       paths-to-match: /api/analyst/**
-      display-name: Analyst API
 
+    # ================= USPTO TRENDS =================
+    - group: uspto-trends
+      display-name: USPTO Patent Trends
+      paths-to-match: /api/analyst/trend/**
+
+    # ================= EPO TRENDS =================
+    - group: epo-trends
+      display-name: EPO Patent Trends
+      paths-to-match: /api/analyst/epo/trends/**
+
+    # ================= UNIFIED TRENDS =================
+    - group: unified-trends
+      display-name: Unified Patent Trends (USPTO + EPO)
+      paths-to-match: /api/analyst/unified/trends/**
+
+    # ================= ANALYTICS REPORTS =================
+    - group: analytics-reports
+      display-name: Analytics Reports & Dashboards
+      paths-to-match:
+        - /api/analyst/trend/reports/**
+        - /api/analyst/trend/dashboard/**
+
+    # ================= SUBSCRIPTIONS =================
+    - group: subscriptions
+      display-name: Monitoring Subscriptions
+      paths-to-match: /api/subscriptions/**
+
+    # ================= COMPETITORS =================
+    - group: competitors
+      display-name: Competitor Management
+      paths-to-match: /api/competitors/**
+
+    # ================= COMPETITOR FILINGS =================
+    - group: competitor-filings
+      display-name: Competitor Filing Monitoring
+      paths-to-match: /api/competitors/filings/**
 competitor:
   filing:
     scheduler:
@@ -319,34 +391,106 @@ springdoc:
 
   # API Groups
   group-configs:
+    # ================= AUTH & SECURITY =================
     - group: authentication
+      display-name: Authentication & Login
       paths-to-match: /api/auth/**
-      display-name: Authentication API
 
-    - group: search
-      paths-to-match: /api/search/**
-      display-name: Search API
+    - group: api-keys
+      display-name: API Key Management
+      paths-to-match: /api/settings/api-keys/**
 
-    - group: patents
-      paths-to-match: /api/patents/**
-      display-name: Patents API
-
-    - group: trademarks
-      paths-to-match: /api/trademarks/**
-      display-name: Trademarks API
-
+    # ================= USER =================
     - group: user
+      display-name: User Management
       paths-to-match: /api/user/**
-      display-name: User Management API
 
+    # ================= ADMIN =================
     - group: admin
+      display-name: Admin Operations
       paths-to-match: /api/admin/**
-      display-name: Admin API
 
+    # ================= SEARCH =================
+    - group: search
+      display-name: Patent & Trademark Search
+      paths-to-match: /api/search/**
+
+    # ================= PATENTS =================
+    - group: patents
+      display-name: Patent Core APIs
+      paths-to-match: /api/patents/**
+
+    # ================= PATENT CITATIONS =================
+    - group: patent-citations
+      display-name: Patent Citation Analytics
+      paths-to-match: /api/patents/*/citations/**
+
+    # ================= PATENT TRACKING =================
+    - group: patent-tracking
+      display-name: Patent Tracking Preferences
+      paths-to-match: /api/tracking/**
+
+    # ================= PATENT LIFECYCLE =================
+    - group: patent-lifecycle
+      display-name: Patent Lifecycle Analytics
+      paths-to-match: /api/analyst/patents/**
+
+    # ================= TRADEMARKS =================
+    - group: trademarks
+      display-name: Trademark Core APIs
+      paths-to-match: /api/trademarks/**
+
+    # ================= TRADEMARK LIFECYCLE =================
+    - group: trademark-lifecycle
+      display-name: Trademark Lifecycle Analytics
+      paths-to-match: /api/analyst/trademarks/**
+
+    # ================= TRADEMARK TRENDS =================
+    - group: trademark-trends
+      display-name: Trademark Trends & Analytics
+      paths-to-match: /api/trends/trademarks/**
+
+    # ================= ANALYST CORE =================
     - group: analyst
+      display-name: Analyst Core APIs
       paths-to-match: /api/analyst/**
-      display-name: Analyst API
 
+    # ================= USPTO TRENDS =================
+    - group: uspto-trends
+      display-name: USPTO Patent Trends
+      paths-to-match: /api/analyst/trend/**
+
+    # ================= EPO TRENDS =================
+    - group: epo-trends
+      display-name: EPO Patent Trends
+      paths-to-match: /api/analyst/epo/trends/**
+
+    # ================= UNIFIED TRENDS =================
+    - group: unified-trends
+      display-name: Unified Patent Trends (USPTO + EPO)
+      paths-to-match: /api/analyst/unified/trends/**
+
+    # ================= ANALYTICS REPORTS =================
+    - group: analytics-reports
+      display-name: Analytics Reports & Dashboards
+      paths-to-match:
+        - /api/analyst/trend/reports/**
+        - /api/analyst/trend/dashboard/**
+
+    # ================= SUBSCRIPTIONS =================
+    - group: subscriptions
+      display-name: Monitoring Subscriptions
+      paths-to-match: /api/subscriptions/**
+
+    # ================= COMPETITORS =================
+    - group: competitors
+      display-name: Competitor Management
+      paths-to-match: /api/competitors/**
+
+    # ================= COMPETITOR FILINGS =================
+    - group: competitor-filings
+      display-name: Competitor Filing Monitoring
+      paths-to-match: /api/competitors/filings/**
 patent-analytics:
   service-api-key: ${TRENDS_SERVICE_API_KEY}
   base-url: http://localhost:8081

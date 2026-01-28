@@ -71,17 +71,23 @@ export function LoginPage() {
       const primaryRole = roleString?.replace(/^ROLE_/, '').toLowerCase() || "user";
       console.log("Primary role (processed):", primaryRole);
       
-      // Navigate to appropriate dashboard based on role
+      // Decide dashboard route and persist as lastDashboard so sidebar uses it
+      let dashboardRoute = "/dashboard/user";
       if (primaryRole === "admin") {
-        console.log("Navigating to admin dashboard");
-        navigate("/dashboard/admin", { replace: true });
+        dashboardRoute = "/dashboard/admin";
       } else if (primaryRole === "analyst") {
-        console.log("Navigating to analyst dashboard");
-        navigate("/dashboard/analyst", { replace: true });
-      } else {
-        console.log("Navigating to user dashboard");
-        navigate("/dashboard/user", { replace: true });
+        dashboardRoute = "/dashboard/analyst";
       }
+
+      // Persist last dashboard for the session (used by Sidebar dashboard button)
+      try {
+        localStorage.setItem("lastDashboard", dashboardRoute);
+      } catch (e) {
+        console.warn('Unable to persist lastDashboard to localStorage', e);
+      }
+
+      console.log("Navigating to", dashboardRoute);
+      navigate(dashboardRoute, { replace: true });
     } catch (err: any) {
       const errorMessage = err.message ?? "Login failed. Please try again.";
       setError(errorMessage);

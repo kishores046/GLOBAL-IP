@@ -17,6 +17,7 @@ export const TrademarkTrendLazyDashboard: React.FC = () => {
   const [trademarkStates, setTrademarkStates] = useState<
     Record<string, { loading: boolean; error: Error | null; data: any }>
   >({});
+  
 
   const handleCardClick = useCallback(async (card: TrademarkCardConfig) => {
     // Check if already loaded and cached
@@ -111,14 +112,14 @@ export const TrademarkTrendLazyDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Trademark Trend Analysis</h1>
-              <p className="text-gray-700 dark:text-gray-200 mt-2 font-medium">
+              <h1 className="text-4xl font-bold text-gray-900">Trademark Trend Analysis</h1>
+              <p className="text-gray-700 mt-2 font-medium">
                 Click any card to explore detailed trademark trends. Data loads on-demand for optimal performance.
               </p>
             </div>
