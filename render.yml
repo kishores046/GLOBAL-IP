@@ -1,0 +1,201 @@
+
+
+services:
+ 
+  - type: pserv
+    name: ip-platform-db
+    plan: free
+    databaseName: ipdb
+    region: oregon
+    ipAllowList: []
+
+  
+  - type: web
+    name: patent-trends-service
+    runtime: java
+    plan: free
+    region: oregon
+    
+  
+    rootDir: patent-trends-service
+    
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Xmx450m -Xms256m -XX:+UseSerialGC -jar target/*.jar
+    
+    healthCheckPath: /actuator/health
+    
+    envVars:
+      # Spring Profile
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      # Database (Shared PostgreSQL with 'trends' schema)
+      - key: DB_URL
+        fromDatabase:
+          name: ip-platform-db
+          property: connectionString
+      
+      - key: DB_USERNAME
+        fromDatabase:
+          name: ip-platform-db
+          property: user
+      
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ip-platform-db
+          property: password
+      
+     
+      - key: TREND_SERVICE_API_KEY
+        generateValue: true
+        sync: false
+      
+   
+      - key: PORT
+        value: 10000
+
+ 
+  - type: web
+    name: mock-tm-service
+    runtime: java
+    plan: free
+    region: oregon
+    
+
+    rootDir: tm-mock-service
+    
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Xmx450m -Xms256m -XX:+UseSerialGC -jar target/*.jar
+    
+    healthCheckPath: /actuator/health
+    
+    envVars:
+   
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      
+      - key: DB_URL
+        sync: false
+      
+      
+      - key: DB_USERNAME
+        sync: false
+    
+      
+      - key: DB_PASSWORD
+        sync: false
+      
+      
+     
+      - key: TRADEMARK_SERVICE_API_KEY
+        generateValue: true
+        sync: false
+      
+      - key: PORT
+        value: 10000
+
+
+  - type: web
+    name: global-ip-core
+    runtime: java
+    plan: free
+    region: oregon
+    
+  
+    rootDir: global-ip-core
+    
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Xmx450m -Xms256m -XX:+UseSerialGC -jar target/*.jar
+    
+    healthCheckPath: /actuator/health
+    
+    envVars:
+      # Spring Profile
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      
+      - key: DB_URL
+        fromDatabase:
+          name: ip-platform-db
+          property: connectionString
+      
+      - key: DB_USER
+        fromDatabase:
+          name: ip-platform-db
+          property: user
+      
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ip-platform-db
+          property: password
+      
+     
+      - key: JWT_SECRET
+        generateValue: true
+        sync: false
+      
+      - key: EXPIRATION
+        value: 3600000
+      
+      - key: ISSUER
+        value: ip-platform
+      
+      - key: AUDIENCE
+        value: ip-users
+      
+     
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      
+      
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      
+     
+      - key: EPO_BASE_URL
+        value: https://ops.epo.org/3.2
+      
+      - key: EPO_CONSUMER_KEY
+        sync: false
+      
+      - key: EPO_CONSUMER_SECRET
+        sync: false
+      
+    
+      - key: PATENTS_VIEW_API_KEY
+        sync: false
+      
+      - key: PATENTS_VIEW_API_URL
+        value: https://api.patentsview.org
+      
+   
+      - key: TRENDS_SERVICE_API_KEY
+        sync: false
+     
+      
+      - key: TRADEMARK_SERVICE_API_KEY
+        sync: false
+      
+    
+      - key: PATENT_ANALYTICS_URL
+        value: https://patent-trends-service.onrender.com
+      
+      - key: TRADEMARK_URL
+        value: https://mock-tm-service.onrender.com
+      
+ 
+      - key: FRONTEND_URL
+        sync: false
+        # You'll set this after deploying frontend to Vercel
+      
+  
+      - key: PORT
+        value: 10000
