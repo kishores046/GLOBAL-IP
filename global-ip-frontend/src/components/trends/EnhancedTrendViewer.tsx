@@ -16,6 +16,12 @@ interface EnhancedTrendViewerProps {
   loading: boolean;
   error: Error | null;
   isDark?: boolean;
+  // Optional client-side filters applied only in the viewer (per-card)
+  clientFilters?: {
+    startYear?: number;
+    endYear?: number;
+    limit?: number;
+  };
 }
 
 /**
@@ -321,14 +327,52 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   loading,
   error,
   isDark = false,
+  clientFilters,
 }) => {
   const transformedData = useMemo(() => {
-    return formatChartData(trendId, data);
+    const base = formatChartData(trendId, data);
+    // Client-side slicing for technology evolution by year range
+    if (trendId === 'technology-evolution' && Array.isArray(base) && (typeof ({} as any).clientFilters !== 'undefined')) {
+      // clientFilters won't be visible here; slicing is handled below using the prop
+    }
+    return base;
   }, [trendId, data]);
 
+  // Compute displayData applying client-side limit / year slicing when provided
+  const displayData = useMemo(() => {
+    if (!transformedData || !Array.isArray(transformedData)) return transformedData;
+
+    // Copy so we don't mutate original
+    let items = [...transformedData];
+
+    // Technology evolution: client-side year slice
+    if (trendId === 'technology-evolution' && clientFilters) {
+      const s = clientFilters.startYear;
+      const e = clientFilters.endYear;
+      if (s !== undefined || e !== undefined) {
+        items = items.filter((row: any) => {
+          const year = Number(row.year);
+          if (Number.isNaN(year)) return false;
+          if (s !== undefined && year < s) return false;
+          if (e !== undefined && year > e) return false;
+          return true;
+        });
+      }
+    }
+
+    // Apply limit for top lists if provided via clientFilters.limit
+    const limit = clientFilters?.limit;
+    if (limit && Number(limit) > 0) {
+      items = items.slice(0, Number(limit));
+    }
+
+    return items;
+  }, [transformedData, trendId, clientFilters?.startYear, clientFilters?.endYear, clientFilters?.limit]);
+
   const handleExportChart = () => {
-    if (!transformedData || transformedData.length === 0) return;
-    const csv = convertToCSV(transformedData);
+    const exportArray = Array.isArray(displayData) ? displayData : transformedData;
+    if (!exportArray || exportArray.length === 0) return;
+    const csv = convertToCSV(exportArray as any[]);
     downloadCSV(csv, `${trendId}-${new Date().toISOString().split('T')[0]}.csv`);
   };
 
@@ -447,6 +491,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   // Render appropriate chart based on trend type
   const renderChart = () => {
     console.log(`[EnhancedTrendViewer] renderChart called for ${trendId}, transformedData:`, transformedData);
+    const listHeight = Math.max(300, (Array.isArray(displayData) ? displayData.length : transformedData.length) * 30);
     switch (trendId) {
       case 'filing-trends':
         return (
@@ -474,22 +519,22 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       case 'top-technologies':
         return (
           <BarChartComponent
-            data={transformedData.slice(0, 10)}
+            data={displayData}
             dataKey="count"
             nameKey="cpcGroup"
             horizontal={true}
-            height={400}
+            height={listHeight}
             isDark={isDark}
           />
         );
       case 'top-assignees':
         return (
           <BarChartComponent
-            data={transformedData.slice(0, 10)}
+            data={displayData}
             dataKey="patentCount"
             nameKey="assigneeName"
             horizontal={true}
-            height={400}
+            height={listHeight}
             isDark={isDark}
           />
         );
@@ -497,10 +542,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       case 'country-distribution':
         return (
           <BarChartComponent
-            data={transformedData.slice(0, 10)}
+            data={displayData}
             dataKey="patentCount"
             nameKey="countryName"
-            height={300}
+            horizontal={true}
+            height={listHeight}
             isDark={isDark}
           />
         );
@@ -508,11 +554,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       case 'top-cited-patents':
         return (
           <BarChartComponent
-            data={transformedData.slice(0, 10)}
+            data={displayData}
             dataKey="citationCount"
             nameKey="patentId"
-            horizontal={false}
-            height={400}
+            horizontal={true}
+            height={listHeight}
             isDark={isDark}
           />
         );
@@ -520,11 +566,11 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       case 'top-citing-patents':
         return (
           <BarChartComponent
-            data={transformedData.slice(0, 10)}
+            data={displayData}
             dataKey="citationCount"
             nameKey="patentId"
             horizontal={true}
-            height={350}
+            height={listHeight}
             isDark={isDark}
           />
         );
@@ -575,7 +621,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       case 'technology-evolution':
         return (
           <LineChartComponent
-            data={transformedData}
+            data={displayData}
             dataKey="totalCount"
             name="Total Count"
             height={400}

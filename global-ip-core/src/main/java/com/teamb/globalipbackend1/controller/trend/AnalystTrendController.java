@@ -205,54 +205,6 @@ public class AnalystTrendController {
         return ResponseEntity.ok(result);
     }
 
-    @Operation(
-            summary = "Comprehensive dashboard",
-            description = "Returns a consolidated analytics dashboard for a given year.",
-            responses = @ApiResponse(responseCode = "200", description = "Dashboard data returned")
-    )
-
-    @GetMapping("/dashboard/{year}")
-    public ResponseEntity<@NonNull Map<String, Object>> dashboard(
-            @PathVariable
-            @Min(1900) @Max(2100) int year) {
-
-        log.info("[DASHBOARD] Comprehensive dashboard request year={}", year);
-        Map<String, Object> result = analyticsService.getComprehensiveDashboard(year);
-        log.info("[DASHBOARD] Dashboard response keys={}", result.keySet());
-        return ResponseEntity.ok(result);
-    }
-
-    @Operation(
-            summary = "Generate analytics report",
-            description = "Generates and stores a yearly analytics report.",
-            responses = @ApiResponse(responseCode = "200", description = "Report generated successfully")
-    )
-
-    @PostMapping("/reports/generate")
-    public ResponseEntity<@NonNull AnalyticsReport> generateReport(
-            @RequestParam String reportName,
-            @RequestParam
-            @Min(1900) @Max(2100) int year) {
-
-        log.info("[REPORT] Generate report request name='{}', year={}", reportName, year);
-        AnalyticsReport report = analyticsService.generateAndSaveReport(reportName, year);
-        log.info("[REPORT] Report generated id={}, name='{}'",
-                report.getId(), report.getReportName());
-        return ResponseEntity.ok(report);
-    }
-
-    @Operation(
-            summary = "List analytics reports",
-            description = "Returns all generated analytics reports.",
-            responses = @ApiResponse(responseCode = "200", description = "Reports returned successfully")
-    )
-    @GetMapping("/reports")
-    public ResponseEntity<@NonNull List<AnalyticsReport>> getAllReports() {
-        log.info("[REPORT] Fetch all analytics reports request received");
-        List<AnalyticsReport> reports = analyticsService.getAllReports();
-        log.info("[REPORT] Total reports fetched={}", reports.size());
-        return ResponseEntity.ok(reports);
-    }
 
     @Operation(
             summary = "Technology evolution trends",

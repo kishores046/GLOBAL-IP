@@ -1,15 +1,16 @@
 server:
-  port: ${SERVER_PORT}
+  port: ${PORT}
 spring:
   profiles:
     active: prod
 
 ---
+server:
+  port: ${PORT:8080}
 
 spring:
   application:
     name: patent-trends-service
-
 
   config:
     activate:
@@ -21,12 +22,12 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 30              # INCREASED from 10
-      minimum-idle: 10                   # INCREASED from 2
-      idle-timeout: 600000               # INCREASED (10 minutes)
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 600000
       connection-timeout: 30000
       max-lifetime: 1800000
-      leak-detection-threshold: 600000   # ADDED - detect connection leaks
+      leak-detection-threshold: 600000
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -36,12 +37,11 @@ spring:
     properties:
       hibernate:
         default_schema: public
-        format_sql: true
+        format_sql: false
         jdbc:
-          batch_size: 1000
+          batch_size: 100
         order_inserts: true
         order_updates: true
-        # ADDED - Query timeout
         jakarta.persistence.query.timeout: 20000
 
   sql:
@@ -50,8 +50,7 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: INFO
     com.zaxxer.hikari: INFO
 
 management:

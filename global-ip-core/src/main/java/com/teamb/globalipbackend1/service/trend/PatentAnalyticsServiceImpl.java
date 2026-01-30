@@ -48,51 +48,6 @@ public class PatentAnalyticsServiceImpl implements PatentAnalyticsService {
         return patentClient.getTopTechnologies(limit);
     }
 
-    @Override
-    public Map<String, Object> getComprehensiveDashboard(int year) {
-        log.info("Building comprehensive dashboard for year {}", year);
-
-        // Parallel fetch for performance
-        CompletableFuture<YearSummaryDto> summaryFuture =
-                patentClient.getYearSummaryAsync(year);
-        CompletableFuture<List<FilingTrendDto>> filingsFuture =
-                patentClient.getFilingTrendAsync();
-
-        List<GrantTrendDto> grants = patentClient.getGrantTrend();
-        List<TechnologyTrendDto> topTech = patentClient.getTopTechnologies(10);
-        List<AssigneeTrendDto> topAssignees = patentClient.getTopAssignees(10);
-
-        YearSummaryDto summary = summaryFuture.join();
-        List<FilingTrendDto> filings = filingsFuture.join();
-
-        Map<String, Object> dashboard = new HashMap<>();
-        dashboard.put("yearSummary", summary);
-        dashboard.put("filingTrend", filings);
-        dashboard.put("grantTrend", grants);
-        dashboard.put("topTechnologies", topTech);
-        dashboard.put("topAssignees", topAssignees);
-        dashboard.put("generatedAt", LocalDateTime.now());
-
-        return dashboard;
-    }
-
-    @Override
-    @Transactional
-    public AnalyticsReport generateAndSaveReport(String reportName, int year) {
-        log.info("Generating report '{}' for year {}", reportName, year);
-
-        Map<String, Object> data = getComprehensiveDashboard(year);
-
-        AnalyticsReport report = AnalyticsReport.builder()
-                .reportName(reportName)
-                .reportYear(year)
-                .reportData(data.toString())
-                .generatedAt(LocalDateTime.now())
-                .generatedBy("SYSTEM")
-                .build();
-
-        return reportRepository.save(report);
-    }
 
 
     @Override
@@ -114,11 +69,6 @@ public class PatentAnalyticsServiceImpl implements PatentAnalyticsService {
     @Override
     public void scheduleReportGeneration(String cronExpression) {
         log.info("Scheduling report generation with cron: {}", cronExpression);
-    }
-
-    @Override
-    public List<AnalyticsReport> getAllReports() {
-        return reportRepository.findAllByOrderByGeneratedAtDesc();
     }
 
     @Override

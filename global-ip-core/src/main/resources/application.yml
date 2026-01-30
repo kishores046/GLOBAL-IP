@@ -285,13 +285,13 @@ server:
 
 patent-analytics:
   service-api-key: ${TRENDS_SERVICE_API_KEY}
-  base-url: http://localhost:8081
+  base-url: ${PATENT_ANALYTICS_URL}
   api-path: /api/trends
   timeout: 180
   max-retries : 3
 services:
   trademark:
-    base-url: http://localhost:9090
+    base-url: ${TRADEMARK_URL}
     service-api-key: ${TRADEMARK_SERVICE_API_KEY}
 
 epo:
@@ -315,16 +315,18 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 5
+      minimum-idle: 2
       connection-timeout: 30000
 
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: public
 
   sql:
     init:
@@ -357,7 +359,7 @@ jwt:
   audience : ${AUDIENCE}
 
 server:
-  port: ${SERVER_PORT}
+  port: ${PORT}
 
 epo:
   base-url: ${EPO_BASE_URL}
@@ -493,12 +495,57 @@ springdoc:
       paths-to-match: /api/competitors/filings/**
 patent-analytics:
   service-api-key: ${TRENDS_SERVICE_API_KEY}
-  base-url: http://localhost:8081
+  base-url: ${PATENT_ANALYTICS_URL:https://patent-trends-service.onrender.com}
   api-path: /api/trends
   timeout: 180
   max-retries : 3
 
 
+services:
+  trademark:
+    base-url: ${TRADEMARK_URL:https://mock-tm-service.onrender.com}
+    service-api-key: ${TRADEMARK_SERVICE_API_KEY}
+
+rest:
+  websocket:
+    allowed-origins:
+      - ${FRONTEND_URL:https://your-frontend.vercel.app}
+      - https://global-ip-core.onrender.com
+    message-size-limit: 65536
+    send-buffer-size-limit: 524288
+    send-time-limit: 20000
+  template:
+    connection-timeout: 30000
+    read-timeout: 30000
+  task:
+    scheduling:
+          enabled: true
+          pool:
+            size: 5
+          thread-name-prefix: patent-tracking-
+          shutdown:
+            await-termination: true
+            await-termination-period: 30s
 
 
+
+competitor:
+  filing:
+    scheduler:
+      enabled: true
+      timezone: UTC
+
+      # Weekly sync - Every Monday at 3 AM
+      weekly:
+        cron: "0 0 3 * * MON"
+
+      # Daily sync (disabled by default)
+      daily:
+        enabled: true
+        cron: "0 0 2 * * *"
+
+      # Monthly full sync (disabled by default)
+      monthly:
+        enabled: true
+        cron: "0 0 1 1 * *"
 

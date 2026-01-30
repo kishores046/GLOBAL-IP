@@ -10,13 +10,17 @@ import java.util.List;
 
 @Repository
 public interface EpoPatentCpcRepository extends JpaRepository<@NonNull EpoPatentCpcEntity, @NonNull Long> {
+
     boolean existsByEpoPatentIdAndCpcSectionAndCpcClass(
             String epoPatentId, String cpcSection, String cpcClass);
 
+    /**
+     * Get top technologies (CPC sections) using aggregated table for improved performance
+     * Returns: cpc_section, cnt
+     */
     @Query(value = """
-        SELECT cpc_section, COUNT(DISTINCT epo_patent_id) AS cnt
-        FROM public.epo_patent_cpc
-        GROUP BY cpc_section
+        SELECT cpc_section, cnt
+        FROM public.epo_agg_top_technologies
         ORDER BY cnt DESC
         """, nativeQuery = true)
     List<Object[]> topTechnologies();

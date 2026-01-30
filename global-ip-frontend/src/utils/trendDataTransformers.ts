@@ -109,6 +109,11 @@ export const trendTransformers: Record<string, (data: any) => any> = {
   'claim-complexity': transformClaimComplexity,
   'time-to-grant': transformTimeToGrant,
   'technology-evolution': transformTechnologyTrends,
+  // European frontend cards reuse existing transformers
+  'european-filings': transformFilingTrends,
+  'european-top-technologies': transformTechnologyTrends,
+  'european-top-assignees': transformAssigneeTrends,
+  'european-country-distribution': transformCountryTrends,
 };
 
 export const getTransformedData = (trendId: string, data: any): any => {

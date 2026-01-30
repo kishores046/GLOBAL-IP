@@ -431,6 +431,76 @@ export const trendAnalysisAPI = {
     }
   },
 
+  // Frontend wrappers for European (EPO) endpoints — client-only wrappers
+  getEpoFilings: async (filters?: TrendFilterOptions): Promise<FilingTrendResponse> => {
+    const cacheKey = generateCacheKey('epo-filings', filters);
+    const cached = getCachedData(cacheKey) as FilingTrendResponse | null;
+    if (cached) return cached;
+
+    try {
+      const response = await trendApi.get<FilingTrendResponse>('/epo/trends/filings', {
+        params: filters,
+      });
+      setCacheData(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching EPO filings:', error);
+      return { data: [], period: { startYear: filters?.startYear || 2000, endYear: filters?.endYear || new Date().getFullYear() } };
+    }
+  },
+
+  getEpoCountries: async (filters?: TrendFilterOptions, limit: number = 10): Promise<CountryTrendResponse> => {
+    const startDate = filters?.startYear ? `${filters.startYear}-01-01` : undefined;
+    const cacheKey = generateCacheKey('epo-countries', filters) + `:startDate:${startDate || ''}:limit:${limit}`;
+    const cached = getCachedData(cacheKey) as CountryTrendResponse | null;
+    if (cached) return cached;
+
+    try {
+      const response = await trendApi.get<CountryTrendResponse>('/epo/trends/countries', {
+        params: { startDate, limit },
+      });
+      setCacheData(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching EPO countries:', error);
+      return { countries: [], totalCountries: 0 };
+    }
+  },
+
+  getEpoTechnologies: async (filters?: TrendFilterOptions, limit: number = 10): Promise<TechnologyTrendResponse> => {
+    const cacheKey = generateCacheKey('epo-technologies', filters) + `:limit:${limit}`;
+    const cached = getCachedData(cacheKey) as TechnologyTrendResponse | null;
+    if (cached) return cached;
+
+    try {
+      const response = await trendApi.get<TechnologyTrendResponse>('/epo/trends/technologies/top', {
+        params: { ...filters, limit },
+      });
+      setCacheData(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching EPO technologies:', error);
+      return { topTechnologies: [], evolutionData: [] };
+    }
+  },
+
+  getEpoAssignees: async (filters?: TrendFilterOptions, limit: number = 10): Promise<AssigneeTrendResponse> => {
+    const cacheKey = generateCacheKey('epo-assignees', filters) + `:limit:${limit}`;
+    const cached = getCachedData(cacheKey) as AssigneeTrendResponse | null;
+    if (cached) return cached;
+
+    try {
+      const response = await trendApi.get<AssigneeTrendResponse>('/epo/trends/assignees/top', {
+        params: { ...filters, limit },
+      });
+      setCacheData(cacheKey, response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching EPO assignees:', error);
+      return { topAssignees: [], totalAssignees: 0 };
+    }
+  },
+
   // Utility: Clear cache
   clearCache: (): void => {
     trendCache.clear();

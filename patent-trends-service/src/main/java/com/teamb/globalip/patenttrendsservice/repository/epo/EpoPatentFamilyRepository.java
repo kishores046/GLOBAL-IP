@@ -9,16 +9,15 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EpoPatentFamilyRepository extends JpaRepository<@NonNull EpoPatentFamilyEntity,@NonNull Long> {
+public interface EpoPatentFamilyRepository extends JpaRepository<@NonNull EpoPatentFamilyEntity, @NonNull Long> {
+
+    /**
+     * Get family size distribution using aggregated table for improved performance
+     * Returns: family_size, family_count
+     */
     @Query(value = """
-        SELECT family_size, COUNT(*) AS family_count
-        FROM (
-            SELECT family_id, COUNT(DISTINCT country) AS family_size
-            FROM public.epo_patent
-            WHERE family_id IS NOT NULL
-            GROUP BY family_id
-        ) sub
-        GROUP BY family_size
+        SELECT family_size, family_count
+        FROM public.epo_agg_family_size_distribution
         ORDER BY family_size
         """, nativeQuery = true)
     List<Object[]> familySizeDistribution();

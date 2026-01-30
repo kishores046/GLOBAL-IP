@@ -21,8 +21,8 @@ export const TrendDashboard: React.FC = () => {
   });
 
   const [limit, setLimit] = useState(10);
-  
-  const [showFilters, setShowFilters] = useState(false);
+  // Per-card filters: key is card.id
+  const [perCardFilters, setPerCardFilters] = useState<Record<string, { startYear?: number; endYear?: number; limit?: number }>>({});
   const [activeTrend, setActiveTrend] = useState<ActivTrendState | null>(null);
 
   // Map to store per-card loading and error states
@@ -57,8 +57,12 @@ export const TrendDashboard: React.FC = () => {
       });
 
       try {
-        // Fetch only this specific trend (lazy load) - pass limit for cards that need it
-        const data = await card.fetchFunction(filters, limit);
+        // Determine per-card filters (if any) and pass only for this card
+        const pf = perCardFilters[card.id] || {};
+        const data = await card.fetchFunction(
+          { startYear: pf.startYear, endYear: pf.endYear },
+          pf.limit ?? limit
+        );
         console.debug(`[TrendDashboard] Fetched data for ${card.id}:`, data);
         setTrendStates((prev) => ({
           ...prev,
@@ -85,7 +89,25 @@ export const TrendDashboard: React.FC = () => {
         });
       }
     },
-    [filters, limit, trendStates]
+    [perCardFilters, limit, trendStates]
+  );
+
+  const applyPerCardFilters = useCallback(
+    async (card: TrendCardConfig, newFilters: { startYear?: number; endYear?: number; limit?: number }) => {
+      setPerCardFilters((prev) => ({ ...prev, [card.id]: newFilters }));
+      setTrendStates((prev) => ({ ...prev, [card.id]: { loading: true, error: null, data: null } }));
+      setActiveTrend({ trendId: card.id, data: null, loading: true, error: null });
+      try {
+        const data = await card.fetchFunction({ startYear: newFilters.startYear, endYear: newFilters.endYear }, newFilters.limit);
+        setTrendStates((prev) => ({ ...prev, [card.id]: { loading: false, error: null, data } }));
+        setActiveTrend({ trendId: card.id, data, loading: false, error: null });
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Unknown error');
+        setTrendStates((prev) => ({ ...prev, [card.id]: { loading: false, error: err, data: null } }));
+        setActiveTrend({ trendId: card.id, data: null, loading: false, error: err });
+      }
+    },
+    []
   );
 
   const handleExport = useCallback(() => {
@@ -129,15 +151,6 @@ export const TrendDashboard: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50 font-medium"
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
               {activeTrend?.data && (
                 <Button
                   variant="outline"
@@ -152,63 +165,7 @@ export const TrendDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Filter Panel */}
-          {showFilters && (
-            <Card className="p-6 mb-6 bg-gradient-to-br from-white to-blue-50 border border-blue-200 shadow-lg">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label htmlFor="start-year" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📅 Start Year
-                  </label>
-                  <input
-                    id="start-year"
-                    type="number"
-                    value={filters.startYear}
-                    onChange={(e) =>
-                      setFilters({ ...filters, startYear: parseInt(e.target.value) })
-                    }
-                    className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="end-year" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📅 End Year
-                  </label>
-                  <input
-                    id="end-year"
-                    type="number"
-                    value={filters.endYear}
-                    onChange={(e) =>
-                      setFilters({ ...filters, endYear: parseInt(e.target.value) })
-                    }
-                    className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="limit" className="block text-sm font-semibold text-slate-700 mb-2">
-                    📊 Result Limit (1-100)
-                  </label>
-                  <input
-                    id="limit"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={limit}
-                    onChange={(e) => setLimit(Math.min(100, Math.max(1, parseInt(e.target.value) || 10)))}
-                    className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={() => setShowFilters(false)}
-                    className="w-full"
-                  >
-                    Apply Filters
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
+          {/* Per-card filter controls appear when a card is active (no global filters) */}
         </div>
 
         {/* Trend Cards Grid */}
@@ -242,11 +199,93 @@ export const TrendDashboard: React.FC = () => {
                 ✕ Close
               </button>
             </div>
+            {/* Per-card filter controls (scoped to the active card only) */}
+            <Card className="p-4 mb-4">
+              {activeTrendCard && activeTrendCard.acceptsFilters && Object.keys(activeTrendCard.acceptsFilters).length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-50 rounded-md flex items-center justify-center text-blue-600 font-bold">F</div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-800">Card Filters</div>
+                        <div className="text-xs text-slate-500">These filters apply only to this card.</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-500">Server-supported filters: Result Limit (1–100)</div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+                    {activeTrendCard.acceptsFilters.startYear && (
+                      <div className="md:col-span-1">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Start Year</label>
+                        <input
+                          type="number"
+                          value={perCardFilters[activeTrendCard.id]?.startYear ?? new Date().getFullYear() - 10}
+                          onChange={(e) => setPerCardFilters((prev) => ({
+                            ...prev,
+                            [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), startYear: parseInt(e.target.value) }
+                          }))}
+                          placeholder="e.g. 2016"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        />
+                      </div>
+                    )}
+
+                    {activeTrendCard.acceptsFilters.endYear && (
+                      <div className="md:col-span-1">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">End Year</label>
+                        <input
+                          type="number"
+                          value={perCardFilters[activeTrendCard.id]?.endYear ?? new Date().getFullYear()}
+                          onChange={(e) => setPerCardFilters((prev) => ({
+                            ...prev,
+                            [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), endYear: parseInt(e.target.value) }
+                          }))}
+                          placeholder="e.g. 2025"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        />
+                      </div>
+                    )}
+
+                    {activeTrendCard.acceptsFilters.limit && (
+                      <div className="md:col-span-1">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Limit</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={perCardFilters[activeTrendCard.id]?.limit ?? limit}
+                          onChange={(e) => setPerCardFilters((prev) => ({
+                            ...prev,
+                            [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), limit: Math.min(100, Math.max(1, parseInt(e.target.value) || 10)) }
+                          }))}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        />
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2 flex gap-2 items-center">
+                      <Button
+                        className="bg-blue-600 text-white px-4 py-2"
+                        onClick={() => applyPerCardFilters(activeTrendCard, perCardFilters[activeTrendCard.id] || { startYear: undefined, endYear: undefined, limit })}
+                      >
+                        Apply
+                      </Button>
+                      <div className="text-sm text-slate-500">Adjust and click Apply to refresh this card only.</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-slate-600">This card displays full historical data; filters are not applied.</div>
+              )}
+            </Card>
+
             <EnhancedTrendViewer
               trendId={activeTrend.trendId}
               data={activeTrend.data}
               loading={activeTrend.loading}
               error={activeTrend.error}
+              clientFilters={perCardFilters[activeTrendCard.id]}
             />
           </div>
         )}
