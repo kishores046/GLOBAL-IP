@@ -38,10 +38,13 @@ public class EpoTrendAnalyticsServiceImpl implements EpoTrendAnalyticsService {
     }
 
     @Override
-    @Cacheable(cacheNames = "epoTopAssignees")
-    public List<EpoAssigneeTrendDto> topAssignees() {
+    @Cacheable(
+            cacheNames = "epoTopAssignees",
+            key = "#limit"
+    )
+    public List<EpoAssigneeTrendDto> topAssignees(int limit) {
         log.info("[EPO] Top assignees");
-        return epoTrendClient.getTopAssignees();
+        return epoTrendClient.getTopAssignees(limit);
     }
 
     @Override

@@ -1,17 +1,19 @@
+
+spring:
+  profiles:
+    active: prod
+---
 server:
-  port: 9090
+  port: ${PORT:9090}
 
 spring:
   application:
     name: mocktmview
 
-  profiles:
-    active: prod
----
-spring:
   config:
     activate:
       on-profile: prod
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -19,7 +21,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
       minimum-idle: 2
       idle-timeout: 30000
       connection-timeout: 30000
@@ -28,9 +30,9 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: none
     open-in-view: false
+    show-sql: false
 
     properties:
       hibernate:
@@ -43,21 +45,13 @@ spring:
 logging:
   level:
     root: INFO
-    org:
-      hibernate:
-        SQL: OFF
-        type:
-          descriptor:
-            sql:
-              BasicBinder: OFF
-      springframework:
-        transaction: INFO
-
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+    org.springframework.transaction: INFO
 
 service:
   auth:
     api-key: ${TRADEMARK_SERVICE_API_KEY}
-
 ---
 spring:
   config:

@@ -12,7 +12,7 @@ public interface EpoTrendClient {
 
     List<EpoTechnologyTrendDto> getTopTechnologies();
 
-    List<EpoAssigneeTrendDto> getTopAssignees();
+    List<EpoAssigneeTrendDto> getTopAssignees(int limit);
 
     List<EpoFamilyTrendDto> getFamilySizeTrend();
 }

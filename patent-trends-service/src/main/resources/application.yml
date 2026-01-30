@@ -1,12 +1,11 @@
-server:
-  port: ${PORT}
+
 spring:
   profiles:
     active: prod
 
 ---
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8081}
 
 spring:
   application:
@@ -17,7 +16,7 @@ spring:
       on-profile: prod
 
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/patent_trends}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

@@ -79,8 +79,8 @@ const formatFilingTrendItem = (item: any) => ({
 });
 
 const formatGenericArrayItem = (item: any, idx: number) => ({
-  name: item.name || item.year || item.assigneeName || item.countryName || item.cpcDescription || `Item ${idx}`,
-  count: item.count || item.filingCount || item.patentCount || item.value || 0,
+  name: item.name || item.year || item.assigneeName || item.organization || item.countryName || item.cpcDescription || `Item ${idx}`,
+  count: Number(item.count || item.filingCount || item.patentCount || item.value || 0),
   ...(item.grantCount && { grantCount: item.grantCount }),
   ...(item.grantRate && { grantRate: item.grantRate }),
   ...item,
@@ -92,16 +92,19 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
       cpcGroup: d.cpcGroup || d.cpcCode || 'Unknown',
       cpcDescription: d.cpcDescription || d.description || 'Unknown',
       count: d.count || 0,
+      name: d.cpcDescription || d.cpcGroup || d.cpcCode || d.description || 'Unknown',
       ...d,
     }),
     'top-assignees': (d) => ({
-      assigneeName: d.assignee || d.assigneeName || d.name || 'Unknown',
-      patentCount: d.patentCount || d.count || 0,
+      assigneeName: d.assignee || d.assigneeName || d.organization || d.name || 'Unknown',
+      patentCount: Number(d.patentCount || d.count || 0),
+      name: d.assignee || d.assigneeName || d.organization || d.name || 'Unknown',
       ...d,
     }),
     'country-distribution': (d) => ({
-      countryName: d.countryName || d.name || 'Unknown',
+      countryName: d.countryName || d.name || d.country || 'Unknown',
       patentCount: d.patentCount || d.count || 0,
+      name: d.countryName || d.name || d.country || 'Unknown',
       ...d,
     }),
     'patent-types': (d) => {
@@ -114,7 +117,7 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
       };
     },
     'patent-type-distribution': (d) => ({
-      name: d.patentType || d.type || 'Unknown',
+      name: d.patentType || d.type || d.name || 'Unknown',
       patentType: d.patentType || d.type || 'Unknown',
       count: d.count || 0,
       type: d.patentType || d.type || 'Unknown',
@@ -124,6 +127,7 @@ const formatTrendSpecificData = (trendId: string, data: any): any[] | null => {
       cpcDescription: d.cpcDescription || d.name || 'Unknown',
       totalCount: d.totalCount || d.count || 0,
       year: d.year || 'Unknown',
+      name: d.cpcDescription || d.name || String(d.year || 'Unknown'),
       ...d,
     }),
     'claim-complexity': (d) => ({
@@ -195,8 +199,9 @@ const formatChartData = (trendId: string, rawData: any): any[] => {
       // For top-assignees, preserve assigneeName field
       if (trendId === 'top-assignees') {
         return {
-          assigneeName: item.assignee || item.assigneeName || item.name || 'Unknown',
-          patentCount: item.patentCount || item.count || 0,
+          assigneeName: item.assignee || item.assigneeName || item.organization || item.name || 'Unknown',
+          patentCount: Number(item.patentCount || item.count || 0),
+          name: item.assignee || item.assigneeName || item.organization || item.name || `Item ${idx}`,
           ...item,
         };
       }
@@ -250,6 +255,7 @@ const formatChartData = (trendId: string, rawData: any): any[] => {
           patentTitle: item.patentTitle || item.title || 'Unknown',
           patentId: item.patentId || 'Unknown',
           citationCount: Number(item.timesCited || item.citationCount || item.count || 0),
+          name: item.patentTitle || item.title || item.patentId || 'Unknown',
           ...item,
         };
         console.log(`[EnhancedTrendViewer] Mapped top-cited item:`, mapped);
@@ -264,6 +270,7 @@ const formatChartData = (trendId: string, rawData: any): any[] => {
           patentTitle: item.patentTitle || item.title || 'Unknown',
           patentId: item.patentId || 'Unknown',
           citationCount: Number(item.citationCount || item.count || 0),
+          name: item.patentTitle || item.title || item.patentId || 'Unknown',
           ...item,
         };
         console.log(`[EnhancedTrendViewer] Mapped top-citing item:`, mapped);
@@ -329,10 +336,18 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
   isDark = false,
   clientFilters,
 }) => {
+  // Normalize trendId to handle frontend-only european-* variants so they
+  // reuse existing formatters and rendering logic (e.g. european-country-distribution
+  // should behave like country-distribution).
+  const normalizedTrendId = useMemo(() => {
+    if (!trendId) return trendId;
+    if (trendId.startsWith('european-')) return trendId.replace(/^european-/, '');
+    return trendId;
+  }, [trendId]);
   const transformedData = useMemo(() => {
-    const base = formatChartData(trendId, data);
+    const base = formatChartData(normalizedTrendId, data);
     // Client-side slicing for technology evolution by year range
-    if (trendId === 'technology-evolution' && Array.isArray(base) && (typeof ({} as any).clientFilters !== 'undefined')) {
+    if (normalizedTrendId === 'technology-evolution' && Array.isArray(base) && (typeof ({} as any).clientFilters !== 'undefined')) {
       // clientFilters won't be visible here; slicing is handled below using the prop
     }
     return base;
@@ -346,7 +361,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
     let items = [...transformedData];
 
     // Technology evolution: client-side year slice
-    if (trendId === 'technology-evolution' && clientFilters) {
+    if (normalizedTrendId === 'technology-evolution' && clientFilters) {
       const s = clientFilters.startYear;
       const e = clientFilters.endYear;
       if (s !== undefined || e !== undefined) {
@@ -361,13 +376,18 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
     }
 
     // Apply limit for top lists if provided via clientFilters.limit
-    const limit = clientFilters?.limit;
-    if (limit && Number(limit) > 0) {
-      items = items.slice(0, Number(limit));
-    }
+      const requestedLimit = clientFilters?.limit;
+      // Defensive: never render more than 100 rows
+      const HARD_MAX = 100;
+      if (requestedLimit && Number(requestedLimit) > 0) {
+        items = items.slice(0, Math.min(HARD_MAX, Number(requestedLimit)));
+      } else {
+        // If no client limit provided, still ensure we don't render > HARD_MAX
+        items = items.slice(0, HARD_MAX);
+      }
 
     return items;
-  }, [transformedData, trendId, clientFilters?.startYear, clientFilters?.endYear, clientFilters?.limit]);
+  }, [transformedData, normalizedTrendId, clientFilters?.startYear, clientFilters?.endYear, clientFilters?.limit]);
 
   const handleExportChart = () => {
     const exportArray = Array.isArray(displayData) ? displayData : transformedData;
@@ -490,9 +510,9 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
 
   // Render appropriate chart based on trend type
   const renderChart = () => {
-    console.log(`[EnhancedTrendViewer] renderChart called for ${trendId}, transformedData:`, transformedData);
+    console.log(`[EnhancedTrendViewer] renderChart called for ${trendId} (normalized: ${normalizedTrendId}), transformedData:`, transformedData);
     const listHeight = Math.max(300, (Array.isArray(displayData) ? displayData.length : transformedData.length) * 30);
-    switch (trendId) {
+    switch (normalizedTrendId) {
       case 'filing-trends':
         return (
           <LineChartComponent
@@ -652,7 +672,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
     }
   };
 
-  const metadata = TREND_METADATA[trendId] || {
+  const metadata = TREND_METADATA[normalizedTrendId] || {
     title: trendId.replace(/-/g, ' ').toUpperCase(),
     subtitle: 'Trend analysis',
     insight: 'Analysis of trend data'
@@ -695,7 +715,7 @@ export const EnhancedTrendViewer: React.FC<EnhancedTrendViewerProps> = ({
       {/* Data Table Preview */}
       {transformedData && Array.isArray(transformedData) && transformedData.length > 0 && (() => {
         // Find columns that have actual data in the dataset
-        let relevantColumns = getRelevantColumns(trendId, transformedData[0]);
+        let relevantColumns = getRelevantColumns(normalizedTrendId, transformedData[0]);
         
         // If no relevant columns found, detect columns from first non-null values across dataset
         if (relevantColumns.length === 0) {

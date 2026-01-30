@@ -450,15 +450,13 @@ export const trendAnalysisAPI = {
   },
 
   getEpoCountries: async (filters?: TrendFilterOptions, limit: number = 10): Promise<CountryTrendResponse> => {
-    const startDate = filters?.startYear ? `${filters.startYear}-01-01` : undefined;
-    const cacheKey = generateCacheKey('epo-countries', filters) + `:startDate:${startDate || ''}:limit:${limit}`;
+    const cacheKey = generateCacheKey('epo-countries', filters);
     const cached = getCachedData(cacheKey) as CountryTrendResponse | null;
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<CountryTrendResponse>('/epo/trends/countries', {
-        params: { startDate, limit },
-      });
+      // Backend EPO countries endpoint does not accept query params — call directly
+      const response = await trendApi.get<CountryTrendResponse>('/epo/trends/countries');
       setCacheData(cacheKey, response.data);
       return response.data;
     } catch (error) {
@@ -468,14 +466,13 @@ export const trendAnalysisAPI = {
   },
 
   getEpoTechnologies: async (filters?: TrendFilterOptions, limit: number = 10): Promise<TechnologyTrendResponse> => {
-    const cacheKey = generateCacheKey('epo-technologies', filters) + `:limit:${limit}`;
+    const cacheKey = generateCacheKey('epo-technologies', filters);
     const cached = getCachedData(cacheKey) as TechnologyTrendResponse | null;
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<TechnologyTrendResponse>('/epo/trends/technologies/top', {
-        params: { ...filters, limit },
-      });
+      // Backend exposes a no-params endpoint for EPO technologies
+      const response = await trendApi.get<TechnologyTrendResponse>('/epo/trends/technologies');
       setCacheData(cacheKey, response.data);
       return response.data;
     } catch (error) {
@@ -485,13 +482,16 @@ export const trendAnalysisAPI = {
   },
 
   getEpoAssignees: async (filters?: TrendFilterOptions, limit: number = 10): Promise<AssigneeTrendResponse> => {
-    const cacheKey = generateCacheKey('epo-assignees', filters) + `:limit:${limit}`;
+    // Ensure limit respects backend constraints (min 10, max 100)
+    const safeLimit = Math.min(100, Math.max(10, Number(limit) || 10));
+    const cacheKey = generateCacheKey('epo-assignees', { ...filters, limit: safeLimit });
     const cached = getCachedData(cacheKey) as AssigneeTrendResponse | null;
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<AssigneeTrendResponse>('/epo/trends/assignees/top', {
-        params: { ...filters, limit },
+      // Backend accepts a 'limit' request param for EPO assignees
+      const response = await trendApi.get<AssigneeTrendResponse>('/epo/trends/assignees', {
+        params: { limit: safeLimit },
       });
       setCacheData(cacheKey, response.data);
       return response.data;

@@ -121,14 +121,6 @@ export const TREND_CARDS: TrendCardConfig[] = [
     acceptsFilters: { startYear: true, limit: true },
   },
   {
-    id: 'european-top-technologies',
-    title: 'European Top Technologies',
-    icon: '🔬',
-    description: 'Top technologies filed in Europe',
-    fetchFunction: (filters, limit) => trendAnalysisAPI.getEpoTechnologies(filters, limit || 10),
-    acceptsFilters: { limit: true },
-  },
-  {
     id: 'european-top-assignees',
     title: 'European Top Assignees',
     icon: '🏛️',

@@ -59,9 +59,14 @@ export const TrendDashboard: React.FC = () => {
       try {
         // Determine per-card filters (if any) and pass only for this card
         const pf = perCardFilters[card.id] || {};
+        // Enforce server constraints for european assignees: min 10, max 100
+        let safeLimit = pf.limit ?? limit;
+        if (card.id === 'european-top-assignees') {
+          safeLimit = Math.min(100, Math.max(10, Number(safeLimit) || 10));
+        }
         const data = await card.fetchFunction(
           { startYear: pf.startYear, endYear: pf.endYear },
-          pf.limit ?? limit
+          safeLimit
         );
         console.debug(`[TrendDashboard] Fetched data for ${card.id}:`, data);
         setTrendStates((prev) => ({
@@ -98,7 +103,12 @@ export const TrendDashboard: React.FC = () => {
       setTrendStates((prev) => ({ ...prev, [card.id]: { loading: true, error: null, data: null } }));
       setActiveTrend({ trendId: card.id, data: null, loading: true, error: null });
       try {
-        const data = await card.fetchFunction({ startYear: newFilters.startYear, endYear: newFilters.endYear }, newFilters.limit);
+        // Clamp limit for endpoints that require it
+        let safeLimit = newFilters.limit;
+        if (card.id === 'european-top-assignees') {
+          safeLimit = Math.min(100, Math.max(10, Number(safeLimit) || 10));
+        }
+        const data = await card.fetchFunction({ startYear: newFilters.startYear, endYear: newFilters.endYear }, safeLimit);
         setTrendStates((prev) => ({ ...prev, [card.id]: { loading: false, error: null, data } }));
         setActiveTrend({ trendId: card.id, data, loading: false, error: null });
       } catch (error) {
@@ -250,17 +260,35 @@ export const TrendDashboard: React.FC = () => {
                     {activeTrendCard.acceptsFilters.limit && (
                       <div className="md:col-span-1">
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Limit</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={100}
-                          value={perCardFilters[activeTrendCard.id]?.limit ?? limit}
-                          onChange={(e) => setPerCardFilters((prev) => ({
-                            ...prev,
-                            [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), limit: Math.min(100, Math.max(1, parseInt(e.target.value) || 10)) }
-                          }))}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
-                        />
+                        {/* For European top assignees render a dropdown with preset choices */}
+                        {activeTrendCard.id === 'european-top-assignees' ? (
+                          <select
+                            value={perCardFilters[activeTrendCard.id]?.limit ?? limit}
+                            disabled={trendStates[activeTrendCard.id]?.loading || false}
+                            onChange={(e) => setPerCardFilters((prev) => ({
+                              ...prev,
+                              [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), limit: Number(e.target.value) }
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300 bg-white"
+                          >
+                            <option value={10}>Top 10</option>
+                            <option value={20}>Top 20</option>
+                            <option value={50}>Top 50</option>
+                            <option value={100}>Top 100</option>
+                          </select>
+                        ) : (
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={perCardFilters[activeTrendCard.id]?.limit ?? limit}
+                            onChange={(e) => setPerCardFilters((prev) => ({
+                              ...prev,
+                              [activeTrendCard.id]: { ...(prev[activeTrendCard.id] || {}), limit: Math.min(100, Math.max(1, parseInt(e.target.value) || 1)) }
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          />
+                        )}
                       </div>
                     )}
 
@@ -268,8 +296,9 @@ export const TrendDashboard: React.FC = () => {
                       <Button
                         className="bg-blue-600 text-white px-4 py-2"
                         onClick={() => applyPerCardFilters(activeTrendCard, perCardFilters[activeTrendCard.id] || { startYear: undefined, endYear: undefined, limit })}
+                        disabled={trendStates[activeTrendCard.id]?.loading || false}
                       >
-                        Apply
+                        {trendStates[activeTrendCard.id]?.loading ? 'Loading...' : 'Apply'}
                       </Button>
                       <div className="text-sm text-slate-500">Adjust and click Apply to refresh this card only.</div>
                     </div>

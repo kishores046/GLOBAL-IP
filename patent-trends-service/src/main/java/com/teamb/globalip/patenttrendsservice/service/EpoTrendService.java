@@ -51,14 +51,15 @@ public class EpoTrendService {
                 .toList();
     }
 
-    public List<EpoAssigneeTrendDto> topAssignees() {
-        return assigneeRepo.topAssignees().stream()
+    public List<EpoAssigneeTrendDto> topAssignees(int limit) {
+        return assigneeRepo.topAssignees(limit).stream()
                 .map(r -> new EpoAssigneeTrendDto(
                         (String) r[0],
                         ((Number) r[1]).longValue()
                 ))
                 .toList();
     }
+
 
     public List<EpoFamilyTrendDto> familySizeTrend() {
         return familyRepo.familySizeDistribution().stream()

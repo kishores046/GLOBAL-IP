@@ -34,8 +34,8 @@ public class EpoTrendController {
     }
 
     @GetMapping("/assignees")
-    public ResponseEntity<@NonNull List<EpoAssigneeTrendDto>> topAssignees() {
-        return ResponseEntity.ok(trendService.topAssignees());
+    public ResponseEntity<@NonNull List<EpoAssigneeTrendDto>> topAssignees(int limit) {
+        return ResponseEntity.ok(trendService.topAssignees(limit));
     }
 
     @GetMapping("/families")

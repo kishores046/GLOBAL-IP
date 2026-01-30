@@ -45,8 +45,8 @@ public class EpoTrendClientImpl implements EpoTrendClient {
 
     @Override
     @TrackApiUsage(service = "TRENDS", action = "TREND_EPO_ASSIGNEE")
-    public List<EpoAssigneeTrendDto> getTopAssignees() {
-        return get("/epo/trends/assignees", new TypeReference<>() {});
+    public List<EpoAssigneeTrendDto> getTopAssignees(int limit) {
+        return get("/epo/trends/assignees?limit=" + limit, new TypeReference<>() {});
     }
 
     @Override
