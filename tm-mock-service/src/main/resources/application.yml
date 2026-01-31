@@ -4,7 +4,7 @@ spring:
     active: prod
 ---
 server:
-  port: ${PORT:9090}
+  port: ${PORT}
 
 spring:
   application:
@@ -69,6 +69,8 @@ spring:
       idle-timeout: 30000
       connection-timeout: 30000
       max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -105,3 +107,21 @@ ingest:
 service:
   auth:
     api-key: ${TRADEMARK_SERVICE_API_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
