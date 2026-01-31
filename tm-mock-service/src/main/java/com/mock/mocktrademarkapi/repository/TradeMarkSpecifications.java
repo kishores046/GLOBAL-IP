@@ -1,23 +1,18 @@
 package com.mock.mocktrademarkapi.repository;
 
 import com.mock.mocktrademarkapi.dto.TrademarkSearchFilter;
-import com.mock.mocktrademarkapi.model.main.GoodsAndServiceEntity;
-import com.mock.mocktrademarkapi.model.main.OwnerEntity;
 import com.mock.mocktrademarkapi.model.main.TradeMarkEntity;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import lombok.NonNull;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class TradeMarkSpecifications {
 
-    public static Specification<TradeMarkEntity> withFilter(TrademarkSearchFilter f) {
-
+    public static Specification<@NonNull TradeMarkEntity> withFilter(TrademarkSearchFilter f) {
         return (root, query, cb) -> {
-
             List<Predicate> predicates = new ArrayList<>();
 
             if (hasText(f.getMarkName())) {
@@ -30,32 +25,35 @@ public class TradeMarkSpecifications {
             }
 
             if (hasText(f.getCountry())) {
-                Join<TradeMarkEntity, OwnerEntity> ownerJoin =
-                        root.join("owners", JoinType.LEFT);
-                predicates.add(
-                        cb.equal(ownerJoin.get("ownerCountry"), f.getCountry())
-                );
+                // Simpler: Use IN clause with subquery
+                Subquery<String> ownerSubquery = query.subquery(String.class);
+                Root<TradeMarkEntity> subRoot = ownerSubquery.from(TradeMarkEntity.class);
+                Join<Object, Object> ownerJoin = subRoot.join("owners");
+
+                ownerSubquery.select(subRoot.get("id"))
+                        .where(cb.equal(ownerJoin.get("ownerCountry"), f.getCountry()));
+
+                predicates.add(root.get("id").in(ownerSubquery));
             }
 
             if (hasText(f.getGoodsAndServicesText())) {
-                Join<TradeMarkEntity, GoodsAndServiceEntity> goodsJoin =
-                        root.join("goodsAndServices", JoinType.LEFT);
+                // Simpler: Use IN clause with subquery
+                Subquery<String> goodsSubquery = query.subquery(String.class);
+                Root<TradeMarkEntity> subRoot = goodsSubquery.from(TradeMarkEntity.class);
+                Join<Object, Object> goodsJoin = subRoot.join("goodsAndServices");
 
-                predicates.add(
-                        cb.like(
+                goodsSubquery.select(subRoot.get("id"))
+                        .where(cb.like(
                                 goodsJoin.get("description"),
                                 "%" + f.getGoodsAndServicesText() + "%"
-                        )
-                );
+                        ));
 
-                query.distinct(true);
+                predicates.add(root.get("id").in(goodsSubquery));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
-
-
 
     private static boolean hasText(String s) {
         return s != null && !s.isBlank();

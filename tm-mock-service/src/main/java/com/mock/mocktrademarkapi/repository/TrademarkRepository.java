@@ -9,25 +9,20 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface TrademarkRepository extends JpaRepository<@NonNull TradeMarkEntity,@NonNull String>, JpaSpecificationExecutor<@NonNull TradeMarkEntity> {
 
-    @EntityGraph(attributePaths = {
-            "owners",
-            "internationalClasses",
-            "goodsAndServices"
-    })
-    Page<@NonNull TradeMarkEntity> findAll(
-            @NonNull Specification<@NonNull TradeMarkEntity> spec,
-            @NonNull  Pageable pageable
-    );
+    Page<TradeMarkEntity> findAll(Specification<TradeMarkEntity> spec, Pageable pageable);
 
-    @EntityGraph(attributePaths = {
-            "owners",
-            "internationalClasses",
-            "goodsAndServices"
-    })
-    Optional<TradeMarkEntity> findById(String id);
+    // Fetch full entity with relationships by ID (for detail view only)
+    @Query("SELECT DISTINCT t FROM TradeMarkEntity t " +
+            "LEFT JOIN FETCH t.owners " +
+            "LEFT JOIN FETCH t.internationalClasses " +
+            "LEFT JOIN FETCH t.goodsAndServices " +
+            "WHERE t.id = :id")
+    TradeMarkEntity findByIdWithRelations(@Param("id") String id);
 }

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TradeMarkSearchService {
 
     private final TrademarkRepository repository;
+
     @Transactional(readOnly = true)
     public Page<@NonNull TradeMarkEntity> search(
             TrademarkSearchFilter filter,
@@ -25,6 +26,22 @@ public class TradeMarkSearchService {
         Specification<@NonNull TradeMarkEntity> spec =
                 TradeMarkSpecifications.withFilter(filter);
 
-        return repository.findAll(spec, pageable);
+
+        Page<@NonNull TradeMarkEntity> page = repository.findAll(spec, pageable);
+
+        page.getContent().forEach(tm -> {
+
+            tm.getOwners().isEmpty();
+            tm.getInternationalClasses().isEmpty();
+            tm.getGoodsAndServices().isEmpty();
+        });
+
+        return page;
+    }
+
+    @Transactional(readOnly = true)
+    public TradeMarkEntity getById(String id) {
+
+        return repository.findByIdWithRelations(id);
     }
 }

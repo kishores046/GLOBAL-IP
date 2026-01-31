@@ -1,10 +1,9 @@
-
 spring:
   profiles:
     active: prod
 ---
 server:
-  port: ${PORT}
+  port: ${PORT:10000}
 
 spring:
   application:
@@ -42,6 +41,11 @@ spring:
         order_inserts: true
         order_updates: true
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
 logging:
   level:
     root: INFO
@@ -52,11 +56,13 @@ logging:
 service:
   auth:
     api-key: ${TRADEMARK_SERVICE_API_KEY}
+
 ---
 spring:
   config:
     activate:
       on-profile: ingest
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -87,6 +93,9 @@ spring:
         order_inserts: true
         order_updates: true
 
+  flyway:
+    enabled: false
+
 logging:
   level:
     root: INFO
@@ -101,8 +110,7 @@ logging:
         transaction: INFO
 
 ingest:
-  file-path :  ${TRADEMARK_FILEPATH}
-
+  file-path: ${TRADEMARK_FILEPATH}
 
 service:
   auth:
@@ -122,6 +130,14 @@ spring:
   config:
     activate:
       on-profile: test
+
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  flyway:
+    enabled: false
