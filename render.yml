@@ -51,8 +51,7 @@ services:
         sync: false
       
    
-      - key: PORT
-        value: 10000
+      
 
  
   - type: web
@@ -76,24 +75,19 @@ services:
       
       
       - key: DB_URL
-        sync: false
-      
-      
+        value: jdbc:mysql://centerbeam.proxy.rlwy.net:33016/railway
+
       - key: DB_USERNAME
-        sync: false
-    
-      
+        value: root
+
       - key: DB_PASSWORD
         sync: false
-      
-      
-     
+  
       - key: TRADEMARK_SERVICE_API_KEY
         generateValue: true
         sync: false
       
-      - key: PORT
-        value: 10000
+    
 
 
   - type: web
@@ -197,5 +191,3 @@ services:
         # You'll set this after deploying frontend to Vercel
       
   
-      - key: PORT
-        value: 10000
