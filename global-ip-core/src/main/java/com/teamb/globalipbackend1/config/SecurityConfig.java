@@ -132,7 +132,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "https://*.vercel.app",
-                "https://global-ip-core.onrender.com"
+                "https://global-ip.onrender.com"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
