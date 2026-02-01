@@ -8,6 +8,10 @@ interface JwtPayload {
   sub: string;
   roles?: string[];
   iat?: number;
+  email?: string;
+  username?: string;
+  userId?: string;
+  [key: string]: any;
 }
 
 /**
@@ -126,6 +130,79 @@ export function saveAuthData(token: string, user: any): void {
   localStorage.setItem('jwt_token', token);
   localStorage.setItem('user', JSON.stringify(user));
   console.log('🔐 Auth data saved');
+}
+
+/**
+ * Extract user profile from JWT token without calling backend
+ * Backend may not have /api/user/profile or /api/user/me endpoint
+ * This allows auth to work with JWT-only user info
+ */
+export function getUserProfileFromToken(): { userId: string; username: string; email: string; roles: string[] } | null {
+  const token = localStorage.getItem('jwt_token');
+  if (!token) return null;
+
+  const decoded = decodeJwt(token);
+  if (!decoded) return null;
+
+  // Extract user info from JWT claims
+  const userId = decoded.userId || decoded.sub || 'unknown';
+  const email = decoded.email || decoded.sub || 'unknown@example.com';
+  const username = decoded.username || decoded.preferred_username || email.split('@')[0] || 'user';
+  
+  // Parse roles - can be array of strings or objects with roleType
+  let roles: string[] = [];
+  if (decoded.roles) {
+    roles = Array.isArray(decoded.roles) 
+      ? decoded.roles.map((r: any) => typeof r === 'string' ? r : r.roleType || 'ROLE_USER')
+      : [];
+  }
+
+  return {
+    userId,
+    username,
+    email,
+    roles: roles.length > 0 ? roles : ['ROLE_USER']
+  };
+}
+
+/**
+ * Determine the primary role based on role hierarchy
+ * Higher privilege roles: ADMIN > ANALYST > USER
+ * Returns the highest privilege role, or 'user' if none found
+ */
+export function getPrimaryRole(roles: any[]): string {
+  if (!roles || !Array.isArray(roles) || roles.length === 0) {
+    return 'user';
+  }
+
+  // Normalize roles to uppercase strings
+  const normalizedRoles = roles.map(r => {
+    const roleStr = typeof r === 'string' ? r : r?.roleType || '';
+    return roleStr.replace(/^ROLE_/, '').toUpperCase();
+  }).filter(Boolean);
+
+  // Role hierarchy: ADMIN > ANALYST > USER
+  if (normalizedRoles.includes('ADMIN')) return 'admin';
+  if (normalizedRoles.includes('ANALYST')) return 'analyst';
+  return 'user';
+}
+
+/**
+ * Get the dashboard route for a given role
+ * Maps role to correct dashboard path
+ */
+export function getDashboardRouteForRole(role: string): string {
+  const normalizedRole = role.replace(/^ROLE_/, '').toLowerCase();
+  
+  switch (normalizedRole) {
+    case 'admin':
+      return '/dashboard/admin';
+    case 'analyst':
+      return '/dashboard/analyst';
+    case 'user':
+    default:
+      return '/dashboard/user';
+  }
 }
 
 /**

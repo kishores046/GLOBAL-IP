@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import authService from '../services/authService';
-import { isTokenExpired, clearAuthData } from '../utils/authUtils';
+import { isTokenExpired, clearAuthData, getUserProfileFromToken } from '../utils/authUtils';
 
 interface Role {
   roleId: string;
@@ -73,11 +73,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const userData = await authService.getUserProfile();
           setUser({ ...userData, username: userData.username || userData.email });
         } catch (error) {
-          console.error('AuthContext: Failed to fetch user profile:', error);
-          // Clear invalid token
-          authService.logout();
-          setToken(null);
-          setUser(null);
+          console.error('AuthContext: Failed to fetch user profile during initialization:', error);
+          
+          // Try to extract user from JWT token as fallback
+          const jwtUser = getUserProfileFromToken();
+          if (jwtUser) {
+            console.log('✅ AuthContext: Using JWT-extracted user profile');
+            setUser(jwtUser as UserProfile);
+          } else {
+            console.warn('❌ AuthContext: Could not extract user from JWT, clearing auth');
+            // Clear invalid token
+            clearAuthData();
+            setToken(null);
+            setUser(null);
+          }
         }
       }
       
@@ -156,6 +165,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const userData = await authService.getUserProfile();
       setUser({ ...userData, username: userData.username || userData.email });
+      
       // Persist lastDashboard based on primary role so Dashboard button points correctly
       try {
         const firstRole = userData?.roles?.[0];
@@ -169,8 +179,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // ignore localStorage failures
       }
     } catch (error) {
-      console.error('AuthContext: Failed to refresh user:', error);
-      throw error;
+      console.warn('⚠️ refreshUser: Profile fetch failed, trying JWT extraction:', error);
+      
+      // Try JWT extraction as fallback
+      const jwtUser = getUserProfileFromToken();
+      if (jwtUser) {
+        console.log('✅ refreshUser: Using JWT-extracted user profile');
+        setUser(jwtUser as UserProfile);
+        
+        // Still persist lastDashboard
+        try {
+          const firstRole = jwtUser.roles?.[0];
+          const primaryRole = typeof firstRole === 'string' 
+            ? firstRole.replace(/^ROLE_/, '').toLowerCase()
+            : '';
+          let dashboardRoute = '/dashboard/user';
+          if (primaryRole === 'admin') dashboardRoute = '/dashboard/admin';
+          else if (primaryRole === 'analyst') dashboardRoute = '/dashboard/analyst';
+          localStorage.setItem('lastDashboard', dashboardRoute);
+        } catch (e) {
+          // ignore localStorage failures
+        }
+      } else {
+        console.error('❌ refreshUser: Failed to fetch profile and no JWT user available');
+        throw error;
+      }
     }
   }, []);
 

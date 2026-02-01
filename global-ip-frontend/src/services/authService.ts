@@ -109,11 +109,24 @@ class AuthService {
       
       return user;
     } catch (error: any) {
-      console.error('authService: getUserProfile error:', error);
+      // Backend may not have /api/user/profile endpoint
+      // Fall back to extracting user info from JWT token
+      console.warn('⚠️ getUserProfile failed, falling back to JWT extraction:', error.message);
+      
+      const { getUserProfileFromToken } = await import('../utils/authUtils');
+      const jwtUser = getUserProfileFromToken();
+      
+      if (jwtUser) {
+        console.log('✅ Extracted user profile from JWT token:', jwtUser);
+        localStorage.setItem('user', JSON.stringify(jwtUser));
+        return jwtUser as UserProfile;
+      }
+      
+      // If no token or extraction failed, throw error
       throw new Error(
         error.response?.data?.message || 
         error.response?.data?.error || 
-        'Failed to fetch user profile.'
+        'Failed to fetch user profile and no JWT token available.'
       );
     }
   }

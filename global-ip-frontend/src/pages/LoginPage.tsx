@@ -53,38 +53,31 @@ export function LoginPage() {
       // Show success message
       toast.success("Login successful!");
       
-      // Debug: Log user data and roles
-      console.log("User data:", user);
-      console.log("User roles:", user?.roles);
+      // ✅ Role-based navigation: Extract primary role and redirect to appropriate dashboard
+      // Roles are extracted from JWT claims or backend user profile
+      // Role hierarchy: ADMIN > ANALYST > USER
       
-      // Get primary role (first role in array)
-      const firstRole = user?.roles?.[0];
-      console.log("First role:", firstRole);
+      // Import helper functions for role-based routing
+      const { getPrimaryRole, getDashboardRouteForRole } = await import('../utils/authUtils');
       
-      // Handle ROLE_ prefix if it exists
-      let roleString = typeof firstRole === 'string' ? firstRole : firstRole?.roleType;
-      console.log("Role string:", roleString);
+      // Get the user from context (just refreshed)
+      const primaryRole = getPrimaryRole(user?.roles || []);
+      const dashboardRoute = getDashboardRouteForRole(primaryRole);
       
-      // Remove ROLE_ prefix if present and convert to lowercase
-      const primaryRole = roleString?.replace(/^ROLE_/, '').toLowerCase() || "user";
-      console.log("Primary role (processed):", primaryRole);
+      console.log('✅ Post-login navigation:', {
+        primaryRole,
+        dashboardRoute,
+        userRoles: user?.roles
+      });
       
-      // Decide dashboard route and persist as lastDashboard so sidebar uses it
-      let dashboardRoute = "/dashboard/user";
-      if (primaryRole === "admin") {
-        dashboardRoute = "/dashboard/admin";
-      } else if (primaryRole === "analyst") {
-        dashboardRoute = "/dashboard/analyst";
-      }
-
-      // Persist last dashboard for the session (used by Sidebar dashboard button)
+      // Persist dashboard route for sidebar "Dashboard" button
       try {
         localStorage.setItem("lastDashboard", dashboardRoute);
       } catch (e) {
-        console.warn('Unable to persist lastDashboard to localStorage', e);
+        console.warn('⚠️ Could not persist dashboard preference:', e);
       }
-
-      console.log("Navigating to", dashboardRoute);
+      
+      // Redirect exactly once to the correct dashboard
       navigate(dashboardRoute, { replace: true });
     } catch (err: any) {
       const errorMessage = err.message ?? "Login failed. Please try again.";
