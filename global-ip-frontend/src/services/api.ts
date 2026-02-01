@@ -1,12 +1,23 @@
 import axios from 'axios';
 import { isTokenExpired, clearAuthData, formatTokenForLog } from '../utils/authUtils';
 
-// Base API URL - update this to match your backend
-const API_BASE_URL = 'http://localhost:8080/api';
+// Base API URL from environment variables
+// Must be defined in .env.development and .env.production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error(
+    'VITE_API_BASE_URL is not defined. Please check your .env.development or .env.production file.'
+  );
+}
+
+// Construct the full API base URL with /api endpoint
+const API_FULL_URL = `${API_BASE_URL}/api`;
 
 // Create Axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_FULL_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -75,8 +86,9 @@ api.interceptors.response.use(
         handleForbidden(error);
       }
     } else if (error.request) {
-      console.error('⚠️ No response received from backend:', error.request);
-      console.error('Make sure your backend is running on http://localhost:8080');
+      console.error('⚠️ No response received from backend');
+      console.error('Backend URL:', API_FULL_URL);
+      console.error('Make sure your backend is running and accessible');
     }
     
     return Promise.reject(error);
@@ -460,4 +472,4 @@ export const dashboardAPI = {
 };
 
 export default api;
-export { API_BASE_URL };
+export { API_BASE_URL, API_FULL_URL };

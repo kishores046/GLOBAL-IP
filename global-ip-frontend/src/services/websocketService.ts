@@ -5,7 +5,17 @@
 
 import { toast } from 'sonner';
 
-const WS_BASE_URL = 'ws://localhost:8080'; // Update with your WebSocket URL
+// Get WebSocket base URL from environment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is not defined');
+}
+
+// Convert HTTP/HTTPS to WS/WSS
+const WS_BASE_URL = API_BASE_URL.replace(/^https?:\/\//, (match) => 
+  match === 'https://' ? 'wss://' : 'ws://'
+);
 
 export interface WebSocketEvent {
   type: 'PATENT_EVENT' | 'COMPETITOR_EVENT' | 'LIFECYCLE_EVENT';

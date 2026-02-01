@@ -5,13 +5,16 @@ import com.teamb.globalipbackend1.model.user.User;
 import com.teamb.globalipbackend1.repository.user.RoleRepository;
 import com.teamb.globalipbackend1.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class AdminInitializer {
@@ -21,33 +24,41 @@ public class AdminInitializer {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
+    @Profile("prod")
     public CommandLineRunner createAdminOnStartup() {
         return args -> {
 
-            // Check if admin exists
-            if (userRepository.existsByEmail("admin@gip.com")) {
-                System.out.println("✔ Admin already exists. Skipping creation.");
+            String adminEmail = System.getenv("BOOTSTRAP_ADMIN_EMAIL");
+            String adminPassword = System.getenv("BOOTSTRAP_ADMIN_PASSWORD");
+
+            if (adminEmail == null || adminPassword == null) {
+                log.warn("Admin bootstrap skipped: environment variables not set");
                 return;
             }
 
-            // Ensure ADMIN role exists
+            if (userRepository.existsByEmail(adminEmail)) {
+                log.info("Admin user already exists: {}", adminEmail);
+                return;
+            }
+
             Role adminRole = roleRepository.findByRoleType("ADMIN")
                     .orElseGet(() -> {
-                        Role newRole = new Role("ADMIN");
-                        return roleRepository.save(newRole);
+                        log.info("ADMIN role not found. Creating role.");
+                        return roleRepository.save(new Role("ADMIN"));
                     });
 
-            // Create admin user
             User admin = new User(
                     "admin",
-                    "admin@gip.com",
-                    passwordEncoder.encode("admin123"),
+                    adminEmail,
+                    passwordEncoder.encode(adminPassword),
                     Set.of(adminRole)
             );
 
+            admin.setPasswordChangeRequired(true);
+
             userRepository.save(admin);
-            System.out.println("============Admin user created → admin@gip.com / admin123==============");
+
+            log.info("Admin user created successfully: {}", adminEmail);
         };
     }
 }
-

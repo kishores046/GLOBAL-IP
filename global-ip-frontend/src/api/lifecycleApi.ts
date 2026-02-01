@@ -1,29 +1,12 @@
-import axios, { AxiosInstance } from 'axios';
+import api from '../services/api';
 import { ApplicationLifecycleDto, TrademarkLifecycleDto } from '../types/lifecycle';
 
-const API_BASE_URL = 'http://localhost:8080/api/analyst';
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Create axios instance with default config
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add JWT token to all requests
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+const API_BASE = '/analyst';
 
 /**
  * Fetch patent lifecycle information
@@ -34,8 +17,8 @@ export const fetchPatentLifecycle = async (
   publicationNumber: string
 ): Promise<ApplicationLifecycleDto> => {
   try {
-    const response = await apiClient.get<ApplicationLifecycleDto>(
-      `/patents/${publicationNumber}/lifecycle`
+    const response = await api.get<ApplicationLifecycleDto>(
+      `${API_BASE}/patents/${publicationNumber}/lifecycle`
     );
     return response.data;
   } catch (error) {
@@ -56,8 +39,8 @@ export const fetchTrademarkLifecycle = async (
   trademarkId: string
 ): Promise<TrademarkLifecycleDto> => {
   try {
-    const response = await apiClient.get<TrademarkLifecycleDto>(
-      `/trademarks/${trademarkId}/lifecycle`
+    const response = await api.get<TrademarkLifecycleDto>(
+      `${API_BASE}/trademarks/${trademarkId}/lifecycle`
     );
     return response.data;
   } catch (error) {
@@ -69,4 +52,4 @@ export const fetchTrademarkLifecycle = async (
   }
 };
 
-export default apiClient;
+export default api;

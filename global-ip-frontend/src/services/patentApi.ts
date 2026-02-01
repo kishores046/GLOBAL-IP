@@ -1,27 +1,12 @@
-import axios from 'axios';
+import api from './api';
 import { ApplicationLifecycleDto } from '../types/lifecycle';
 
-// Create axios instance with JWT interceptor
-const api = axios.create({
-  baseURL: 'http://localhost:8080',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Add JWT token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-const API_BASE = '/api/analyst/patents';
+const API_BASE = '/analyst/patents';
 
 /**
  * Patent Lifecycle API

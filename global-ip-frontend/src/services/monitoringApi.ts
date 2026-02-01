@@ -1,29 +1,9 @@
-import axios from 'axios';
+import api from './api';
 
-// Base API URL
-const API_BASE_URL = 'http://localhost:8080/api';
-
-// Create axios instance with JWT interceptor
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptor to add JWT token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
 export interface MonitoringAsset {
   id: string;

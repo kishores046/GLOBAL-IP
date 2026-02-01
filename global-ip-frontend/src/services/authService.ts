@@ -1,7 +1,13 @@
 import api from './api';
 
-// Backend OAuth2 endpoints
-const OAUTH2_REDIRECT_URI = 'http://localhost:8080/oauth2/authorization';
+// Backend OAuth2 endpoints from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is not defined');
+}
+
+const OAUTH2_REDIRECT_URI = `${API_BASE_URL}/oauth2/authorization`;
 
 export interface LoginCredentials {
   email: string;

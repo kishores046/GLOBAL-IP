@@ -1,30 +1,15 @@
-import axios from 'axios';
+import api from './api';
 
-// Import the configured axios instance with JWT interceptors
-const api = axios.create({
-  baseURL: 'http://localhost:8080',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add JWT token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
 // Get API base path - use unified tracking endpoint for all roles
 const getApiBase = (): string => {
   // The backend controller at /api/tracking allows all authenticated roles
   // (ANALYST, ADMIN, USER) via @PreAuthorize("hasAnyRole('ANALYST','ADMIN','USER')")
-  return '/api/tracking';
+  return '/tracking';
 };
 
 export interface TrackingPreferences {

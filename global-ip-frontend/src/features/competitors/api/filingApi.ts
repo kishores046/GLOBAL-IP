@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import api from '../../../services/api';
 import type {
   CompetitorFilingDTO,
   PageableResponse,
@@ -17,21 +18,12 @@ import type {
   ApiErrorResponse,
 } from '../types';
 
-// Create axios instance with backend base URL
-const api = axios.create({
-  baseURL: 'http://localhost:8080',
-});
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Add JWT interceptor for authentication
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jwt_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-const API_BASE_URL = '/api/competitors/filings';
+const API_BASE_URL = '/competitors/filings';
 
 /**
  * Filing API service for filing operations and analytics

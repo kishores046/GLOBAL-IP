@@ -20,7 +20,6 @@ public interface UserRepository extends JpaRepository<User, String>, JpaSpecific
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
 
-    // ========== NEW METHODS FOR ADMIN FEATURES ==========
 
     /**
      * Find users who have NOT made any API calls since the given timestamp

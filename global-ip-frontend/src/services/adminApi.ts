@@ -3,7 +3,6 @@
  * Handles all API calls for Admin Monitoring Dashboard
  */
 
-import axios from 'axios';
 import api from './api';
 import type {
   AdminOverviewDto,
@@ -17,45 +16,12 @@ import type {
   AdminApiKeyFilters,
 } from '../types/admin';
 
-const BASE_URL = 'http://localhost:8080/api/admin';
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Create axios instance with base configuration
-const adminApiClient = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor to include JWT token
-adminApiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
-  }
-);
-
-// Add response interceptor for error handling
-adminApiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('Admin API Error:', error);
-    
-    // Handle authentication errors
-    if (error.response?.status === 401) {
-      localStorage.removeItem('jwt_token');
-      window.location.href = '/login';
-    }
-    
-    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
-  }
-);
+const API_BASE = '/admin';
 
 /**
  * Admin API Service
@@ -66,7 +32,7 @@ export const adminApi = {
    * @returns Promise<AdminOverviewDto>
    */
   getOverview: async (): Promise<AdminOverviewDto> => {
-    const { data } = await adminApiClient.get('/overview');
+    const { data } = await api.get(`${API_BASE}/overview`);
     return data;
   },
 
@@ -75,7 +41,7 @@ export const adminApi = {
    * @returns Promise<ApiHealthStatus[]>
    */
   getHealth: async (): Promise<ApiHealthStatus[]> => {
-    const { data } = await adminApiClient.get('/health');
+    const { data } = await api.get(`${API_BASE}/health`);
     return data;
   },
 
@@ -84,7 +50,7 @@ export const adminApi = {
    * @returns Promise<SystemHealthSummary>
    */
   getHealthSummary: async (): Promise<SystemHealthSummary> => {
-    const { data } = await adminApiClient.get('/health/summary');
+    const { data } = await api.get(`${API_BASE}/health/summary`);
     return data;
   },
 
@@ -93,7 +59,7 @@ export const adminApi = {
    * @returns Promise<ErrorSummaryDto[]>
    */
   getErrorSummary: async (): Promise<ErrorSummaryDto[]> => {
-    const { data } = await adminApiClient.get('/errors');
+    const { data } = await api.get(`${API_BASE}/errors`);
     return data;
   },
 
@@ -117,7 +83,7 @@ export const adminApi = {
     if (filters.size !== undefined) cleanFilters.size = filters.size;
     if (filters.sort) cleanFilters.sort = filters.sort;
 
-    const { data } = await adminApiClient.get('/usage-logs', {
+    const { data } = await api.get(`${API_BASE}/usage-logs`, {
       params: cleanFilters,
     });
     return data;
@@ -140,7 +106,7 @@ export const adminApi = {
     if (filters.startDate) cleanFilters.startDate = filters.startDate;
     if (filters.endDate) cleanFilters.endDate = filters.endDate;
 
-    const { data } = await adminApiClient.get('/usage-logs/export', {
+    const { data } = await api.get(`${API_BASE}/usage-logs/export`, {
       params: cleanFilters,
       responseType: 'blob',
     });
@@ -155,7 +121,7 @@ export const adminApi = {
    * @returns Promise<PageResponse<UserAdminDto>>
    */
   getUsers: async (params: { page?: number; size?: number }) => {
-    const { data } = await adminApiClient.get('/users', { params });
+    const { data } = await api.get(`${API_BASE}/users`, { params });
     return data;
   },
 
@@ -170,7 +136,7 @@ export const adminApi = {
     page?: number; 
     size?: number;
   }) => {
-    const { data } = await adminApiClient.get('/users/search', { params });
+    const { data } = await api.get(`${API_BASE}/users/search`, { params });
     return data;
   },
 
@@ -180,7 +146,7 @@ export const adminApi = {
    * @returns Promise<UserAdminDto>
    */
   getUser: async (userId: string) => {
-    const { data } = await adminApiClient.get(`/users/${userId}`);
+    const { data } = await api.get(`${API_BASE}/users/${userId}`);
     return data;
   },
 
@@ -190,7 +156,7 @@ export const adminApi = {
    * @returns Promise<UserActivityDto>
    */
   getUserActivity: async (userId: string) => {
-    const { data } = await adminApiClient.get(`/users/${userId}/activity`);
+    const { data } = await api.get(`${API_BASE}/users/${userId}/activity`);
     return data;
   },
 
@@ -201,7 +167,7 @@ export const adminApi = {
    * @returns Promise<UserAdminDto>
    */
   updateUserRoles: async (userId: string, roles: string[]) => {
-    const { data } = await adminApiClient.put(`/users/${userId}/roles`, roles, {
+    const { data } = await api.put(`${API_BASE}/users/${userId}/roles`, roles, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -215,7 +181,7 @@ export const adminApi = {
    * @returns Promise<void>
    */
   deleteUser: async (userId: string): Promise<void> => {
-    await adminApiClient.delete(`/users/${userId}`);
+    await api.delete(`${API_BASE}/users/${userId}`);
   },
 
   /**
@@ -233,7 +199,7 @@ export const adminApi = {
     location?: string;
     position?: string;
   }) => {
-    const { data } = await adminApiClient.post('/users', userData);
+    const { data } = await api.post(`${API_BASE}/users`, userData);
     return data;
   },
 
@@ -242,7 +208,7 @@ export const adminApi = {
    * @returns Promise<UserProfileResponse[]>
    */
   getInactiveUsers: async () => {
-    const { data } = await adminApiClient.get('/users/inactive');
+    const { data } = await api.get(`${API_BASE}/users/inactive`);
     return data;
   },
 
@@ -251,7 +217,7 @@ export const adminApi = {
    * @returns Promise<DashboardUserCountResponse>
    */
   getDashboardCounts: async () => {
-    const { data } = await adminApiClient.get('/dashboard/counts');
+    const { data } = await api.get(`${API_BASE}/dashboard/counts`);
     return data;
   },
 
@@ -262,7 +228,7 @@ export const adminApi = {
    * @returns Promise<BlockUserResponse>
    */
   blockUser: async (userId: string, reason: string) => {
-    const { data } = await adminApiClient.post(`/users/${userId}/block`, {
+    const { data } = await api.post(`${API_BASE}/users/${userId}/block`, {
       reason,
     });
     return data;
@@ -274,7 +240,7 @@ export const adminApi = {
    * @returns Promise<UnblockUserResponse>
    */
   unblockUser: async (userId: string) => {
-    const { data } = await adminApiClient.post(`/users/${userId}/unblock`);
+    const { data } = await api.post(`${API_BASE}/users/${userId}/unblock`);
     return data;
   },
 

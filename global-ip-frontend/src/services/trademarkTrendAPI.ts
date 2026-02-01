@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 import {
   TrademarkSummaryResponse,
   ClassificationTrendsResponse,
@@ -8,30 +8,15 @@ import {
   TrademarkTrendFilterOptions,
 } from '../types/trademark-trends';
 
-const API_BASE_URL = 'http://localhost:8080/api/trends/trademarks';
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Create dedicated axios instance for trademark trend analysis
-const trademarkTrendApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add JWT token to all requests
-trademarkTrendApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+const API_BASE = '/trends/trademarks';
 
 // Response error handling
-trademarkTrendApi.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('Trademark trend API error:', error.response?.data || error.message);
@@ -90,7 +75,7 @@ export const trademarkTrendAPI = {
 
     try {
       console.log('🔄 Fetching trademark summary...');
-      const response = await trademarkTrendApi.get<any>('/summary', {
+      const response = await api.get<any>(`${API_BASE}/summary`, {
         params: filters,
       });
       // Backend returns raw data, we need to wrap it
@@ -113,7 +98,7 @@ export const trademarkTrendAPI = {
     // Always fetch fresh data (bypass cache)
     try {
       console.log('🔄 Fetching top trademark classes (no cache)...');
-      const response = await trademarkTrendApi.get<any>('/classes/top', {
+      const response = await api.get<any>(`${API_BASE}/classes/top`, {
         params: filters,
       });
       const wrappedResponse: ClassificationTrendsResponse = {
@@ -134,7 +119,7 @@ export const trademarkTrendAPI = {
     // Always fetch fresh data (bypass cache)
     try {
       console.log('🔄 Fetching top trademark countries (no cache)...');
-      const response = await trademarkTrendApi.get<any>('/countries/top', {
+      const response = await api.get<any>(`${API_BASE}/countries/top`, {
         params: filters,
       });
       const wrappedResponse: GeographicTrendsResponse = {
@@ -161,7 +146,7 @@ export const trademarkTrendAPI = {
 
     try {
       console.log('🔄 Fetching trademark status distribution...');
-      const response = await trademarkTrendApi.get<any>('/status', {
+      const response = await api.get<any>(`${API_BASE}/status`, {
         params: filters,
       });
       // Backend returns array directly, wrap it

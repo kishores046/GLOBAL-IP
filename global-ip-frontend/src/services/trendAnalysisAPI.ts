@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 import {
   FilingTrendResponse,
   TechnologyTrendResponse,
@@ -10,46 +10,12 @@ import {
   TrendFilterOptions,
 } from '../types/trends';
 
-const API_BASE_URL = 'http://localhost:8080/api/analyst';
+// Use the centralized axios instance which is already configured with:
+// - Base URL from environment variables
+// - JWT interceptor
+// - Error handling
 
-// Create dedicated axios instance for trend analysis
-const trendApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add token to all requests
-trendApi.interceptors.request.use(
-  (config: any) => {
-    const token = localStorage.getItem('jwt_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    console.log(`[API] Making request to: ${config.baseURL}${config.url}`, { 
-      params: config.params,
-      method: config.method 
-    });
-    return config;
-  },
-  (error: any) => Promise.reject(error)
-);
-
-// Add response error logging
-trendApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('[API] Response Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-    return Promise.reject(error);
-  }
-);
+const API_BASE = '/analyst';
 
 // Cache for trend data (prevents excessive API calls)
 interface CacheEntry {
@@ -98,7 +64,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('[API] Fetching filing trends with filters:', filters);
-      const response = await trendApi.get<FilingTrendResponse>('/trend/filings', {
+      const response = await api.get<FilingTrendResponse>(`${API_BASE}/trend/filings`, {
         params: filters,
       });
       console.log('[API] Filing trends response:', response.data);
@@ -116,7 +82,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<FilingTrendResponse>('/trend/grants', {
+      const response = await api.get<FilingTrendResponse>(`${API_BASE}/trend/grants`, {
         params: filters,
       });
       setCacheData(cacheKey, response.data);
@@ -134,7 +100,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<TechnologyTrendResponse>('/trend/technologies/top', {
+      const response = await api.get<TechnologyTrendResponse>(`${API_BASE}/trend/technologies/top`, {
         params: { ...filters, limit },
       });
       setCacheData(cacheKey, response.data);
@@ -151,7 +117,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<TechnologyTrendResponse>('/trend/technologies/evolution', {
+      const response = await api.get<TechnologyTrendResponse>(`${API_BASE}/trend/technologies/evolution`, {
         params: filters,
       });
       setCacheData(cacheKey, response.data);
@@ -169,7 +135,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<AssigneeTrendResponse>('/trend/assignees/top', {
+      const response = await api.get<AssigneeTrendResponse>(`${API_BASE}/trend/assignees/top`, {
         params: { ...filters, limit },
       });
       setCacheData(cacheKey, response.data);
@@ -191,7 +157,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<CountryTrendResponse>('/trend/countries', {
+      const response = await api.get<CountryTrendResponse>(`${API_BASE}/trend/countries`, {
         params: { startDate, limit },
       });
       setCacheData(cacheKey, response.data);
@@ -209,10 +175,10 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const topCited = await trendApi.get('/trend/citations/top-cited', {
+      const topCited = await api.get(`${API_BASE}/trend/citations/top-cited`, {
         params: { limit },
       });
-      const topCiting = await trendApi.get('/trend/citations/top-citing', {
+      const topCiting = await api.get(`${API_BASE}/trend/citations/top-citing`, {
         params: { limit },
       });
 
@@ -242,7 +208,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('[API] Fetching patent type distribution');
-      const response = await trendApi.get<any[]>('/trend/patents/type-distribution');
+      const response = await api.get<any[]>(`${API_BASE}/trend/patents/type-distribution`);
       console.log('[API] Patent type distribution response:', response.data);
       setCacheData(cacheKey, response.data);
       return response.data;
@@ -262,7 +228,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('[API] Fetching claim complexity');
-      const response = await trendApi.get<any[]>('/trend/patents/claim-complexity');
+      const response = await api.get<any[]>(`${API_BASE}/trend/patents/claim-complexity`);
       console.log('[API] Claim complexity response:', response.data);
       setCacheData(cacheKey, response.data);
       return response.data;
@@ -282,7 +248,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('[API] Fetching time to grant');
-      const response = await trendApi.get<any[]>('/trend/patents/time-to-grant');
+      const response = await api.get<any[]>(`${API_BASE}/trend/patents/time-to-grant`);
       console.log('[API] Time to grant response:', response.data);
       setCacheData(cacheKey, response.data);
       return response.data;
@@ -298,13 +264,13 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const typeDistribution = await trendApi.get('/trend/patents/type-distribution', {
+      const typeDistribution = await api.get(`${API_BASE}/trend/patents/type-distribution`, {
         params: filters,
       });
-      const claimComplexity = await trendApi.get('/trend/patents/claim-complexity', {
+      const claimComplexity = await api.get(`${API_BASE}/trend/patents/claim-complexity`, {
         params: filters,
       });
-      const timeToGrant = await trendApi.get('/trend/patents/time-to-grant', {
+      const timeToGrant = await api.get(`${API_BASE}/trend/patents/time-to-grant`, {
         params: filters,
       });
 
@@ -378,7 +344,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('🌍 Fetching unified country trends from /unified/trends/countries');
-      const response = await trendApi.get<any[]>('/unified/trends/countries');
+      const response = await api.get<any[]>(`${API_BASE}/unified/trends/countries`);
       console.log('✅ Unified country trends response:', response.data);
       
       // Transform the data: combine counts and filter out WO
@@ -409,7 +375,7 @@ export const trendAnalysisAPI = {
 
     try {
       console.log('👨‍👩‍👧‍👦 Fetching EPO family trends');
-      const response = await trendApi.get<any[]>('/epo/trends/families');
+      const response = await api.get<any[]>(`${API_BASE}/epo/trends/families`);
       console.log('✅ EPO family trends response:', response.data);
       
       // Transform the data
@@ -438,7 +404,7 @@ export const trendAnalysisAPI = {
     if (cached) return cached;
 
     try {
-      const response = await trendApi.get<FilingTrendResponse>('/epo/trends/filings', {
+      const response = await api.get<FilingTrendResponse>(`${API_BASE}/epo/trends/filings`, {
         params: filters,
       });
       setCacheData(cacheKey, response.data);
@@ -456,7 +422,7 @@ export const trendAnalysisAPI = {
 
     try {
       // Backend EPO countries endpoint does not accept query params — call directly
-      const response = await trendApi.get<CountryTrendResponse>('/epo/trends/countries');
+      const response = await api.get<CountryTrendResponse>(`${API_BASE}/epo/trends/countries`);
       setCacheData(cacheKey, response.data);
       return response.data;
     } catch (error) {
@@ -472,7 +438,7 @@ export const trendAnalysisAPI = {
 
     try {
       // Backend exposes a no-params endpoint for EPO technologies
-      const response = await trendApi.get<TechnologyTrendResponse>('/epo/trends/technologies');
+      const response = await api.get<TechnologyTrendResponse>(`${API_BASE}/epo/trends/technologies`);
       setCacheData(cacheKey, response.data);
       return response.data;
     } catch (error) {
@@ -490,7 +456,7 @@ export const trendAnalysisAPI = {
 
     try {
       // Backend accepts a 'limit' request param for EPO assignees
-      const response = await trendApi.get<AssigneeTrendResponse>('/epo/trends/assignees', {
+      const response = await api.get<AssigneeTrendResponse>(`${API_BASE}/epo/trends/assignees`, {
         params: { limit: safeLimit },
       });
       setCacheData(cacheKey, response.data);
