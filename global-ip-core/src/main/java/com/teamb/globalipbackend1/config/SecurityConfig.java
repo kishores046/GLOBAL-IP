@@ -130,9 +130,11 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "https://*.vercel.app",
-                "https://global-ip.onrender.com"
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "https://global-ip-frontend.vercel.app",
+                "https://global-ip.onrender.com",
+                "https://*.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
