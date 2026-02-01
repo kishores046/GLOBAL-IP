@@ -58,16 +58,21 @@ export function LoginPage() {
       // Role hierarchy: ADMIN > ANALYST > USER
       
       // Import helper functions for role-based routing
-      const { getPrimaryRole, getDashboardRouteForRole } = await import('../utils/authUtils');
+      const { getPrimaryRole, getDashboardRouteForRole, getUserProfileFromToken } = await import('../utils/authUtils');
       
-      // Get the user from context (just refreshed)
-      const primaryRole = getPrimaryRole(user?.roles || []);
+      // Extract roles from the JWT token (most reliable after login)
+      // Use JWT extraction instead of context.user because state updates are async
+      const userProfileFromToken = getUserProfileFromToken();
+      const rolesForNavigation = userProfileFromToken?.roles || response?.user?.roles || [];
+      
+      const primaryRole = getPrimaryRole(rolesForNavigation);
       const dashboardRoute = getDashboardRouteForRole(primaryRole);
       
       console.log('✅ Post-login navigation:', {
         primaryRole,
         dashboardRoute,
-        userRoles: user?.roles
+        userRoles: rolesForNavigation,
+        source: 'JWT token (most reliable after login)'
       });
       
       // Persist dashboard route for sidebar "Dashboard" button

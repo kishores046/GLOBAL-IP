@@ -24,7 +24,7 @@ public class AdminInitializer {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
-    @Profile("prod")
+    @Profile({"prod","dev"})
     public CommandLineRunner createAdminOnStartup() {
         return args -> {
 
