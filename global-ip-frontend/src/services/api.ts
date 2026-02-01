@@ -99,9 +99,11 @@ api.interceptors.response.use(
 const handleUnauthorized = () => {
   console.error('❌ 401 Unauthorized - Token expired, invalid, or blacklisted');
   
-  // Don't redirect if already on login or change-password pages
+  // Don't redirect if already on login, change-password, or register pages (public routes)
   const currentPath = window.location.pathname;
-  if (currentPath !== '/login' && currentPath !== '/change-password') {
+  const publicRoutes = ['/login', '/change-password', '/register'];
+  
+  if (!publicRoutes.includes(currentPath)) {
     // Clear all auth data
     clearAuthData();
     // Show message to user (they can see this in the login page redirect)

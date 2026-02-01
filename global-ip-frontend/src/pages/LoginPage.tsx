@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { refreshUser } = useAuth();
+  const { refreshUser, user } = useAuth();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -46,10 +46,8 @@ export function LoginPage() {
         return;
       }
       
-      // Case 2: Normal login - get user profile and update AuthContext
-      const user = await authService.getUserProfile();
-      
-      // Update AuthContext state with refreshUser
+      // Case 2: Normal login - refresh auth context to update user and token
+      // This ensures AuthContext state is in sync with localStorage before navigation
       await refreshUser();
       
       // Show success message

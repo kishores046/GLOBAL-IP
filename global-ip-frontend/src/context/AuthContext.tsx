@@ -97,10 +97,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return response as unknown as void;
       }
 
-      const userData = await authService.getUserProfile();
+      // Immediately sync token from localStorage to context
+      // This ensures context is in sync BEFORE getUserProfile is called
       const newToken = authService.getToken();
-
       setToken(newToken);
+
+      // Fetch and sync user profile
+      const userData = await authService.getUserProfile();
       setUser({ ...userData, username: userData.username || userData.email });
 
       return response as unknown as void;

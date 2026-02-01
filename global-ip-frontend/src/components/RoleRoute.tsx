@@ -24,8 +24,17 @@ export function RoleRoute({ roles, element }: RoleRouteProps) {
   }
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated || !user) {
-    console.log('RoleRoute: Not authenticated, redirecting to login');
+  // Check localStorage as fallback for race condition during login
+  const tokenFromStorage = localStorage.getItem('jwt_token');
+  const hasValidAuth = isAuthenticated || !!tokenFromStorage;
+  
+  if (!hasValidAuth || !user) {
+    console.log('RoleRoute: Not authenticated, redirecting to login', {
+      isAuthenticated,
+      hasValidAuth,
+      hasUser: !!user,
+      tokenExists: !!tokenFromStorage
+    });
     return <Navigate to="/login" replace />;
   }
 

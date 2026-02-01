@@ -33,6 +33,7 @@ function decodeJwt(token: string): JwtPayload | null {
 /**
  * Check if JWT token is expired
  * Returns true if token is missing, invalid, or expired
+ * Includes 5-second buffer for clock skew between client and server
  */
 export function isTokenExpired(): boolean {
   const token = localStorage.getItem('jwt_token');
@@ -50,7 +51,9 @@ export function isTokenExpired(): boolean {
   }
   
   const currentTime = Date.now() / 1000;
-  const isExpired = decoded.exp < currentTime;
+  // Add 5-second buffer for clock skew - prevents rejection of freshly issued tokens
+  const expiryWithBuffer = decoded.exp - 5;
+  const isExpired = currentTime > expiryWithBuffer;
   
   if (isExpired) {
     console.log('🔐 Token expired:', {
