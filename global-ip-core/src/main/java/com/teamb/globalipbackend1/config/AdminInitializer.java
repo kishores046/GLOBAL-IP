@@ -54,7 +54,7 @@ public class AdminInitializer {
                     Set.of(adminRole)
             );
 
-            admin.setPasswordChangeRequired(true);
+            admin.setPasswordChangeRequired(false);
 
             userRepository.save(admin);
 
